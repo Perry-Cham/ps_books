@@ -3,25 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
+import 'package:katbook_epub_reader/src/models/reading_position.dart';
 
-/// Complete widget for reading an EPUB.
-/// 
-/// This widget handles:
-/// - Loading from a URL, assets, or bytes
-/// - Loading and error states
-/// - Displaying the reader with all callbacks
-/// 
-/// Example usage:
-/// ```dart
-/// // From bytes
-/// EpubReaderScreen(epubBytes: myEpubBytes)
-/// 
-/// // From a URL
-/// EpubReaderScreen(url: 'https://example.com/book.epub')
-/// 
-/// // From assets
-/// EpubReaderScreen(assetPath: 'assets/book.epub')
-/// ```
+
 class EpubReaderScreen extends StatefulWidget {
   /// EPUB bytes to load (priority 1)
   final Uint8List? epubBytes;
@@ -68,13 +52,17 @@ class EpubReaderScreen extends StatefulWidget {
   /// Show the theme selection button
   final bool showThemeButton;
 
+  //Initial Reader Position
+  final ReadingPosition? initialPosition;
+
   const EpubReaderScreen({
     super.key,
     this.epubBytes,
     this.url,
     this.assetPath,
     this.onClose,
-    this.initialTheme = ReaderTheme.dark,
+    this.initialTheme = ReaderTheme.light,
+    this.initialPosition,
     this.initialFontSize = 16.0,
     this.contentWidthPercent = 0.70,
     this.showAppBar = true,
@@ -108,6 +96,7 @@ class EpubReaderScreenState extends State<EpubReaderScreen> {
   void initState() {
     super.initState();
     _loadEpub();
+    print(widget.initialPosition);
   }
 
   Future<void> _loadEpub() async {
@@ -255,6 +244,7 @@ class EpubReaderScreenState extends State<EpubReaderScreen> {
     return KatbookEpubReader(
       key: _readerKey,
       controller: _controller,
+      initialPosition: widget.initialPosition,
 
       // Theme and font settings
       initialTheme: widget.initialTheme,

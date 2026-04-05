@@ -66,4 +66,15 @@ class AppDatabase extends _$AppDatabase {
       page: Value(page)
     ));
   }
+
+  //Update Epub Position
+  Future updatePositionAndProgress(int id, String position){
+    return (update(book)..where((b) => b.id.equals(id))).write(BookCompanion(
+      cfi: Value(position),
+    ));}
+  //Update Epub Position
+  Future updateProgress(int id, double progress){
+    return (update(book)..where((b) => b.id.equals(id))).write(BookCompanion(
+      progress: Value(progress),
+    ));}
 }

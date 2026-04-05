@@ -7,12 +7,15 @@ import 'package:path/path.dart' as path;
 import 'package:pdfrx/pdfrx.dart';
 import 'package:ps_books/readers/epubReader.dart';
 import 'dart:io';
+import 'dart:convert';
 import './readers/pdfReader.dart';
 import 'dart:typed_data';
 
 import './helpers/pickBooks.dart';
 import 'package:ps_books/dbs/database.dart';
 import './helpers/utils.dart';
+
+import 'package:katbook_epub_reader/src/models/reading_position.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key, required this.title});
@@ -158,36 +161,41 @@ class BookCard extends StatelessWidget {
     // TODO: implement build
     return Card(
       elevation: 5,
-      child: Column(
-        children: [
-          Expanded(child: Container()),
-          Text(book.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-          Text("${book.progress.toString()}%"),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Reader(
-                        path: book.path,
-                        type: book.extension,
-                        id: book.id,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        child: Column(
+          children: [
+            Expanded(child: Container()),
+            Text(book.name, maxLines: 1, overflow: TextOverflow.fade),
+            Text("${(book.progress * 100).toStringAsFixed(2)}%"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Reader(
+                          path: book.path,
+                          type: book.extension,
+                          id: book.id,
+                          page: book.page,
+                          position: book.cfi,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: Text("Read"),
-              ),
-              ElevatedButton(
-                onPressed: () => database.deleteBook(book.id),
-                child: Text("Delete"),
-              ),
-            ],
-          ),
-        ],
+                    );
+                  },
+                  child: Text("Read"),
+                ),
+                ElevatedButton(
+                  onPressed: () => database.deleteBook(book.id),
+                  child: Text("Delete"),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -199,26 +207,50 @@ class Reader extends StatefulWidget {
     required this.type,
     required this.path,
     required this.id,
+    this.page,
+    this.position,
   });
   final String path;
   final String type;
   final int id;
- 
- @override
+  final int? page;
+  final position;
+
+  @override
   State<Reader> createState() => ReaderState();
 }
 
 class ReaderState extends State<Reader> {
-   final controller = PdfViewerController();
+  final controller = PdfViewerController();
 
-  storeBook({position, page}) {
-    
+  savePDFProgress() async {
+    int Page = controller.pageNumber ?? 1;
+    int totalPages = controller.pageCount;
+    double progress = Page / totalPages;
+    await database.updatePage(widget.id, Page);
+    await database.updateProgress(widget.id, progress);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  saveEpubPosition(position) {
+    String pos = jsonEncode(position);
+    database.updatePositionAndProgress(widget.id, pos);
+  }
+
+  saveEpubProgress(progress) {
+    database.updateProgress(widget.id, progress);
+  }
+  
+  ReadingPosition? getPosition(){
+    if(widget.position == null) return null;
+    var json = jsonDecode(widget.position);
+    ReadingPosition pos = ReadingPosition(chapterIndex: json['chapterIndex'], paragraphIndex: json['paragraphIndex'], totalParagraphs: json['totalParagraphs']);
+    return pos;
+  }
+
+
+  checkWidget() {
     if (widget.type == 'pdf') {
-      return PDF(path: widget.path, controller: controller);
+      return PDF(path: widget.path, controller: controller, page: widget.page!);
     } else if (widget.type == 'epub') {
       return FutureBuilder(
         future: convertEpubToBytes(path: widget.path),
@@ -226,7 +258,12 @@ class ReaderState extends State<Reader> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasData) {
-            return EpubReaderScreen(epubBytes: snapshot.data);
+            return EpubReaderScreen(
+              epubBytes: snapshot.data,
+              initialPosition: getPosition(),
+                  onPositionChanged: saveEpubPosition,
+                  onProgressChanged: saveEpubProgress,
+            );
           } else {
             return Center(child: Text('An error occured'));
           }
@@ -235,5 +272,20 @@ class ReaderState extends State<Reader> {
     } else {
       return Center(child: Text('Unsupported file'));
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) async {
+        // your logic here
+        if (widget.type == 'pdf') {
+          await savePDFProgress();
+        }
+        if (mounted) Navigator.pop(context);
+      },
+      canPop: true,
+      child: checkWidget(),
+    );
   }
 }
