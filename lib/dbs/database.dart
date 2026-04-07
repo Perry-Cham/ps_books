@@ -14,13 +14,33 @@ class Book extends Table {
   TextColumn get extension => text()();
   //Current page for pdfs
   IntColumn get page => integer().nullable()();
-  //Total pages for pdfs
-  IntColumn get totalPages => integer().nullable()();
   //Progress
   RealColumn get progress => real().withDefault(Constant(0.0))();
 }
 
-@DriftDatabase(tables: [Book])
+class TimetableDays extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get day => text()();
+  BoolColumn get isBreakDay => boolean().withDefault(Constant(false))();
+}
+
+class TimetableSessions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get dayId  => integer().references(TimetableDays, #id)();
+  TextColumn get start => text()();
+  TextColumn get end => text()();
+  TextColumn get subjects => text()();
+}
+
+class GoalSubjects extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get sessionId  => integer().references(TimetableSessions, #id)();
+  TextColumn get name => text()();
+  BoolColumn get isCompleted => boolean()();
+}
+
+
+@DriftDatabase(tables: [Book, TimetableDays, TimetableSessions, GoalSubjects])
 class AppDatabase extends _$AppDatabase {
   // After generating code, this class needs to define a `schemaVersion` getter
   // and a constructor telling drift where the database should be stored.
@@ -56,25 +76,30 @@ class AppDatabase extends _$AppDatabase {
   Future<int> addBook(BookData entry) {
     return into(book).insert(entry);
   }
+
   //deleteBook
-  Future deleteBook(int id){
+  Future deleteBook(int id) {
     return (delete(book)..where((b) => b.id.equals(id))).go();
   }
+
   //Update Page
-  Future updatePage(int id, int page){
-    return (update(book)..where((b) => b.id.equals(id))).write(BookCompanion(
-      page: Value(page)
-    ));
+  Future updatePage(int id, int page) {
+    return (update(
+      book,
+    )..where((b) => b.id.equals(id))).write(BookCompanion(page: Value(page)));
   }
 
   //Update Epub Position
-  Future updatePositionAndProgress(int id, String position){
-    return (update(book)..where((b) => b.id.equals(id))).write(BookCompanion(
-      cfi: Value(position),
-    ));}
+  Future updatePositionAndProgress(int id, String position) {
+    return (update(book)..where((b) => b.id.equals(id))).write(
+      BookCompanion(cfi: Value(position)),
+    );
+  }
+
   //Update Epub Position
-  Future updateProgress(int id, double progress){
-    return (update(book)..where((b) => b.id.equals(id))).write(BookCompanion(
-      progress: Value(progress),
-    ));}
+  Future updateProgress(int id, double progress) {
+    return (update(book)..where((b) => b.id.equals(id))).write(
+      BookCompanion(progress: Value(progress)),
+    );
+  }
 }

@@ -12,8 +12,8 @@ import './readers/pdfReader.dart';
 import 'dart:typed_data';
 
 import './helpers/pickBooks.dart';
-import 'package:ps_books/dbs/database.dart';
 import './helpers/utils.dart';
+import 'package:ps_books/dbs/database.dart';
 
 import 'package:katbook_epub_reader/src/models/reading_position.dart';
 
@@ -159,42 +159,56 @@ class BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return Card(
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        child: Column(
-          children: [
-            Expanded(child: Container()),
-            Text(book.name, maxLines: 1, overflow: TextOverflow.fade),
-            Text("${(book.progress * 100).toStringAsFixed(2)}%"),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Reader(
-                          path: book.path,
-                          type: book.extension,
-                          id: book.id,
-                          page: book.page,
-                          position: book.cfi,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Text("Read"),
-                ),
-                ElevatedButton(
-                  onPressed: () => database.deleteBook(book.id),
-                  child: Text("Delete"),
-                ),
-              ],
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Reader(
+              path: book.path,
+              type: book.extension,
+              id: book.id,
+              page: book.page,
+              position: book.cfi,
             ),
-          ],
+          ),
+        );
+      },
+      child: Card(
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: Column(
+            children: [
+              Expanded(child: Container()),
+              Text(book.name, maxLines: 1, overflow: TextOverflow.fade),
+              Text("${(book.progress * 100).toStringAsFixed(2)}%"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      await deleteBook(path: book.path, id: book.id);
+                      showDialog(context: context, builder: (context){
+                        return AlertDialog(
+                          title: Text('Book(s) Deleted'),
+                          content: Text('Deleted Book(s)'),
+                          actions: [
+                            TextButton(onPressed: (){
+                              Navigator.pop(context);
+                            }, child: Text('Close'))
+                          ],
+                        );
+                      }
+                      
+                      );
+                      },
+                    child: Text("Delete"),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -239,14 +253,17 @@ class ReaderState extends State<Reader> {
   saveEpubProgress(progress) {
     database.updateProgress(widget.id, progress);
   }
-  
-  ReadingPosition? getPosition(){
-    if(widget.position == null) return null;
+
+  ReadingPosition? getPosition() {
+    if (widget.position == null) return null;
     var json = jsonDecode(widget.position);
-    ReadingPosition pos = ReadingPosition(chapterIndex: json['chapterIndex'], paragraphIndex: json['paragraphIndex'], totalParagraphs: json['totalParagraphs']);
+    ReadingPosition pos = ReadingPosition(
+      chapterIndex: json['chapterIndex'],
+      paragraphIndex: json['paragraphIndex'],
+      totalParagraphs: json['totalParagraphs'],
+    );
     return pos;
   }
-
 
   checkWidget() {
     if (widget.type == 'pdf') {
@@ -261,8 +278,8 @@ class ReaderState extends State<Reader> {
             return EpubReaderScreen(
               epubBytes: snapshot.data,
               initialPosition: getPosition(),
-                  onPositionChanged: saveEpubPosition,
-                  onProgressChanged: saveEpubProgress,
+              onPositionChanged: saveEpubPosition,
+              onProgressChanged: saveEpubProgress,
             );
           } else {
             return Center(child: Text('An error occured'));

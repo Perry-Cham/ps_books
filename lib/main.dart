@@ -3,8 +3,10 @@ import './layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
 
+
 //Routes
 import 'home.dart';
+import 'routes/study.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,7 +30,7 @@ class MyApp extends StatelessWidget {
           ),
           GoRoute(
             path: '/goals',
-            builder: (context, state) => const Text('goals page'),
+            builder: (context, state) => StudyPage(),
           ),
           GoRoute(
             path: '/study',

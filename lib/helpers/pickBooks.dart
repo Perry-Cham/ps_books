@@ -1,14 +1,16 @@
+import 'package:dart_pdf_reader/dart_pdf_reader.dart';
 import 'package:drift/drift.dart';
-import 'package:dart_pdf_reader/dart_pdf_reader_io.dart';
-import 'package:drift/drift.dart';
+import 'dart:ui';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:dart_pdf_reader/dart_pdf_reader.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io';
 import 'package:ps_books/dbs/database.dart';
- final database = AppDatabase();
+import 'package:ps_books/dbs/initdb.dart';
+final database = DBProvider().db;
+
 class Pick_Books {
   Future<Message> pickbooks() async {
     try {
@@ -40,16 +42,7 @@ class Pick_Books {
         String extension = file.name.split('.').last;
         if (extension == 'pdf') {
           print("start of pdf code");
-        /*  final stream = FileStream(sourceFile.openSync());
-          final parser = PDFParser(stream);
-          final document = await parser.parse();
-
-          //Get relevant data
-          final catalog = await document.catalog;
-          final pages = await catalog.getPages();*/
-          int pageCount = 870;
-
-          print("this is for the pdfs ${pageCount}");
+     
           await database
               .into(database.book)
               .insert(
@@ -57,7 +50,6 @@ class Pick_Books {
                   name: file.name.split('.')[0],
                   path: destinationPath,
                   extension: extension,
-                  totalPages: Value(pageCount),
                   page: Value(1),
                 ),
               );
