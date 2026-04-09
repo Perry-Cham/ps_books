@@ -1036,12 +1036,12 @@ class TimetableSessionsCompanion extends UpdateCompanion<TimetableSession> {
   }
 }
 
-class $GoalSubjectsTable extends GoalSubjects
-    with TableInfo<$GoalSubjectsTable, GoalSubject> {
+class $TargetSubjectsTable extends TargetSubjects
+    with TableInfo<$TargetSubjectsTable, TargetSubject> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $GoalSubjectsTable(this.attachedDatabase, [this._alias]);
+  $TargetSubjectsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -1055,18 +1055,193 @@ class $GoalSubjectsTable extends GoalSubjects
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
-    'sessionId',
-  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
-  late final GeneratedColumn<int> sessionId = GeneratedColumn<int>(
-    'session_id',
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'target_subjects';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TargetSubject> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TargetSubject map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TargetSubject(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  $TargetSubjectsTable createAlias(String alias) {
+    return $TargetSubjectsTable(attachedDatabase, alias);
+  }
+}
+
+class TargetSubject extends DataClass implements Insertable<TargetSubject> {
+  final int id;
+  final String name;
+  const TargetSubject({required this.id, required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  TargetSubjectsCompanion toCompanion(bool nullToAbsent) {
+    return TargetSubjectsCompanion(id: Value(id), name: Value(name));
+  }
+
+  factory TargetSubject.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TargetSubject(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  TargetSubject copyWith({int? id, String? name}) =>
+      TargetSubject(id: id ?? this.id, name: name ?? this.name);
+  TargetSubject copyWithCompanion(TargetSubjectsCompanion data) {
+    return TargetSubject(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TargetSubject(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TargetSubject &&
+          other.id == this.id &&
+          other.name == this.name);
+}
+
+class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
+  final Value<int> id;
+  final Value<String> name;
+  const TargetSubjectsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+  });
+  TargetSubjectsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+  }) : name = Value(name);
+  static Insertable<TargetSubject> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+    });
+  }
+
+  TargetSubjectsCompanion copyWith({Value<int>? id, Value<String>? name}) {
+    return TargetSubjectsCompanion(id: id ?? this.id, name: name ?? this.name);
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TargetSubjectsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TargetTopicsTable extends TargetTopics
+    with TableInfo<$TargetTopicsTable, TargetTopic> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TargetTopicsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES timetable_sessions (id)',
+      'PRIMARY KEY AUTOINCREMENT',
     ),
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
@@ -1092,30 +1267,36 @@ class $GoalSubjectsTable extends GoalSubjects
       'CHECK ("is_completed" IN (0, 1))',
     ),
   );
+  static const VerificationMeta _subjectIdMeta = const VerificationMeta(
+    'subjectId',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, sessionId, name, isCompleted];
+  late final GeneratedColumn<int> subjectId = GeneratedColumn<int>(
+    'subject_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES target_subjects (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, isCompleted, subjectId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'goal_subjects';
+  static const String $name = 'target_topics';
   @override
   VerificationContext validateIntegrity(
-    Insertable<GoalSubject> instance, {
+    Insertable<TargetTopic> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('session_id')) {
-      context.handle(
-        _sessionIdMeta,
-        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sessionIdMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -1136,22 +1317,26 @@ class $GoalSubjectsTable extends GoalSubjects
     } else if (isInserting) {
       context.missing(_isCompletedMeta);
     }
+    if (data.containsKey('subject_id')) {
+      context.handle(
+        _subjectIdMeta,
+        subjectId.isAcceptableOrUnknown(data['subject_id']!, _subjectIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_subjectIdMeta);
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  GoalSubject map(Map<String, dynamic> data, {String? tablePrefix}) {
+  TargetTopic map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return GoalSubject(
+    return TargetTopic(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
-      )!,
-      sessionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}session_id'],
       )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1161,55 +1346,59 @@ class $GoalSubjectsTable extends GoalSubjects
         DriftSqlType.bool,
         data['${effectivePrefix}is_completed'],
       )!,
+      subjectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}subject_id'],
+      )!,
     );
   }
 
   @override
-  $GoalSubjectsTable createAlias(String alias) {
-    return $GoalSubjectsTable(attachedDatabase, alias);
+  $TargetTopicsTable createAlias(String alias) {
+    return $TargetTopicsTable(attachedDatabase, alias);
   }
 }
 
-class GoalSubject extends DataClass implements Insertable<GoalSubject> {
+class TargetTopic extends DataClass implements Insertable<TargetTopic> {
   final int id;
-  final int sessionId;
   final String name;
   final bool isCompleted;
-  const GoalSubject({
+  final int subjectId;
+  const TargetTopic({
     required this.id,
-    required this.sessionId,
     required this.name,
     required this.isCompleted,
+    required this.subjectId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['session_id'] = Variable<int>(sessionId);
     map['name'] = Variable<String>(name);
     map['is_completed'] = Variable<bool>(isCompleted);
+    map['subject_id'] = Variable<int>(subjectId);
     return map;
   }
 
-  GoalSubjectsCompanion toCompanion(bool nullToAbsent) {
-    return GoalSubjectsCompanion(
+  TargetTopicsCompanion toCompanion(bool nullToAbsent) {
+    return TargetTopicsCompanion(
       id: Value(id),
-      sessionId: Value(sessionId),
       name: Value(name),
       isCompleted: Value(isCompleted),
+      subjectId: Value(subjectId),
     );
   }
 
-  factory GoalSubject.fromJson(
+  factory TargetTopic.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return GoalSubject(
+    return TargetTopic(
       id: serializer.fromJson<int>(json['id']),
-      sessionId: serializer.fromJson<int>(json['sessionId']),
       name: serializer.fromJson<String>(json['name']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
+      subjectId: serializer.fromJson<int>(json['subjectId']),
     );
   }
   @override
@@ -1217,101 +1406,101 @@ class GoalSubject extends DataClass implements Insertable<GoalSubject> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'sessionId': serializer.toJson<int>(sessionId),
       'name': serializer.toJson<String>(name),
       'isCompleted': serializer.toJson<bool>(isCompleted),
+      'subjectId': serializer.toJson<int>(subjectId),
     };
   }
 
-  GoalSubject copyWith({
+  TargetTopic copyWith({
     int? id,
-    int? sessionId,
     String? name,
     bool? isCompleted,
-  }) => GoalSubject(
+    int? subjectId,
+  }) => TargetTopic(
     id: id ?? this.id,
-    sessionId: sessionId ?? this.sessionId,
     name: name ?? this.name,
     isCompleted: isCompleted ?? this.isCompleted,
+    subjectId: subjectId ?? this.subjectId,
   );
-  GoalSubject copyWithCompanion(GoalSubjectsCompanion data) {
-    return GoalSubject(
+  TargetTopic copyWithCompanion(TargetTopicsCompanion data) {
+    return TargetTopic(
       id: data.id.present ? data.id.value : this.id,
-      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
       name: data.name.present ? data.name.value : this.name,
       isCompleted: data.isCompleted.present
           ? data.isCompleted.value
           : this.isCompleted,
+      subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('GoalSubject(')
+    return (StringBuffer('TargetTopic(')
           ..write('id: $id, ')
-          ..write('sessionId: $sessionId, ')
           ..write('name: $name, ')
-          ..write('isCompleted: $isCompleted')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('subjectId: $subjectId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, sessionId, name, isCompleted);
+  int get hashCode => Object.hash(id, name, isCompleted, subjectId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is GoalSubject &&
+      (other is TargetTopic &&
           other.id == this.id &&
-          other.sessionId == this.sessionId &&
           other.name == this.name &&
-          other.isCompleted == this.isCompleted);
+          other.isCompleted == this.isCompleted &&
+          other.subjectId == this.subjectId);
 }
 
-class GoalSubjectsCompanion extends UpdateCompanion<GoalSubject> {
+class TargetTopicsCompanion extends UpdateCompanion<TargetTopic> {
   final Value<int> id;
-  final Value<int> sessionId;
   final Value<String> name;
   final Value<bool> isCompleted;
-  const GoalSubjectsCompanion({
+  final Value<int> subjectId;
+  const TargetTopicsCompanion({
     this.id = const Value.absent(),
-    this.sessionId = const Value.absent(),
     this.name = const Value.absent(),
     this.isCompleted = const Value.absent(),
+    this.subjectId = const Value.absent(),
   });
-  GoalSubjectsCompanion.insert({
+  TargetTopicsCompanion.insert({
     this.id = const Value.absent(),
-    required int sessionId,
     required String name,
     required bool isCompleted,
-  }) : sessionId = Value(sessionId),
-       name = Value(name),
-       isCompleted = Value(isCompleted);
-  static Insertable<GoalSubject> custom({
+    required int subjectId,
+  }) : name = Value(name),
+       isCompleted = Value(isCompleted),
+       subjectId = Value(subjectId);
+  static Insertable<TargetTopic> custom({
     Expression<int>? id,
-    Expression<int>? sessionId,
     Expression<String>? name,
     Expression<bool>? isCompleted,
+    Expression<int>? subjectId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (sessionId != null) 'session_id': sessionId,
       if (name != null) 'name': name,
       if (isCompleted != null) 'is_completed': isCompleted,
+      if (subjectId != null) 'subject_id': subjectId,
     });
   }
 
-  GoalSubjectsCompanion copyWith({
+  TargetTopicsCompanion copyWith({
     Value<int>? id,
-    Value<int>? sessionId,
     Value<String>? name,
     Value<bool>? isCompleted,
+    Value<int>? subjectId,
   }) {
-    return GoalSubjectsCompanion(
+    return TargetTopicsCompanion(
       id: id ?? this.id,
-      sessionId: sessionId ?? this.sessionId,
       name: name ?? this.name,
       isCompleted: isCompleted ?? this.isCompleted,
+      subjectId: subjectId ?? this.subjectId,
     );
   }
 
@@ -1321,25 +1510,25 @@ class GoalSubjectsCompanion extends UpdateCompanion<GoalSubject> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (sessionId.present) {
-      map['session_id'] = Variable<int>(sessionId.value);
-    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
     if (isCompleted.present) {
       map['is_completed'] = Variable<bool>(isCompleted.value);
     }
+    if (subjectId.present) {
+      map['subject_id'] = Variable<int>(subjectId.value);
+    }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('GoalSubjectsCompanion(')
+    return (StringBuffer('TargetTopicsCompanion(')
           ..write('id: $id, ')
-          ..write('sessionId: $sessionId, ')
           ..write('name: $name, ')
-          ..write('isCompleted: $isCompleted')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('subjectId: $subjectId')
           ..write(')'))
         .toString();
   }
@@ -1352,7 +1541,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TimetableDaysTable timetableDays = $TimetableDaysTable(this);
   late final $TimetableSessionsTable timetableSessions =
       $TimetableSessionsTable(this);
-  late final $GoalSubjectsTable goalSubjects = $GoalSubjectsTable(this);
+  late final $TargetSubjectsTable targetSubjects = $TargetSubjectsTable(this);
+  late final $TargetTopicsTable targetTopics = $TargetTopicsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1361,7 +1551,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     book,
     timetableDays,
     timetableSessions,
-    goalSubjects,
+    targetSubjects,
+    targetTopics,
   ];
 }
 
@@ -1909,27 +2100,6 @@ final class $$TimetableSessionsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
-
-  static MultiTypedResultKey<$GoalSubjectsTable, List<GoalSubject>>
-  _goalSubjectsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.goalSubjects,
-    aliasName: $_aliasNameGenerator(
-      db.timetableSessions.id,
-      db.goalSubjects.sessionId,
-    ),
-  );
-
-  $$GoalSubjectsTableProcessedTableManager get goalSubjectsRefs {
-    final manager = $$GoalSubjectsTableTableManager(
-      $_db,
-      $_db.goalSubjects,
-    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_goalSubjectsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
 }
 
 class $$TimetableSessionsTableFilterComposer
@@ -1982,31 +2152,6 @@ class $$TimetableSessionsTableFilterComposer
           ),
     );
     return composer;
-  }
-
-  Expression<bool> goalSubjectsRefs(
-    Expression<bool> Function($$GoalSubjectsTableFilterComposer f) f,
-  ) {
-    final $$GoalSubjectsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.goalSubjects,
-      getReferencedColumn: (t) => t.sessionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$GoalSubjectsTableFilterComposer(
-            $db: $db,
-            $table: $db.goalSubjects,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
   }
 }
 
@@ -2106,31 +2251,6 @@ class $$TimetableSessionsTableAnnotationComposer
     );
     return composer;
   }
-
-  Expression<T> goalSubjectsRefs<T extends Object>(
-    Expression<T> Function($$GoalSubjectsTableAnnotationComposer a) f,
-  ) {
-    final $$GoalSubjectsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.goalSubjects,
-      getReferencedColumn: (t) => t.sessionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$GoalSubjectsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.goalSubjects,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$TimetableSessionsTableTableManager
@@ -2146,7 +2266,7 @@ class $$TimetableSessionsTableTableManager
           $$TimetableSessionsTableUpdateCompanionBuilder,
           (TimetableSession, $$TimetableSessionsTableReferences),
           TimetableSession,
-          PrefetchHooks Function({bool dayId, bool goalSubjectsRefs})
+          PrefetchHooks Function({bool dayId})
         > {
   $$TimetableSessionsTableTableManager(
     _$AppDatabase db,
@@ -2200,10 +2320,10 @@ class $$TimetableSessionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({dayId = false, goalSubjectsRefs = false}) {
+          prefetchHooksCallback: ({dayId = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (goalSubjectsRefs) db.goalSubjects],
+              explicitlyWatchedTables: [],
               addJoins:
                   <
                     T extends TableManagerState<
@@ -2239,27 +2359,7 @@ class $$TimetableSessionsTableTableManager
                     return state;
                   },
               getPrefetchedDataCallback: (items) async {
-                return [
-                  if (goalSubjectsRefs)
-                    await $_getPrefetchedData<
-                      TimetableSession,
-                      $TimetableSessionsTable,
-                      GoalSubject
-                    >(
-                      currentTable: table,
-                      referencedTable: $$TimetableSessionsTableReferences
-                          ._goalSubjectsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$TimetableSessionsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).goalSubjectsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.sessionId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+                return [];
               },
             );
           },
@@ -2279,43 +2379,273 @@ typedef $$TimetableSessionsTableProcessedTableManager =
       $$TimetableSessionsTableUpdateCompanionBuilder,
       (TimetableSession, $$TimetableSessionsTableReferences),
       TimetableSession,
-      PrefetchHooks Function({bool dayId, bool goalSubjectsRefs})
+      PrefetchHooks Function({bool dayId})
     >;
-typedef $$GoalSubjectsTableCreateCompanionBuilder =
-    GoalSubjectsCompanion Function({
-      Value<int> id,
-      required int sessionId,
-      required String name,
-      required bool isCompleted,
-    });
-typedef $$GoalSubjectsTableUpdateCompanionBuilder =
-    GoalSubjectsCompanion Function({
-      Value<int> id,
-      Value<int> sessionId,
-      Value<String> name,
-      Value<bool> isCompleted,
-    });
+typedef $$TargetSubjectsTableCreateCompanionBuilder =
+    TargetSubjectsCompanion Function({Value<int> id, required String name});
+typedef $$TargetSubjectsTableUpdateCompanionBuilder =
+    TargetSubjectsCompanion Function({Value<int> id, Value<String> name});
 
-final class $$GoalSubjectsTableReferences
-    extends BaseReferences<_$AppDatabase, $GoalSubjectsTable, GoalSubject> {
-  $$GoalSubjectsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+final class $$TargetSubjectsTableReferences
+    extends BaseReferences<_$AppDatabase, $TargetSubjectsTable, TargetSubject> {
+  $$TargetSubjectsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
 
-  static $TimetableSessionsTable _sessionIdTable(_$AppDatabase db) =>
-      db.timetableSessions.createAlias(
-        $_aliasNameGenerator(
-          db.goalSubjects.sessionId,
-          db.timetableSessions.id,
+  static MultiTypedResultKey<$TargetTopicsTable, List<TargetTopic>>
+  _targetTopicsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.targetTopics,
+    aliasName: $_aliasNameGenerator(
+      db.targetSubjects.id,
+      db.targetTopics.subjectId,
+    ),
+  );
+
+  $$TargetTopicsTableProcessedTableManager get targetTopicsRefs {
+    final manager = $$TargetTopicsTableTableManager(
+      $_db,
+      $_db.targetTopics,
+    ).filter((f) => f.subjectId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_targetTopicsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TargetSubjectsTableFilterComposer
+    extends Composer<_$AppDatabase, $TargetSubjectsTable> {
+  $$TargetSubjectsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> targetTopicsRefs(
+    Expression<bool> Function($$TargetTopicsTableFilterComposer f) f,
+  ) {
+    final $$TargetTopicsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.targetTopics,
+      getReferencedColumn: (t) => t.subjectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TargetTopicsTableFilterComposer(
+            $db: $db,
+            $table: $db.targetTopics,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TargetSubjectsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TargetSubjectsTable> {
+  $$TargetSubjectsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TargetSubjectsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TargetSubjectsTable> {
+  $$TargetSubjectsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  Expression<T> targetTopicsRefs<T extends Object>(
+    Expression<T> Function($$TargetTopicsTableAnnotationComposer a) f,
+  ) {
+    final $$TargetTopicsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.targetTopics,
+      getReferencedColumn: (t) => t.subjectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TargetTopicsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.targetTopics,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TargetSubjectsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TargetSubjectsTable,
+          TargetSubject,
+          $$TargetSubjectsTableFilterComposer,
+          $$TargetSubjectsTableOrderingComposer,
+          $$TargetSubjectsTableAnnotationComposer,
+          $$TargetSubjectsTableCreateCompanionBuilder,
+          $$TargetSubjectsTableUpdateCompanionBuilder,
+          (TargetSubject, $$TargetSubjectsTableReferences),
+          TargetSubject,
+          PrefetchHooks Function({bool targetTopicsRefs})
+        > {
+  $$TargetSubjectsTableTableManager(
+    _$AppDatabase db,
+    $TargetSubjectsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TargetSubjectsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TargetSubjectsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TargetSubjectsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+              }) => TargetSubjectsCompanion(id: id, name: name),
+          createCompanionCallback:
+              ({Value<int> id = const Value.absent(), required String name}) =>
+                  TargetSubjectsCompanion.insert(id: id, name: name),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TargetSubjectsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({targetTopicsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (targetTopicsRefs) db.targetTopics],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (targetTopicsRefs)
+                    await $_getPrefetchedData<
+                      TargetSubject,
+                      $TargetSubjectsTable,
+                      TargetTopic
+                    >(
+                      currentTable: table,
+                      referencedTable: $$TargetSubjectsTableReferences
+                          ._targetTopicsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$TargetSubjectsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).targetTopicsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.subjectId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
+}
 
-  $$TimetableSessionsTableProcessedTableManager get sessionId {
-    final $_column = $_itemColumn<int>('session_id')!;
+typedef $$TargetSubjectsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TargetSubjectsTable,
+      TargetSubject,
+      $$TargetSubjectsTableFilterComposer,
+      $$TargetSubjectsTableOrderingComposer,
+      $$TargetSubjectsTableAnnotationComposer,
+      $$TargetSubjectsTableCreateCompanionBuilder,
+      $$TargetSubjectsTableUpdateCompanionBuilder,
+      (TargetSubject, $$TargetSubjectsTableReferences),
+      TargetSubject,
+      PrefetchHooks Function({bool targetTopicsRefs})
+    >;
+typedef $$TargetTopicsTableCreateCompanionBuilder =
+    TargetTopicsCompanion Function({
+      Value<int> id,
+      required String name,
+      required bool isCompleted,
+      required int subjectId,
+    });
+typedef $$TargetTopicsTableUpdateCompanionBuilder =
+    TargetTopicsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<bool> isCompleted,
+      Value<int> subjectId,
+    });
 
-    final manager = $$TimetableSessionsTableTableManager(
+final class $$TargetTopicsTableReferences
+    extends BaseReferences<_$AppDatabase, $TargetTopicsTable, TargetTopic> {
+  $$TargetTopicsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TargetSubjectsTable _subjectIdTable(_$AppDatabase db) =>
+      db.targetSubjects.createAlias(
+        $_aliasNameGenerator(db.targetTopics.subjectId, db.targetSubjects.id),
+      );
+
+  $$TargetSubjectsTableProcessedTableManager get subjectId {
+    final $_column = $_itemColumn<int>('subject_id')!;
+
+    final manager = $$TargetSubjectsTableTableManager(
       $_db,
-      $_db.timetableSessions,
+      $_db.targetSubjects,
     ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    final item = $_typedResult.readTableOrNull(_subjectIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -2323,9 +2653,9 @@ final class $$GoalSubjectsTableReferences
   }
 }
 
-class $$GoalSubjectsTableFilterComposer
-    extends Composer<_$AppDatabase, $GoalSubjectsTable> {
-  $$GoalSubjectsTableFilterComposer({
+class $$TargetTopicsTableFilterComposer
+    extends Composer<_$AppDatabase, $TargetTopicsTable> {
+  $$TargetTopicsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2347,20 +2677,20 @@ class $$GoalSubjectsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$TimetableSessionsTableFilterComposer get sessionId {
-    final $$TimetableSessionsTableFilterComposer composer = $composerBuilder(
+  $$TargetSubjectsTableFilterComposer get subjectId {
+    final $$TargetSubjectsTableFilterComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.sessionId,
-      referencedTable: $db.timetableSessions,
+      getCurrentColumn: (t) => t.subjectId,
+      referencedTable: $db.targetSubjects,
       getReferencedColumn: (t) => t.id,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$TimetableSessionsTableFilterComposer(
+          }) => $$TargetSubjectsTableFilterComposer(
             $db: $db,
-            $table: $db.timetableSessions,
+            $table: $db.targetSubjects,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2371,9 +2701,9 @@ class $$GoalSubjectsTableFilterComposer
   }
 }
 
-class $$GoalSubjectsTableOrderingComposer
-    extends Composer<_$AppDatabase, $GoalSubjectsTable> {
-  $$GoalSubjectsTableOrderingComposer({
+class $$TargetTopicsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TargetTopicsTable> {
+  $$TargetTopicsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2395,20 +2725,20 @@ class $$GoalSubjectsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$TimetableSessionsTableOrderingComposer get sessionId {
-    final $$TimetableSessionsTableOrderingComposer composer = $composerBuilder(
+  $$TargetSubjectsTableOrderingComposer get subjectId {
+    final $$TargetSubjectsTableOrderingComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.sessionId,
-      referencedTable: $db.timetableSessions,
+      getCurrentColumn: (t) => t.subjectId,
+      referencedTable: $db.targetSubjects,
       getReferencedColumn: (t) => t.id,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$TimetableSessionsTableOrderingComposer(
+          }) => $$TargetSubjectsTableOrderingComposer(
             $db: $db,
-            $table: $db.timetableSessions,
+            $table: $db.targetSubjects,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2419,9 +2749,9 @@ class $$GoalSubjectsTableOrderingComposer
   }
 }
 
-class $$GoalSubjectsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $GoalSubjectsTable> {
-  $$GoalSubjectsTableAnnotationComposer({
+class $$TargetTopicsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TargetTopicsTable> {
+  $$TargetTopicsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2439,90 +2769,89 @@ class $$GoalSubjectsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  $$TimetableSessionsTableAnnotationComposer get sessionId {
-    final $$TimetableSessionsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.sessionId,
-          referencedTable: $db.timetableSessions,
-          getReferencedColumn: (t) => t.id,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
+  $$TargetSubjectsTableAnnotationComposer get subjectId {
+    final $$TargetSubjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.subjectId,
+      referencedTable: $db.targetSubjects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TargetSubjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.targetSubjects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
                 $removeJoinBuilderFromRootComposer,
-              }) => $$TimetableSessionsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.timetableSessions,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
+          ),
+    );
     return composer;
   }
 }
 
-class $$GoalSubjectsTableTableManager
+class $$TargetTopicsTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $GoalSubjectsTable,
-          GoalSubject,
-          $$GoalSubjectsTableFilterComposer,
-          $$GoalSubjectsTableOrderingComposer,
-          $$GoalSubjectsTableAnnotationComposer,
-          $$GoalSubjectsTableCreateCompanionBuilder,
-          $$GoalSubjectsTableUpdateCompanionBuilder,
-          (GoalSubject, $$GoalSubjectsTableReferences),
-          GoalSubject,
-          PrefetchHooks Function({bool sessionId})
+          $TargetTopicsTable,
+          TargetTopic,
+          $$TargetTopicsTableFilterComposer,
+          $$TargetTopicsTableOrderingComposer,
+          $$TargetTopicsTableAnnotationComposer,
+          $$TargetTopicsTableCreateCompanionBuilder,
+          $$TargetTopicsTableUpdateCompanionBuilder,
+          (TargetTopic, $$TargetTopicsTableReferences),
+          TargetTopic,
+          PrefetchHooks Function({bool subjectId})
         > {
-  $$GoalSubjectsTableTableManager(_$AppDatabase db, $GoalSubjectsTable table)
+  $$TargetTopicsTableTableManager(_$AppDatabase db, $TargetTopicsTable table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$GoalSubjectsTableFilterComposer($db: db, $table: table),
+              $$TargetTopicsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$GoalSubjectsTableOrderingComposer($db: db, $table: table),
+              $$TargetTopicsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$GoalSubjectsTableAnnotationComposer($db: db, $table: table),
+              $$TargetTopicsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> sessionId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
-              }) => GoalSubjectsCompanion(
+                Value<int> subjectId = const Value.absent(),
+              }) => TargetTopicsCompanion(
                 id: id,
-                sessionId: sessionId,
                 name: name,
                 isCompleted: isCompleted,
+                subjectId: subjectId,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required int sessionId,
                 required String name,
                 required bool isCompleted,
-              }) => GoalSubjectsCompanion.insert(
+                required int subjectId,
+              }) => TargetTopicsCompanion.insert(
                 id: id,
-                sessionId: sessionId,
                 name: name,
                 isCompleted: isCompleted,
+                subjectId: subjectId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
                   e.readTable(table),
-                  $$GoalSubjectsTableReferences(db, table, e),
+                  $$TargetTopicsTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({sessionId = false}) {
+          prefetchHooksCallback: ({subjectId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -2542,15 +2871,15 @@ class $$GoalSubjectsTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (sessionId) {
+                    if (subjectId) {
                       state =
                           state.withJoin(
                                 currentTable: table,
-                                currentColumn: table.sessionId,
-                                referencedTable: $$GoalSubjectsTableReferences
-                                    ._sessionIdTable(db),
-                                referencedColumn: $$GoalSubjectsTableReferences
-                                    ._sessionIdTable(db)
+                                currentColumn: table.subjectId,
+                                referencedTable: $$TargetTopicsTableReferences
+                                    ._subjectIdTable(db),
+                                referencedColumn: $$TargetTopicsTableReferences
+                                    ._subjectIdTable(db)
                                     .id,
                               )
                               as T;
@@ -2567,19 +2896,19 @@ class $$GoalSubjectsTableTableManager
       );
 }
 
-typedef $$GoalSubjectsTableProcessedTableManager =
+typedef $$TargetTopicsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $GoalSubjectsTable,
-      GoalSubject,
-      $$GoalSubjectsTableFilterComposer,
-      $$GoalSubjectsTableOrderingComposer,
-      $$GoalSubjectsTableAnnotationComposer,
-      $$GoalSubjectsTableCreateCompanionBuilder,
-      $$GoalSubjectsTableUpdateCompanionBuilder,
-      (GoalSubject, $$GoalSubjectsTableReferences),
-      GoalSubject,
-      PrefetchHooks Function({bool sessionId})
+      $TargetTopicsTable,
+      TargetTopic,
+      $$TargetTopicsTableFilterComposer,
+      $$TargetTopicsTableOrderingComposer,
+      $$TargetTopicsTableAnnotationComposer,
+      $$TargetTopicsTableCreateCompanionBuilder,
+      $$TargetTopicsTableUpdateCompanionBuilder,
+      (TargetTopic, $$TargetTopicsTableReferences),
+      TargetTopic,
+      PrefetchHooks Function({bool subjectId})
     >;
 
 class $AppDatabaseManager {
@@ -2590,6 +2919,8 @@ class $AppDatabaseManager {
       $$TimetableDaysTableTableManager(_db, _db.timetableDays);
   $$TimetableSessionsTableTableManager get timetableSessions =>
       $$TimetableSessionsTableTableManager(_db, _db.timetableSessions);
-  $$GoalSubjectsTableTableManager get goalSubjects =>
-      $$GoalSubjectsTableTableManager(_db, _db.goalSubjects);
+  $$TargetSubjectsTableTableManager get targetSubjects =>
+      $$TargetSubjectsTableTableManager(_db, _db.targetSubjects);
+  $$TargetTopicsTableTableManager get targetTopics =>
+      $$TargetTopicsTableTableManager(_db, _db.targetTopics);
 }

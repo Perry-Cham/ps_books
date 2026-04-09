@@ -32,15 +32,19 @@ class TimetableSessions extends Table {
   TextColumn get subjects => text()();
 }
 
-class GoalSubjects extends Table {
+class TargetSubjects extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get sessionId  => integer().references(TimetableSessions, #id)();
   TextColumn get name => text()();
-  BoolColumn get isCompleted => boolean()();
 }
 
+class TargetTopics extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  BoolColumn get isCompleted => boolean()();
+  IntColumn get subjectId => integer().references(TargetSubjects, #id)();
+}
 
-@DriftDatabase(tables: [Book, TimetableDays, TimetableSessions, GoalSubjects])
+@DriftDatabase(tables: [Book, TimetableDays, TimetableSessions, TargetSubjects, TargetTopics])
 class AppDatabase extends _$AppDatabase {
   // After generating code, this class needs to define a `schemaVersion` getter
   // and a constructor telling drift where the database should be stored.
@@ -49,6 +53,7 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
