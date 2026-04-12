@@ -105,6 +105,15 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
             }).toList(),
           ),
         ),
+        ElevatedButton.icon(
+          onPressed: () {
+            showDialog(context: context, builder: (context){
+              return _SessionForm(dayId:  widget.timetable[_controller.index].day.id);
+            });
+          },
+          icon: Icon(Icons.add),
+          label: Text("Add Session"),
+        ),
       ],
     );
   }
@@ -179,6 +188,89 @@ class _SessionCard extends StatelessWidget {
                   .map((subject) => _SubjectPill(subject: subject))
                   .toList(),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SessionForm extends StatefulWidget {
+  _SessionForm({required this.dayId});
+  final int dayId;
+
+  @override
+  State<_SessionForm> createState() => _SessionFormState();
+}
+
+class _SessionFormState extends State<_SessionForm> {
+  late final TextEditingController start_time;
+  late final TextEditingController end_time;
+  late final TextEditingController subjects;
+
+  @override
+  void initState() {
+    super.initState();
+    start_time = TextEditingController();
+    end_time = TextEditingController();
+    subjects = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    start_time.dispose();
+    end_time.dispose();
+    subjects.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Add Session"),
+      content: Column(
+        children: [
+          Text(
+            'Add Session',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 8),
+
+          // start time
+          TextFormField(
+            decoration: const InputDecoration(labelText: 'Start time'),
+          ),
+          const SizedBox(height: 8),
+
+          // end time
+          TextFormField(
+            decoration: const InputDecoration(labelText: 'End time'),
+          ),
+          const SizedBox(height: 8),
+
+          // subjects — comma separated same as your web version
+          TextFormField(
+            decoration: const InputDecoration(
+              labelText: 'Subjects',
+              hintText: 'Mathematics, Physics',
+            ),
+          ),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  await Timetabletodb().addSession(
+                    dayId: widget.dayId,
+                    start: start_time.text,
+                    end: end_time.text,
+                    subjects: subjects.text,
+                  );
+                  Navigator.pop(context);
+                },
+                child: Text("Submit"),
+              ),
+            ],
+          ),
         ],
       ),
     );

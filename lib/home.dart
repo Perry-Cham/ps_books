@@ -237,6 +237,14 @@ class Reader extends StatefulWidget {
 class ReaderState extends State<Reader> {
   final controller = PdfViewerController();
 
+
+@override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+
   savePDFProgress() async {
     int Page = controller.pageNumber ?? 1;
     int totalPages = controller.pageCount;

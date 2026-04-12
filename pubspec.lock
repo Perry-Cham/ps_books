@@ -464,10 +464,11 @@ packages:
   katbook_epub_reader:
     dependency: "direct main"
     description:
-      name: katbook_epub_reader
-      sha256: "32f973ab1b067ddbd5d23f31ac7709f71ebc6dd109942777f3ac951e8f4d1a66"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: navigation
+      resolved-ref: "2c6a4c8aada4a4e6e48f0b38f6df0c574d10aac9"
+      url: "https://github.com/Perry-Cham/katbook_epub_reader.git"
+    source: git
     version: "2.1.2"
   leak_tracker:
     dependency: transitive

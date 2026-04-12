@@ -57,4 +57,6 @@ Future deleteSubject(int subjectId) async {
 Future deleteTopic(int topicId) {
   return (db.delete(db.targetTopics)..where((t) => t.id.equals(topicId))).go();
 }
+
+
 }
