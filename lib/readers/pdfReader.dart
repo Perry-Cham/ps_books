@@ -52,10 +52,12 @@ class PDF extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Reader"),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: pageNumberDisplay(pdfController: controller),
-        ),
+        bottom: controller.isReady
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(50),
+                child: pageNumberDisplay(pdfController: controller),
+              )
+            : null,
         actions: [
           IconButton(
             onPressed: () {
@@ -89,7 +91,11 @@ class PDF extends StatelessWidget {
           ),
           IconButton(
             onPressed: () {
-              Navigator.pop(context);
+              if (controller.isReady) {
+                Navigator.pop(context);
+              } else {
+                return;
+              }
             },
             icon: Icon(Icons.close),
           ),
@@ -156,7 +162,10 @@ class _pageNumberDisplayState extends State<pageNumberDisplay> {
     super.initState();
     textController = TextEditingController();
     textController.text = (1).toString();
-    //widget.pdfController.addListener(_updatePage());
+    if (widget.pdfController.isReady) {
+      textController.text = (widget.pdfController?.pageNumber).toString();
+      widget.pdfController.addListener(_updatePage());
+    }
   }
 
   @override
@@ -193,7 +202,9 @@ class _pageNumberDisplayState extends State<pageNumberDisplay> {
               },
             ),
           ),
-          Text("of ${widget.pdfController.pageCount}"),
+          Text(
+            "of ${widget.pdfController.isReady ? widget.pdfController?.pageCount : "loading..."}",
+          ),
         ],
       ),
     );

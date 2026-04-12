@@ -8,7 +8,6 @@ class Timetabletodb {
   List<Day>? Timetable;
 
   insertTimetable(List<Day> timetable) async {
-    List<Day> data = timetable;
     for (var day in timetable) {
       int dayId = await (_db
           .into(_db.timetableDays)
@@ -68,6 +67,13 @@ class Timetabletodb {
     });
   }
 
+  Future<void> deleteTimetable() {
+    return _db.transaction(() async {
+      await _db.delete(_db.timetableDays).go();
+      await _db.delete(_db.timetableSessions).go();
+    });
+  }
+
   Future<bool> isTimeTableEmpty() async {
     // 1. Create a count expression
     final countExp = _db.timetableDays.id.count();
@@ -82,39 +88,109 @@ class Timetabletodb {
     return result == 0;
   }
 
-//add a session 
-Future<int> addSession({required int dayId, required String start, required String end, required String subjects}) async {
-return await (_db.into(_db.timetableSessions).insert(TimetableSessionsCompanion(dayId: Value(dayId), start: Value(start), end: Value(end), subjects: Value(subjects)
-)));
-}
+  //add a session
+  Future<int> addSession({
+    required int dayId,
+    required String start,
+    required String end,
+    required String subjects,
+  }) async {
+    print("${dayId} ${start} ${end} ${subjects}");
 
+TimetableDay day = await (_db.select(_db.timetableDays)..where((t) => t.id.equals(dayId))).getSingle();
+if(day.isBreakDay) await (_db.update(_db.timetableDays)..where((t) => t.id.equals(dayId))).write(TimetableDaysCompanion(
+  isBreakDay: Value(false)
+));
+
+    return await (_db
+        .into(_db.timetableSessions)
+        .insert(
+          TimetableSessionsCompanion(
+            dayId: Value(dayId),
+            start: Value(start),
+            end: Value(end),
+            subjects: Value(subjects),
+          ),
+        ));
+  }
 
   Future<int> deleteSession(int index) async {
     print("started");
+    // Get the session to find its dayId
+    final session = await (_db.select(_db.timetableSessions)..where((t) => t.id.equals(index))).getSingleOrNull();
+    
     int id = await (_db.delete(
       _db.timetableSessions,
     )..where((t) => t.id.equals(index))).go();
-    print(
-      "the id is ${id}"
-    );
+    print("the id is ${id}");
+    
+    // Check if day has any remaining sessions
+    if (session != null) {
+      final remainingSessions = await (_db.select(_db.timetableSessions)..where((t) => t.dayId.equals(session.dayId))).get();
+      
+      // If no sessions remain, set day as breakday
+      if (remainingSessions.isEmpty) {
+        await (_db.update(_db.timetableDays)..where((t) => t.id.equals(session.dayId))).write(
+          TimetableDaysCompanion(isBreakDay: Value(true)),
+        );
+        print("Day ${session.dayId} set as breakday");
+      }
+    }
+    
     return id;
+  }
+  
+  // Toggle breakday status - if setting to breakday, delete all sessions
+  Future<void> toggleBreakDay(int dayId) async {
+    TimetableDay day = await (_db.select(_db.timetableDays)..where((t) => t.id.equals(dayId))).getSingle();
+    
+    if (day.isBreakDay) {
+      // If currently breakday, just unset it
+      await (_db.update(_db.timetableDays)..where((t) => t.id.equals(dayId))).write(
+        TimetableDaysCompanion(isBreakDay: Value(false)),
+      );
+      print("Day $dayId set as normal day");
+    } else {
+      // If currently normal day, delete all sessions and set as breakday
+      await _db.transaction(() async {
+        // Delete all sessions for this day
+        await (_db.delete(_db.timetableSessions)..where((t) => t.dayId.equals(dayId))).go();
+        // Set day as breakday
+        await (_db.update(_db.timetableDays)..where((t) => t.id.equals(dayId))).write(
+          TimetableDaysCompanion(isBreakDay: Value(true)),
+        );
+        print("Day $dayId set as breakday with all sessions deleted");
+      });
+    }
   }
 
   Future<void> editSession(
-    int index, {
+    int id, {
     required String start,
     required String end,
     required String subjects,
   }) {
+    print("${id}, ${start}, ${end}, ${subjects}");
     return (_db.update(
       _db.timetableSessions,
-    )..where((t) => t.id.equals(index))).write(
+    )..where((t) => t.id.equals(id))).write(
       TimetableSessionsCompanion(
         start: Value(start),
         end: Value(end),
         subjects: Value(subjects),
       ),
     );
+  }
+  
+  // Get the number of sessions for a day
+  Future<int> getSessionCountForDay(int dayId) async {
+    final countExp = _db.timetableSessions.id.count();
+    final query = _db.selectOnly(_db.timetableSessions)
+      ..addColumns([countExp])
+      ..where(_db.timetableSessions.dayId.equals(dayId));
+    
+    final result = await query.map((row) => row.read(countExp)).getSingle();
+    return result ?? 0;
   }
 }
 
