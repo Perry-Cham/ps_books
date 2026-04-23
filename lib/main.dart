@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import './layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
@@ -9,7 +10,7 @@ import 'home.dart';
 import 'routes/study.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => HomePage(title: "P's Books"),
+            builder: (context, state) => HomePage(),
           ),
           GoRoute(
             path: '/goals',

@@ -80,6 +80,17 @@ class $BookTable extends Book with TableInfo<$BookTable, BookData> {
     requiredDuringInsert: false,
     defaultValue: Constant(0.0),
   );
+  static const VerificationMeta _categoriesMeta = const VerificationMeta(
+    'categories',
+  );
+  @override
+  late final GeneratedColumn<String> categories = GeneratedColumn<String>(
+    'categories',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -89,6 +100,7 @@ class $BookTable extends Book with TableInfo<$BookTable, BookData> {
     extension,
     page,
     progress,
+    categories,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -147,6 +159,12 @@ class $BookTable extends Book with TableInfo<$BookTable, BookData> {
         progress.isAcceptableOrUnknown(data['progress']!, _progressMeta),
       );
     }
+    if (data.containsKey('categories')) {
+      context.handle(
+        _categoriesMeta,
+        categories.isAcceptableOrUnknown(data['categories']!, _categoriesMeta),
+      );
+    }
     return context;
   }
 
@@ -184,6 +202,10 @@ class $BookTable extends Book with TableInfo<$BookTable, BookData> {
         DriftSqlType.double,
         data['${effectivePrefix}progress'],
       )!,
+      categories: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}categories'],
+      ),
     );
   }
 
@@ -201,6 +223,7 @@ class BookData extends DataClass implements Insertable<BookData> {
   final String extension;
   final int? page;
   final double progress;
+  final String? categories;
   const BookData({
     required this.id,
     required this.name,
@@ -209,6 +232,7 @@ class BookData extends DataClass implements Insertable<BookData> {
     required this.extension,
     this.page,
     required this.progress,
+    this.categories,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -224,6 +248,9 @@ class BookData extends DataClass implements Insertable<BookData> {
       map['page'] = Variable<int>(page);
     }
     map['progress'] = Variable<double>(progress);
+    if (!nullToAbsent || categories != null) {
+      map['categories'] = Variable<String>(categories);
+    }
     return map;
   }
 
@@ -236,6 +263,9 @@ class BookData extends DataClass implements Insertable<BookData> {
       extension: Value(extension),
       page: page == null && nullToAbsent ? const Value.absent() : Value(page),
       progress: Value(progress),
+      categories: categories == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categories),
     );
   }
 
@@ -252,6 +282,7 @@ class BookData extends DataClass implements Insertable<BookData> {
       extension: serializer.fromJson<String>(json['extension']),
       page: serializer.fromJson<int?>(json['page']),
       progress: serializer.fromJson<double>(json['progress']),
+      categories: serializer.fromJson<String?>(json['categories']),
     );
   }
   @override
@@ -265,6 +296,7 @@ class BookData extends DataClass implements Insertable<BookData> {
       'extension': serializer.toJson<String>(extension),
       'page': serializer.toJson<int?>(page),
       'progress': serializer.toJson<double>(progress),
+      'categories': serializer.toJson<String?>(categories),
     };
   }
 
@@ -276,6 +308,7 @@ class BookData extends DataClass implements Insertable<BookData> {
     String? extension,
     Value<int?> page = const Value.absent(),
     double? progress,
+    Value<String?> categories = const Value.absent(),
   }) => BookData(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -284,6 +317,7 @@ class BookData extends DataClass implements Insertable<BookData> {
     extension: extension ?? this.extension,
     page: page.present ? page.value : this.page,
     progress: progress ?? this.progress,
+    categories: categories.present ? categories.value : this.categories,
   );
   BookData copyWithCompanion(BookCompanion data) {
     return BookData(
@@ -294,6 +328,9 @@ class BookData extends DataClass implements Insertable<BookData> {
       extension: data.extension.present ? data.extension.value : this.extension,
       page: data.page.present ? data.page.value : this.page,
       progress: data.progress.present ? data.progress.value : this.progress,
+      categories: data.categories.present
+          ? data.categories.value
+          : this.categories,
     );
   }
 
@@ -306,14 +343,15 @@ class BookData extends DataClass implements Insertable<BookData> {
           ..write('cfi: $cfi, ')
           ..write('extension: $extension, ')
           ..write('page: $page, ')
-          ..write('progress: $progress')
+          ..write('progress: $progress, ')
+          ..write('categories: $categories')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, name, path, cfi, extension, page, progress);
+      Object.hash(id, name, path, cfi, extension, page, progress, categories);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -324,7 +362,8 @@ class BookData extends DataClass implements Insertable<BookData> {
           other.cfi == this.cfi &&
           other.extension == this.extension &&
           other.page == this.page &&
-          other.progress == this.progress);
+          other.progress == this.progress &&
+          other.categories == this.categories);
 }
 
 class BookCompanion extends UpdateCompanion<BookData> {
@@ -335,6 +374,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
   final Value<String> extension;
   final Value<int?> page;
   final Value<double> progress;
+  final Value<String?> categories;
   const BookCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -343,6 +383,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
     this.extension = const Value.absent(),
     this.page = const Value.absent(),
     this.progress = const Value.absent(),
+    this.categories = const Value.absent(),
   });
   BookCompanion.insert({
     this.id = const Value.absent(),
@@ -352,6 +393,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
     required String extension,
     this.page = const Value.absent(),
     this.progress = const Value.absent(),
+    this.categories = const Value.absent(),
   }) : name = Value(name),
        path = Value(path),
        extension = Value(extension);
@@ -363,6 +405,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
     Expression<String>? extension,
     Expression<int>? page,
     Expression<double>? progress,
+    Expression<String>? categories,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -372,6 +415,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
       if (extension != null) 'extension': extension,
       if (page != null) 'page': page,
       if (progress != null) 'progress': progress,
+      if (categories != null) 'categories': categories,
     });
   }
 
@@ -383,6 +427,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
     Value<String>? extension,
     Value<int?>? page,
     Value<double>? progress,
+    Value<String?>? categories,
   }) {
     return BookCompanion(
       id: id ?? this.id,
@@ -392,6 +437,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
       extension: extension ?? this.extension,
       page: page ?? this.page,
       progress: progress ?? this.progress,
+      categories: categories ?? this.categories,
     );
   }
 
@@ -419,6 +465,9 @@ class BookCompanion extends UpdateCompanion<BookData> {
     if (progress.present) {
       map['progress'] = Variable<double>(progress.value);
     }
+    if (categories.present) {
+      map['categories'] = Variable<String>(categories.value);
+    }
     return map;
   }
 
@@ -431,7 +480,8 @@ class BookCompanion extends UpdateCompanion<BookData> {
           ..write('cfi: $cfi, ')
           ..write('extension: $extension, ')
           ..write('page: $page, ')
-          ..write('progress: $progress')
+          ..write('progress: $progress, ')
+          ..write('categories: $categories')
           ..write(')'))
         .toString();
   }
@@ -1565,6 +1615,7 @@ typedef $$BookTableCreateCompanionBuilder =
       required String extension,
       Value<int?> page,
       Value<double> progress,
+      Value<String?> categories,
     });
 typedef $$BookTableUpdateCompanionBuilder =
     BookCompanion Function({
@@ -1575,6 +1626,7 @@ typedef $$BookTableUpdateCompanionBuilder =
       Value<String> extension,
       Value<int?> page,
       Value<double> progress,
+      Value<String?> categories,
     });
 
 class $$BookTableFilterComposer extends Composer<_$AppDatabase, $BookTable> {
@@ -1617,6 +1669,11 @@ class $$BookTableFilterComposer extends Composer<_$AppDatabase, $BookTable> {
 
   ColumnFilters<double> get progress => $composableBuilder(
     column: $table.progress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get categories => $composableBuilder(
+    column: $table.categories,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1663,6 +1720,11 @@ class $$BookTableOrderingComposer extends Composer<_$AppDatabase, $BookTable> {
     column: $table.progress,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get categories => $composableBuilder(
+    column: $table.categories,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BookTableAnnotationComposer
@@ -1694,6 +1756,11 @@ class $$BookTableAnnotationComposer
 
   GeneratedColumn<double> get progress =>
       $composableBuilder(column: $table.progress, builder: (column) => column);
+
+  GeneratedColumn<String> get categories => $composableBuilder(
+    column: $table.categories,
+    builder: (column) => column,
+  );
 }
 
 class $$BookTableTableManager
@@ -1731,6 +1798,7 @@ class $$BookTableTableManager
                 Value<String> extension = const Value.absent(),
                 Value<int?> page = const Value.absent(),
                 Value<double> progress = const Value.absent(),
+                Value<String?> categories = const Value.absent(),
               }) => BookCompanion(
                 id: id,
                 name: name,
@@ -1739,6 +1807,7 @@ class $$BookTableTableManager
                 extension: extension,
                 page: page,
                 progress: progress,
+                categories: categories,
               ),
           createCompanionCallback:
               ({
@@ -1749,6 +1818,7 @@ class $$BookTableTableManager
                 required String extension,
                 Value<int?> page = const Value.absent(),
                 Value<double> progress = const Value.absent(),
+                Value<String?> categories = const Value.absent(),
               }) => BookCompanion.insert(
                 id: id,
                 name: name,
@@ -1757,6 +1827,7 @@ class $$BookTableTableManager
                 extension: extension,
                 page: page,
                 progress: progress,
+                categories: categories,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

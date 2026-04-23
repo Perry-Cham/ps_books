@@ -72,7 +72,7 @@ class Timetabletodb {
       await _db.delete(_db.timetableDays).go();
       await _db.delete(_db.timetableSessions).go();
     });
-  }
+  } 
 
   Future<bool> isTimeTableEmpty() async {
     // 1. Create a count expression

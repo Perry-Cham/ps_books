@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import 'dart:io';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
+
 final database = DBProvider().db;
 
 class Pick_Books {
@@ -16,7 +17,7 @@ class Pick_Books {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
-        allowedExtensions: ['pdf', 'epub'],
+        allowedExtensions: ['pdf', 'epub', 'pptx', 'docx'],
         type: FileType.custom,
       );
       if (result == null || result.files.isEmpty) {
@@ -27,7 +28,7 @@ class Pick_Books {
       final directory = await getApplicationDocumentsDirectory();
 
       final BooksDir = Directory("${directory.path}/Books");
-     
+
       for (PlatformFile file in result.files) {
         final sourceFile = File(file.path!);
         final fileName = path.basename(file.name);
@@ -42,7 +43,7 @@ class Pick_Books {
         String extension = file.name.split('.').last;
         if (extension == 'pdf') {
           print("start of pdf code");
-     
+
           await database
               .into(database.book)
               .insert(
@@ -63,6 +64,18 @@ class Pick_Books {
                   extension: extension,
                 ),
               );
+        } else if (extension == 'docx' || extension == 'pptx') {
+          await database
+              .into(database.book)
+              .insert(
+                BookCompanion.insert(
+                  name: file.name.split('.')[0],
+                  path: destinationPath,
+                  extension: extension,
+                ),
+              );
+        } else {
+          continue;
         }
       }
       print(paths);

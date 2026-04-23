@@ -49,104 +49,99 @@ class PDF extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Reader"),
-        bottom: controller.isReady
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(50),
-                child: pageNumberDisplay(pdfController: controller),
-              )
-            : null,
-        actions: [
-          IconButton(
-            onPressed: () {
-              //   print(controller.currentZoom);
-              //  controller.zoomUp();
-              double currZoom = controller.currentZoom;
-              if (currZoom < 2.8) {
-                controller.setZoom(
-                  controller.centerPosition,
-                  (currZoom + 10 / 100),
-                );
-              } else {
-                controller.setZoom(controller.centerPosition, 2.8);
-              }
-            },
-            icon: Icon(Icons.zoom_in),
-          ),
-          IconButton(
-            onPressed: () {
-              double currZoom = controller.currentZoom;
-              if (currZoom > 1.0) {
-                controller.setZoom(
-                  controller.centerPosition,
-                  (currZoom - 10 / 100),
-                );
-              } else {
-                controller.setZoom(controller.centerPosition, 1.0);
-              }
-            },
-            icon: Icon(Icons.zoom_out),
-          ),
-          IconButton(
-            onPressed: () {
-              if (controller.isReady) {
-                Navigator.pop(context);
-              } else {
-                return;
-              }
-            },
-            icon: Icon(Icons.close),
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: ValueListenableBuilder(
-          // The controller notifies when the document is loaded
-          valueListenable: controller,
-          builder: (context, value, child) {
-            if (outline == null || outline.isEmpty) {
-              return const Center(child: Text('No outline available'));
-            }
-
-            return ListView(
-              children: [
-                const DrawerHeader(child: Text('Table of Contents')),
-                ..._buildOutlineItems(outline, context),
-              ],
-            );
-          },
+        return Scaffold(
+        appBar: AppBar(
+          title: Text("Reader"),
+          bottom: controller.isReady
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(50),
+                  child: pageNumberDisplay(pdfController: controller),
+                )
+              : null,
+          actions: [
+            IconButton(
+              onPressed: () {
+                double currZoom = controller.currentZoom;
+                if (currZoom < 2.8) {
+                  controller.setZoom(
+                    controller.centerPosition,
+                    (currZoom + 10 / 100),
+                  );
+                } else {
+                  controller.setZoom(controller.centerPosition, 2.8);
+                }
+              },
+              icon: Icon(Icons.zoom_in),
+            ),
+            IconButton(
+              onPressed: () {
+                double currZoom = controller.currentZoom;
+                if (currZoom > 1.0) {
+                  controller.setZoom(
+                    controller.centerPosition,
+                    (currZoom - 10 / 100),
+                  );
+                } else {
+                  controller.setZoom(controller.centerPosition, 1.0);
+                }
+              },
+              icon: Icon(Icons.zoom_out),
+            ),
+            IconButton(
+              onPressed: () {
+                if (controller.isReady) {
+                  Navigator.pop(context);
+                } else {
+                  return;
+                }
+              },
+              icon: Icon(Icons.close),
+            ),
+          ],
         ),
-      ),
-      body: PdfViewer.file(
-        path,
-        controller: controller,
-        params: PdfViewerParams(
-          onDocumentLoadFinished: (documentRef, loadSucceeded) {
-            if (page > 1) {
-              controller.goToPage(pageNumber: page);
-            }
-          },
-          onViewerReady: (document, controller) async {
-            outline = await document.loadOutline();
-          },
-          pageOverlaysBuilder: (context, pageRect, page) {
-            return [
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Text(
-                  page.pageNumber.toString(),
-                  style: const TextStyle(color: Colors.black),
+        drawer: Drawer(
+          child: ValueListenableBuilder(
+            // The controller notifies when the document is loaded
+            valueListenable: controller,
+            builder: (context, value, child) {
+              if (outline == null || outline.isEmpty) {
+                return const Center(child: Text('No outline available'));
+              }
+      
+              return ListView(
+                children: [
+                  const DrawerHeader(child: Text('Table of Contents')),
+                  ..._buildOutlineItems(outline, context),
+                ],
+              );
+            },
+          ),
+        ),
+        body: PdfViewer.file(
+          path,
+          controller: controller,
+          initialPageNumber:page,
+          params: PdfViewerParams(
+            onViewerReady: (document, controller) async {
+              outline = await document.loadOutline();
+            },
+            pageOverlaysBuilder: (context, pageRect, page) {
+              return [
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Text(
+                    page.pageNumber.toString(),
+                    style: const TextStyle(color: Colors.black),
+                  ),
                 ),
-              ),
-            ];
-          },
+              ];
+            },
+          ),
         ),
-      ),
-    );
+      );
+      },
   }
-}
+
 
 class pageNumberDisplay extends StatefulWidget {
   const pageNumberDisplay({super.key, required this.pdfController});

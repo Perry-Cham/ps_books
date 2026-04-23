@@ -1,11 +1,14 @@
 import 'package:dart_pdf_reader/dart_pdf_reader_io.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:microsoft_viewer/microsoft_viewer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dart_pdf_reader/dart_pdf_reader.dart';
 import 'package:path/path.dart' as path;
 import 'package:pdfrx/pdfrx.dart';
 import 'package:ps_books/readers/epubReader.dart';
+import 'package:ps_books/state/library_state.dart';
 import 'dart:io';
 import 'dart:convert';
 import './readers/pdfReader.dart';
@@ -14,15 +17,18 @@ import 'dart:typed_data';
 import './helpers/pickBooks.dart';
 import './helpers/utils.dart';
 import 'package:ps_books/dbs/database.dart';
+import 'package:ps_books/services/bookToDb.dart';
 
 import 'package:katbook_epub_reader/src/models/reading_position.dart';
 
-class HomePage extends StatelessWidget {
-  HomePage({super.key, required this.title});
-  final String title;
+List<int> SelectedBookIds = [];
 
+final bookService = BookToDb();
+
+class HomePage extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final library_state = ref.watch(LibraryStateProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text("Library"),
@@ -32,6 +38,12 @@ class HomePage extends StatelessWidget {
           IconButton(
             onPressed: () => print('testing'),
             icon: Icon(Icons.search),
+          ),
+          IconButton(
+            onPressed: () {
+              ref.read(LibraryStateProvider.notifier).toggleMultiSelect();
+            },
+            icon: Icon(Icons.done_all),
           ),
         ],
       ),
@@ -58,6 +70,7 @@ class PageState extends State<Page> {
       child: Column(
         spacing: 15,
         children: [
+          ControlBar(),
           FilterBar(filters: filters),
           BooksContainer(),
           Row(
@@ -152,57 +165,91 @@ class BooksContainer extends StatelessWidget {
   }
 }
 
-class BookCard extends StatelessWidget {
+class BookCard extends ConsumerStatefulWidget {
   BookCard({super.key, required this.book});
   BookData book;
+
+  @override
+  ConsumerState<BookCard> createState() {
+    return BookCardState();
+  }
+}
+
+class BookCardState extends ConsumerState<BookCard> {
+  bool selected = false;
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return InkWell(
       onTap: () {
+        final controlState = ref.watch(LibraryStateProvider);
+        print(controlState.multi_select);
+        if (controlState.multi_select) {
+          if (selected == false) {
+            setState(){
+              selected = true;
+            }
+            SelectedBookIds.add(widget.book.id);
+          } else {
+         setState(){
+              selected = true;
+            }
+            int index = SelectedBookIds.indexOf(widget.book.id);
+            SelectedBookIds.removeAt(index);
+          }
+        }else{    
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => Reader(
-              path: book.path,
-              type: book.extension,
-              id: book.id,
-              page: book.page,
-              position: book.cfi,
+              path: widget.book.path,
+              type: widget.book.extension,
+              id: widget.book.id,
+              page: widget.book.page,
+              position: widget.book.cfi,
             ),
           ),
         );
+        }
       },
       child: Card(
+        color: selected ? Colors.cyan : Colors.white,
         elevation: 5,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 15),
           child: Column(
             children: [
               Expanded(child: Container()),
-              Text(book.name, maxLines: 1, overflow: TextOverflow.fade),
-              Text("${(book.progress * 100).toStringAsFixed(2)}%"),
+              Text(widget.book.name, maxLines: 1, overflow: TextOverflow.fade),
+              Text("${(widget.book.progress * 100).toStringAsFixed(2)}%"),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      await deleteBook(path: book.path, id: book.id);
-                      showDialog(context: context, builder: (context){
-                        return AlertDialog(
-                          title: Text('Book(s) Deleted'),
-                          content: Text('Deleted Book(s)'),
-                          actions: [
-                            TextButton(onPressed: (){
-                              Navigator.pop(context);
-                            }, child: Text('Close'))
-                          ],
-                        );
-                      }
-                      
+                      await deleteBook(
+                        path: widget.book.path,
+                        id: widget.book.id,
                       );
-                      },
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text('Book(s) Deleted'),
+                            content: Text('Deleted Book(s)'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text('Close'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                     child: Text("Delete"),
                   ),
                 ],
@@ -237,13 +284,11 @@ class Reader extends StatefulWidget {
 class ReaderState extends State<Reader> {
   final controller = PdfViewerController();
 
-
-@override
+  @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
   }
-
 
   savePDFProgress() async {
     int Page = controller.pageNumber ?? 1;
@@ -275,7 +320,7 @@ class ReaderState extends State<Reader> {
 
   checkWidget() {
     if (widget.type == 'pdf') {
-      return PDF(path: widget.path, controller: controller, page: widget.page!);
+      return PDF(path: widget.path, controller: controller, page: widget.page ?? 1);
     } else if (widget.type == 'epub') {
       return FutureBuilder(
         future: convertEpubToBytes(path: widget.path),
@@ -288,6 +333,20 @@ class ReaderState extends State<Reader> {
               initialPosition: getPosition(),
               onPositionChanged: saveEpubPosition,
               onProgressChanged: saveEpubProgress,
+            );
+          } else if (widget.type == 'docx' || widget.type == 'pptx') {
+            return FutureBuilder(
+              future: File(widget.path).readAsBytes(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return MicrosoftViewer(snapshot.data!, false);
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return Text("Loading...");
+                } else {
+                  return Text("An Error has occured");
+                }
+              },
             );
           } else {
             return Center(child: Text('An error occured'));
@@ -313,4 +372,184 @@ class ReaderState extends State<Reader> {
       child: checkWidget(),
     );
   }
+}
+
+class AddToCollectionDialog extends StatefulWidget {
+  @override
+  State<AddToCollectionDialog> createState() => _AddToCollectionDialogState();
+}
+
+class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
+  final _categoryController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _categoryController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitForm() async {
+    final category = _categoryController.text.trim();
+
+    if (category.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a category name')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      for (var id in SelectedBookIds) {
+        await addToCollection(id, category);
+      }
+
+      if (mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Books added to collection successfully!'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to add books: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add to Collection'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _categoryController,
+            decoration: InputDecoration(
+              hintText: 'Enter collection name',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            enabled: !_isLoading,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _isLoading ? null : _submitForm,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Add'),
+        ),
+      ],
+    );
+  }
+}
+
+class ControlBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () async {
+            try {
+              await deleteBooks(SelectedBookIds);
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("Success"),
+                    content: Text("The operation completed successfully!"),
+                  );
+                },
+              );
+            } catch (e) {
+              print(e);
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("Error"),
+                    content: Text("The operation failed!"),
+                  );
+                },
+              );
+            }
+          },
+          icon: Icon(Icons.delete),
+          label: Text("Delete"),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AddToCollectionDialog(),
+            );
+          },
+          icon: Icon(Icons.add),
+          label: Text("Add To Collection"),
+        ),
+      ],
+    );
+  }
+}
+
+Future<void> deleteBooks(List<int> deletedBookIds) async {
+  if (deletedBookIds.isEmpty) return;
+
+  for (final id in deletedBookIds) {
+    await bookService.deleteBook(id);
+  }
+}
+
+Future<void> deleteGroup() async {
+  if (SelectedBookIds.isEmpty) return;
+
+  await deleteBooks(SelectedBookIds);
+  SelectedBookIds.clear();
+}
+
+Future<void> addToCollection(int id, String category) async {
+  await bookService.setAllCategories(category, id);
 }

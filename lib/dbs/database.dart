@@ -16,6 +16,8 @@ class Book extends Table {
   IntColumn get page => integer().nullable()();
   //Progress
   RealColumn get progress => real().withDefault(Constant(0.0))();
+  //Categories
+  TextColumn get categories => text().nullable()();
 }
 
 class TimetableDays extends Table {
