@@ -16,8 +16,13 @@ class Book extends Table {
   IntColumn get page => integer().nullable()();
   //Progress
   RealColumn get progress => real().withDefault(Constant(0.0))();
-  //Categories
-  TextColumn get categories => text().nullable()();
+  //Collections
+  IntColumn get collection => integer().references(Collections, #id).nullable()();
+}
+
+class Collections extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get  name => text()();
 }
 
 class TimetableDays extends Table {
@@ -28,7 +33,7 @@ class TimetableDays extends Table {
 
 class TimetableSessions extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get dayId  => integer().references(TimetableDays, #id)();
+  IntColumn get dayId => integer().references(TimetableDays, #id)();
   TextColumn get start => text()();
   TextColumn get end => text()();
   TextColumn get subjects => text()();
@@ -46,7 +51,15 @@ class TargetTopics extends Table {
   IntColumn get subjectId => integer().references(TargetSubjects, #id)();
 }
 
-@DriftDatabase(tables: [Book, TimetableDays, TimetableSessions, TargetSubjects, TargetTopics])
+@DriftDatabase(
+  tables: [
+    Book,
+    TimetableDays,
+    TimetableSessions,
+    TargetSubjects,
+    TargetTopics,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   // After generating code, this class needs to define a `schemaVersion` getter
   // and a constructor telling drift where the database should be stored.
@@ -55,7 +68,6 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
-
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

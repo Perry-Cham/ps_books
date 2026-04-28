@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
-class PDF extends StatelessWidget {
+class PDF extends StatefulWidget {
   PDF({
     super.key,
     required this.path,
@@ -12,6 +14,12 @@ class PDF extends StatelessWidget {
   final String path;
   final PdfViewerController controller;
   final int page;
+
+  @override
+  State<PDF> createState() => _PDFState();
+}
+
+class _PDFState extends State<PDF> {
   List<PdfOutlineNode> outline = [];
 
   // Recursive function to handle nested chapters
@@ -30,7 +38,7 @@ class PDF extends StatelessWidget {
           onTap: () {
             // Navigate to the destination page
             if (node.dest != null) {
-              controller.goToDest(node.dest!);
+              widget.controller.goToDest(node.dest!);
               Navigator.pop(context); // Close the drawer
             }
           },
@@ -49,99 +57,99 @@ class PDF extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-        return Scaffold(
-        appBar: AppBar(
-          title: Text("Reader"),
-          bottom: controller.isReady
-              ? PreferredSize(
-                  preferredSize: const Size.fromHeight(50),
-                  child: pageNumberDisplay(pdfController: controller),
-                )
-              : null,
-          actions: [
-            IconButton(
-              onPressed: () {
-                double currZoom = controller.currentZoom;
-                if (currZoom < 2.8) {
-                  controller.setZoom(
-                    controller.centerPosition,
-                    (currZoom + 10 / 100),
-                  );
-                } else {
-                  controller.setZoom(controller.centerPosition, 2.8);
-                }
-              },
-              icon: Icon(Icons.zoom_in),
-            ),
-            IconButton(
-              onPressed: () {
-                double currZoom = controller.currentZoom;
-                if (currZoom > 1.0) {
-                  controller.setZoom(
-                    controller.centerPosition,
-                    (currZoom - 10 / 100),
-                  );
-                } else {
-                  controller.setZoom(controller.centerPosition, 1.0);
-                }
-              },
-              icon: Icon(Icons.zoom_out),
-            ),
-            IconButton(
-              onPressed: () {
-                if (controller.isReady) {
-                  Navigator.pop(context);
-                } else {
-                  return;
-                }
-              },
-              icon: Icon(Icons.close),
-            ),
-          ],
-        ),
-        drawer: Drawer(
-          child: ValueListenableBuilder(
-            // The controller notifies when the document is loaded
-            valueListenable: controller,
-            builder: (context, value, child) {
-              if (outline == null || outline.isEmpty) {
-                return const Center(child: Text('No outline available'));
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Reader"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              double currZoom = widget.controller.currentZoom;
+              if (currZoom < 2.8) {
+                widget.controller.setZoom(
+                  widget.controller.centerPosition,
+                  (currZoom + 10 / 100),
+                );
+              } else {
+                widget.controller.setZoom(
+                  widget.controller.centerPosition,
+                  2.8,
+                );
               }
-      
-              return ListView(
-                children: [
-                  const DrawerHeader(child: Text('Table of Contents')),
-                  ..._buildOutlineItems(outline, context),
-                ],
-              );
             },
+            icon: Icon(Icons.zoom_in),
           ),
-        ),
-        body: PdfViewer.file(
-          path,
-          controller: controller,
-          initialPageNumber:page,
-          params: PdfViewerParams(
-            onViewerReady: (document, controller) async {
-              outline = await document.loadOutline();
+          IconButton(
+            onPressed: () {
+              double currZoom = widget.controller.currentZoom;
+              if (currZoom > 1.0) {
+                widget.controller.setZoom(
+                  widget.controller.centerPosition,
+                  (currZoom - 10 / 100),
+                );
+              } else {
+                widget.controller.setZoom(
+                  widget.controller.centerPosition,
+                  1.0,
+                );
+              }
             },
-            pageOverlaysBuilder: (context, pageRect, page) {
-              return [
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Text(
-                    page.pageNumber.toString(),
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                ),
-              ];
-            },
+            icon: Icon(Icons.zoom_out),
           ),
-        ),
-      );
-      },
-  }
+          IconButton(
+            onPressed: () {
+              if (widget.controller.isReady) {
+                Navigator.pop(context);
+              } else {
+                return;
+              }
+            },
+            icon: Icon(Icons.close),
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: ValueListenableBuilder(
+          // The controller notifies when the document is loaded
+          valueListenable: widget.controller,
+          builder: (context, value, child) {
+            if (outline == null || outline.isEmpty) {
+              return const Center(child: Text('No outline available'));
+            }
 
+            return ListView(
+              children: [
+                const DrawerHeader(child: Text('Table of Contents')),
+                ..._buildOutlineItems(outline, context),
+              ],
+            );
+          },
+        ),
+      ),
+      body: Stack(
+        children: [
+          PdfViewer.file(
+            widget.path,
+            controller: widget.controller,
+            initialPageNumber: widget.page,
+            params: PdfViewerParams(
+              onViewerReady: (document, controller) async {
+                outline = await document.loadOutline();
+                setState(() {}); // trigger rebuild now that controller is ready
+              },
+            ),
+          ),
+          if (widget.controller.isReady)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: pageNumberDisplay(pdfController: widget.controller),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class pageNumberDisplay extends StatefulWidget {
   const pageNumberDisplay({super.key, required this.pdfController});
@@ -152,14 +160,15 @@ class pageNumberDisplay extends StatefulWidget {
 
 class _pageNumberDisplayState extends State<pageNumberDisplay> {
   late final TextEditingController textController;
+  Timer? _debounceTimer;
+
   @override
   void initState() {
     super.initState();
     textController = TextEditingController();
-    textController.text = (1).toString();
+    textController.text = (widget.pdfController.pageNumber).toString();
     if (widget.pdfController.isReady) {
-      textController.text = (widget.pdfController?.pageNumber).toString();
-      widget.pdfController.addListener(_updatePage());
+      widget.pdfController.addListener(_updatePage);
     }
   }
 
@@ -176,31 +185,44 @@ class _pageNumberDisplayState extends State<pageNumberDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(5.0),
-      child: Row(
-        spacing: 5,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 50,
-            child: TextFormField(
-              controller: textController,
-              onChanged: (value) {
-                if (int.parse(value) > widget.pdfController.pageCount)
-                  widget.pdfController.goToPage(
-                    pageNumber: widget.pdfController.pageCount,
-                  );
-                if (int.parse(value) < 1)
-                  widget.pdfController.goToPage(pageNumber: 1);
-                widget.pdfController.goToPage(pageNumber: int.parse(value));
-              },
+    return Container(
+      decoration: BoxDecoration(color: Colors.white),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Row(
+          spacing: 5,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 50,
+              child: TextFormField(
+                controller: textController,
+                onChanged: (value) {
+                  _debounceTimer?.cancel();
+
+                  // start a new timer — only fires if user stops typing for 600ms
+                  _debounceTimer = Timer(const Duration(milliseconds: 1000), () {
+                    final page = int.tryParse(value);
+                    if (page == null) return;
+
+                    if (page > widget.pdfController.pageCount) {
+                      widget.pdfController.goToPage(
+                        pageNumber: widget.pdfController.pageCount,
+                      );
+                    } else if (page < 1) {
+                      widget.pdfController.goToPage(pageNumber: 1);
+                    } else {
+                      widget.pdfController.goToPage(pageNumber: page);
+                    }
+                  });
+                },
+              ),
             ),
-          ),
-          Text(
-            "of ${widget.pdfController.isReady ? widget.pdfController?.pageCount : "loading..."}",
-          ),
-        ],
+            Text(
+              "of ${widget.pdfController.isReady ? widget.pdfController.pageCount : "loading..."}",
+            ),
+          ],
+        ),
       ),
     );
   }

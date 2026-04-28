@@ -13,7 +13,7 @@ class Layout extends StatefulWidget {
 
 class LayoutState extends State<Layout> {
   bool extended = false;
-  static const destinations = ['/', '/goals', '/study'];
+  static const destinations = ['/', '/goals', '/download'];
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,7 @@ class LayoutState extends State<Layout> {
                 label: Text('Study'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.menu_book_outlined),
+                icon: Icon(Icons.search),
                 selectedIcon: Icon(Icons.menu_book),
                 label: Text('Goals'),
               ),

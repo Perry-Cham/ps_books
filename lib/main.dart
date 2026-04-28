@@ -4,10 +4,10 @@ import './layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
 
-
 //Routes
-import 'home.dart';
+import 'routes/home.dart';
 import 'routes/study.dart';
+import 'package:ps_books/routes/download.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -25,17 +25,11 @@ class MyApp extends StatelessWidget {
           return Layout(widget: child);
         },
         routes: [
+          GoRoute(path: '/', builder: (context, state) => HomePage()),
+          GoRoute(path: '/goals', builder: (context, state) => StudyPage()),
           GoRoute(
-            path: '/',
-            builder: (context, state) => HomePage(),
-          ),
-          GoRoute(
-            path: '/goals',
-            builder: (context, state) => StudyPage(),
-          ),
-          GoRoute(
-            path: '/study',
-            builder: (context, state) => const Text('study page'),
+            path: '/download',
+            builder: (context, state) => DownloadSearch(),
           ),
         ],
       ),

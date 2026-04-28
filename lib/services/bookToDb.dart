@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
 
-
 class BookToDb {
   final _db = DBProvider().db;
 
@@ -28,7 +27,9 @@ class BookToDb {
 
   //Update Page
   Future updatePage(int id, int page) {
-    return (_db.update(_db.book)..where((b) => b.id.equals(id))).write(BookCompanion(page: Value(page)));
+    return (_db.update(
+      _db.book,
+    )..where((b) => b.id.equals(id))).write(BookCompanion(page: Value(page)));
   }
 
   //Update Epub Position
@@ -46,16 +47,44 @@ class BookToDb {
   }
 
   // Update categories
-  Future updateCategories(int id, String? categories) {
+  Future updateCategories(int id, int categories) {
     return (_db.update(_db.book)..where((b) => b.id.equals(id))).write(
-      BookCompanion(categories: Value(categories)),
+      BookCompanion(collection: Value(categories)),
     );
   }
 
   // Set categories for all books
-  Future setAllCategories(String categories, int id) async {
-    await (_db.update(_db.book)..where((t) => t.id.equals(id))).write(BookCompanion(categories: Value(categories)));
+  Future<int> setBookCollection(int bookId, int collectionId) async {
+    return await (_db.update(_db.book)..where((t) => t.id.equals(bookId)))
+        .write(BookCompanion(collection: Value(collectionId)));
   }
 
-  // Add more methods as needed
+  // Get Categories Stream
+  Stream<List<Collection>> getCategories() {
+    return _db.select(_db.collections).watch();
+  }
+
+  //Get Single Collection
+  Future<Collection?> getCollection(String name) async {
+    return await (_db.select(
+      _db.collections,
+    )..where((t) => t.name.equals(name))).getSingleOrNull();
+  }
+
+  //Add Single Collection
+  Future<int> addCollection(String name) async {
+    return await (_db
+        .into(_db.collections)
+        .insert(CollectionsCompanion(name: Value(name))));
+  }
+
+  // Delete a collection and clear the reference on any books that used it.
+  Future<void> deleteCollection(int collectionId) async {
+    await (_db.update(_db.book)
+          ..where((b) => b.collection.equals(collectionId)))
+        .write(BookCompanion(collection: const Value(null)));
+    await (_db.delete(
+      _db.collections,
+    )..where((c) => c.id.equals(collectionId))).go();
+  }
 }
