@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ps_books/services/downloader.dart';
 import './layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
 
-//Routes
 import 'routes/home.dart';
 import 'routes/study.dart';
 import 'package:ps_books/routes/download.dart';
+import 'package:ps_books/routes/actual_download.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -30,6 +31,10 @@ class MyApp extends StatelessWidget {
           GoRoute(
             path: '/download',
             builder: (context, state) => DownloadSearch(),
+          ),
+          GoRoute(
+            path: '/actual_download',
+            builder: (context, state) => ActualDownloadPage(book: state.extra as DownloadBook),
           ),
         ],
       ),

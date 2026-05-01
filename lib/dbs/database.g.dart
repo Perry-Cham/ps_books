@@ -190,11 +190,11 @@ class CollectionsCompanion extends UpdateCompanion<Collection> {
   }
 }
 
-class $BookTable extends Book with TableInfo<$BookTable, BookData> {
+class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $BookTable(this.attachedDatabase, [this._alias]);
+  $BooksTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -296,10 +296,10 @@ class $BookTable extends Book with TableInfo<$BookTable, BookData> {
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'book';
+  static const String $name = 'books';
   @override
   VerificationContext validateIntegrity(
-    Insertable<BookData> instance, {
+    Insertable<Book> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -361,9 +361,9 @@ class $BookTable extends Book with TableInfo<$BookTable, BookData> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  BookData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Book map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return BookData(
+    return Book(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -400,12 +400,12 @@ class $BookTable extends Book with TableInfo<$BookTable, BookData> {
   }
 
   @override
-  $BookTable createAlias(String alias) {
-    return $BookTable(attachedDatabase, alias);
+  $BooksTable createAlias(String alias) {
+    return $BooksTable(attachedDatabase, alias);
   }
 }
 
-class BookData extends DataClass implements Insertable<BookData> {
+class Book extends DataClass implements Insertable<Book> {
   final int id;
   final String name;
   final String path;
@@ -414,7 +414,7 @@ class BookData extends DataClass implements Insertable<BookData> {
   final int? page;
   final double progress;
   final int? collection;
-  const BookData({
+  const Book({
     required this.id,
     required this.name,
     required this.path,
@@ -444,8 +444,8 @@ class BookData extends DataClass implements Insertable<BookData> {
     return map;
   }
 
-  BookCompanion toCompanion(bool nullToAbsent) {
-    return BookCompanion(
+  BooksCompanion toCompanion(bool nullToAbsent) {
+    return BooksCompanion(
       id: Value(id),
       name: Value(name),
       path: Value(path),
@@ -459,12 +459,12 @@ class BookData extends DataClass implements Insertable<BookData> {
     );
   }
 
-  factory BookData.fromJson(
+  factory Book.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return BookData(
+    return Book(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       path: serializer.fromJson<String>(json['path']),
@@ -490,7 +490,7 @@ class BookData extends DataClass implements Insertable<BookData> {
     };
   }
 
-  BookData copyWith({
+  Book copyWith({
     int? id,
     String? name,
     String? path,
@@ -499,7 +499,7 @@ class BookData extends DataClass implements Insertable<BookData> {
     Value<int?> page = const Value.absent(),
     double? progress,
     Value<int?> collection = const Value.absent(),
-  }) => BookData(
+  }) => Book(
     id: id ?? this.id,
     name: name ?? this.name,
     path: path ?? this.path,
@@ -509,8 +509,8 @@ class BookData extends DataClass implements Insertable<BookData> {
     progress: progress ?? this.progress,
     collection: collection.present ? collection.value : this.collection,
   );
-  BookData copyWithCompanion(BookCompanion data) {
-    return BookData(
+  Book copyWithCompanion(BooksCompanion data) {
+    return Book(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       path: data.path.present ? data.path.value : this.path,
@@ -526,7 +526,7 @@ class BookData extends DataClass implements Insertable<BookData> {
 
   @override
   String toString() {
-    return (StringBuffer('BookData(')
+    return (StringBuffer('Book(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('path: $path, ')
@@ -545,7 +545,7 @@ class BookData extends DataClass implements Insertable<BookData> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is BookData &&
+      (other is Book &&
           other.id == this.id &&
           other.name == this.name &&
           other.path == this.path &&
@@ -556,7 +556,7 @@ class BookData extends DataClass implements Insertable<BookData> {
           other.collection == this.collection);
 }
 
-class BookCompanion extends UpdateCompanion<BookData> {
+class BooksCompanion extends UpdateCompanion<Book> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> path;
@@ -565,7 +565,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
   final Value<int?> page;
   final Value<double> progress;
   final Value<int?> collection;
-  const BookCompanion({
+  const BooksCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.path = const Value.absent(),
@@ -575,7 +575,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
     this.progress = const Value.absent(),
     this.collection = const Value.absent(),
   });
-  BookCompanion.insert({
+  BooksCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     required String path,
@@ -587,7 +587,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
   }) : name = Value(name),
        path = Value(path),
        extension = Value(extension);
-  static Insertable<BookData> custom({
+  static Insertable<Book> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? path,
@@ -609,7 +609,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
     });
   }
 
-  BookCompanion copyWith({
+  BooksCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
     Value<String>? path,
@@ -619,7 +619,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
     Value<double>? progress,
     Value<int?>? collection,
   }) {
-    return BookCompanion(
+    return BooksCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       path: path ?? this.path,
@@ -663,7 +663,7 @@ class BookCompanion extends UpdateCompanion<BookData> {
 
   @override
   String toString() {
-    return (StringBuffer('BookCompanion(')
+    return (StringBuffer('BooksCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('path: $path, ')
@@ -1778,7 +1778,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CollectionsTable collections = $CollectionsTable(this);
-  late final $BookTable book = $BookTable(this);
+  late final $BooksTable books = $BooksTable(this);
   late final $TimetableDaysTable timetableDays = $TimetableDaysTable(this);
   late final $TimetableSessionsTable timetableSessions =
       $TimetableSessionsTable(this);
@@ -1790,7 +1790,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     collections,
-    book,
+    books,
     timetableDays,
     timetableSessions,
     targetSubjects,
@@ -1807,20 +1807,20 @@ final class $$CollectionsTableReferences
     extends BaseReferences<_$AppDatabase, $CollectionsTable, Collection> {
   $$CollectionsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$BookTable, List<BookData>> _bookRefsTable(
+  static MultiTypedResultKey<$BooksTable, List<Book>> _booksRefsTable(
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
-    db.book,
-    aliasName: $_aliasNameGenerator(db.collections.id, db.book.collection),
+    db.books,
+    aliasName: $_aliasNameGenerator(db.collections.id, db.books.collection),
   );
 
-  $$BookTableProcessedTableManager get bookRefs {
-    final manager = $$BookTableTableManager(
+  $$BooksTableProcessedTableManager get booksRefs {
+    final manager = $$BooksTableTableManager(
       $_db,
-      $_db.book,
+      $_db.books,
     ).filter((f) => f.collection.id.sqlEquals($_itemColumn<int>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_bookRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(_booksRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1846,22 +1846,22 @@ class $$CollectionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  Expression<bool> bookRefs(
-    Expression<bool> Function($$BookTableFilterComposer f) f,
+  Expression<bool> booksRefs(
+    Expression<bool> Function($$BooksTableFilterComposer f) f,
   ) {
-    final $$BookTableFilterComposer composer = $composerBuilder(
+    final $$BooksTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
-      referencedTable: $db.book,
+      referencedTable: $db.books,
       getReferencedColumn: (t) => t.collection,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$BookTableFilterComposer(
+          }) => $$BooksTableFilterComposer(
             $db: $db,
-            $table: $db.book,
+            $table: $db.books,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1907,22 +1907,22 @@ class $$CollectionsTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  Expression<T> bookRefs<T extends Object>(
-    Expression<T> Function($$BookTableAnnotationComposer a) f,
+  Expression<T> booksRefs<T extends Object>(
+    Expression<T> Function($$BooksTableAnnotationComposer a) f,
   ) {
-    final $$BookTableAnnotationComposer composer = $composerBuilder(
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
-      referencedTable: $db.book,
+      referencedTable: $db.books,
       getReferencedColumn: (t) => t.collection,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$BookTableAnnotationComposer(
+          }) => $$BooksTableAnnotationComposer(
             $db: $db,
-            $table: $db.book,
+            $table: $db.books,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1946,7 +1946,7 @@ class $$CollectionsTableTableManager
           $$CollectionsTableUpdateCompanionBuilder,
           (Collection, $$CollectionsTableReferences),
           Collection,
-          PrefetchHooks Function({bool bookRefs})
+          PrefetchHooks Function({bool booksRefs})
         > {
   $$CollectionsTableTableManager(_$AppDatabase db, $CollectionsTable table)
     : super(
@@ -1975,24 +1975,24 @@ class $$CollectionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({bookRefs = false}) {
+          prefetchHooksCallback: ({booksRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (bookRefs) db.book],
+              explicitlyWatchedTables: [if (booksRefs) db.books],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
-                  if (bookRefs)
+                  if (booksRefs)
                     await $_getPrefetchedData<
                       Collection,
                       $CollectionsTable,
-                      BookData
+                      Book
                     >(
                       currentTable: table,
                       referencedTable: $$CollectionsTableReferences
-                          ._bookRefsTable(db),
+                          ._booksRefsTable(db),
                       managerFromTypedResult: (p0) =>
-                          $$CollectionsTableReferences(db, table, p0).bookRefs,
+                          $$CollectionsTableReferences(db, table, p0).booksRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where((e) => e.collection == item.id),
                       typedResults: items,
@@ -2017,10 +2017,10 @@ typedef $$CollectionsTableProcessedTableManager =
       $$CollectionsTableUpdateCompanionBuilder,
       (Collection, $$CollectionsTableReferences),
       Collection,
-      PrefetchHooks Function({bool bookRefs})
+      PrefetchHooks Function({bool booksRefs})
     >;
-typedef $$BookTableCreateCompanionBuilder =
-    BookCompanion Function({
+typedef $$BooksTableCreateCompanionBuilder =
+    BooksCompanion Function({
       Value<int> id,
       required String name,
       required String path,
@@ -2030,8 +2030,8 @@ typedef $$BookTableCreateCompanionBuilder =
       Value<double> progress,
       Value<int?> collection,
     });
-typedef $$BookTableUpdateCompanionBuilder =
-    BookCompanion Function({
+typedef $$BooksTableUpdateCompanionBuilder =
+    BooksCompanion Function({
       Value<int> id,
       Value<String> name,
       Value<String> path,
@@ -2042,12 +2042,14 @@ typedef $$BookTableUpdateCompanionBuilder =
       Value<int?> collection,
     });
 
-final class $$BookTableReferences
-    extends BaseReferences<_$AppDatabase, $BookTable, BookData> {
-  $$BookTableReferences(super.$_db, super.$_table, super.$_typedResult);
+final class $$BooksTableReferences
+    extends BaseReferences<_$AppDatabase, $BooksTable, Book> {
+  $$BooksTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $CollectionsTable _collectionTable(_$AppDatabase db) => db.collections
-      .createAlias($_aliasNameGenerator(db.book.collection, db.collections.id));
+  static $CollectionsTable _collectionTable(_$AppDatabase db) =>
+      db.collections.createAlias(
+        $_aliasNameGenerator(db.books.collection, db.collections.id),
+      );
 
   $$CollectionsTableProcessedTableManager? get collection {
     final $_column = $_itemColumn<int>('collection');
@@ -2064,8 +2066,8 @@ final class $$BookTableReferences
   }
 }
 
-class $$BookTableFilterComposer extends Composer<_$AppDatabase, $BookTable> {
-  $$BookTableFilterComposer({
+class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
+  $$BooksTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2131,8 +2133,9 @@ class $$BookTableFilterComposer extends Composer<_$AppDatabase, $BookTable> {
   }
 }
 
-class $$BookTableOrderingComposer extends Composer<_$AppDatabase, $BookTable> {
-  $$BookTableOrderingComposer({
+class $$BooksTableOrderingComposer
+    extends Composer<_$AppDatabase, $BooksTable> {
+  $$BooksTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2198,9 +2201,9 @@ class $$BookTableOrderingComposer extends Composer<_$AppDatabase, $BookTable> {
   }
 }
 
-class $$BookTableAnnotationComposer
-    extends Composer<_$AppDatabase, $BookTable> {
-  $$BookTableAnnotationComposer({
+class $$BooksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BooksTable> {
+  $$BooksTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2252,32 +2255,32 @@ class $$BookTableAnnotationComposer
   }
 }
 
-class $$BookTableTableManager
+class $$BooksTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $BookTable,
-          BookData,
-          $$BookTableFilterComposer,
-          $$BookTableOrderingComposer,
-          $$BookTableAnnotationComposer,
-          $$BookTableCreateCompanionBuilder,
-          $$BookTableUpdateCompanionBuilder,
-          (BookData, $$BookTableReferences),
-          BookData,
+          $BooksTable,
+          Book,
+          $$BooksTableFilterComposer,
+          $$BooksTableOrderingComposer,
+          $$BooksTableAnnotationComposer,
+          $$BooksTableCreateCompanionBuilder,
+          $$BooksTableUpdateCompanionBuilder,
+          (Book, $$BooksTableReferences),
+          Book,
           PrefetchHooks Function({bool collection})
         > {
-  $$BookTableTableManager(_$AppDatabase db, $BookTable table)
+  $$BooksTableTableManager(_$AppDatabase db, $BooksTable table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$BookTableFilterComposer($db: db, $table: table),
+              $$BooksTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$BookTableOrderingComposer($db: db, $table: table),
+              $$BooksTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$BookTableAnnotationComposer($db: db, $table: table),
+              $$BooksTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -2288,7 +2291,7 @@ class $$BookTableTableManager
                 Value<int?> page = const Value.absent(),
                 Value<double> progress = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
-              }) => BookCompanion(
+              }) => BooksCompanion(
                 id: id,
                 name: name,
                 path: path,
@@ -2308,7 +2311,7 @@ class $$BookTableTableManager
                 Value<int?> page = const Value.absent(),
                 Value<double> progress = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
-              }) => BookCompanion.insert(
+              }) => BooksCompanion.insert(
                 id: id,
                 name: name,
                 path: path,
@@ -2321,7 +2324,7 @@ class $$BookTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) =>
-                    (e.readTable(table), $$BookTableReferences(db, table, e)),
+                    (e.readTable(table), $$BooksTableReferences(db, table, e)),
               )
               .toList(),
           prefetchHooksCallback: ({collection = false}) {
@@ -2349,9 +2352,9 @@ class $$BookTableTableManager
                           state.withJoin(
                                 currentTable: table,
                                 currentColumn: table.collection,
-                                referencedTable: $$BookTableReferences
+                                referencedTable: $$BooksTableReferences
                                     ._collectionTable(db),
-                                referencedColumn: $$BookTableReferences
+                                referencedColumn: $$BooksTableReferences
                                     ._collectionTable(db)
                                     .id,
                               )
@@ -2369,18 +2372,18 @@ class $$BookTableTableManager
       );
 }
 
-typedef $$BookTableProcessedTableManager =
+typedef $$BooksTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $BookTable,
-      BookData,
-      $$BookTableFilterComposer,
-      $$BookTableOrderingComposer,
-      $$BookTableAnnotationComposer,
-      $$BookTableCreateCompanionBuilder,
-      $$BookTableUpdateCompanionBuilder,
-      (BookData, $$BookTableReferences),
-      BookData,
+      $BooksTable,
+      Book,
+      $$BooksTableFilterComposer,
+      $$BooksTableOrderingComposer,
+      $$BooksTableAnnotationComposer,
+      $$BooksTableCreateCompanionBuilder,
+      $$BooksTableUpdateCompanionBuilder,
+      (Book, $$BooksTableReferences),
+      Book,
       PrefetchHooks Function({bool collection})
     >;
 typedef $$TimetableDaysTableCreateCompanionBuilder =
@@ -3519,7 +3522,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$CollectionsTableTableManager get collections =>
       $$CollectionsTableTableManager(_db, _db.collections);
-  $$BookTableTableManager get book => $$BookTableTableManager(_db, _db.book);
+  $$BooksTableTableManager get books =>
+      $$BooksTableTableManager(_db, _db.books);
   $$TimetableDaysTableTableManager get timetableDays =>
       $$TimetableDaysTableTableManager(_db, _db.timetableDays);
   $$TimetableSessionsTableTableManager get timetableSessions =>

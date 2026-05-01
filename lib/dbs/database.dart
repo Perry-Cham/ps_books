@@ -4,7 +4,7 @@ import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
-class Book extends Table {
+class Books extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   TextColumn get path => text()();
@@ -53,7 +53,8 @@ class TargetTopics extends Table {
 
 @DriftDatabase(
   tables: [
-    Book,
+    Books,
+    Collections,
     TimetableDays,
     TimetableSessions,
     TargetSubjects,
@@ -82,43 +83,43 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Or as a reactive Stream (recommended for Flutter UI)
-  Stream<List<BookData>> watchAllBooks() {
-    return select(book).watch(); // Auto-updates when data changes
+  Stream<List<Book>> watchAllBooks() {
+    return select(books).watch(); // Auto-updates when data changes
   }
 
   //Get single Book
-  Future<BookData> getBookById(int id) {
-    return (select(book)..where((t) => t.id.equals(id))).getSingle();
+  Future<Book> getBookById(int id) {
+    return (select(books)..where((t) => t.id.equals(id))).getSingle();
   }
 
   //Insert Single Book returns the generated id
-  Future<int> addBook(BookData entry) {
-    return into(book).insert(entry);
+  Future<int> addBook(Book entry) {
+    return into(books).insert(entry);
   }
 
   //deleteBook
   Future deleteBook(int id) {
-    return (delete(book)..where((b) => b.id.equals(id))).go();
+    return (delete(books)..where((b) => b.id.equals(id))).go();
   }
 
   //Update Page
   Future updatePage(int id, int page) {
     return (update(
-      book,
-    )..where((b) => b.id.equals(id))).write(BookCompanion(page: Value(page)));
+      books,
+    )..where((b) => b.id.equals(id))).write(BooksCompanion(page: Value(page)));
   }
 
   //Update Epub Position
   Future updatePositionAndProgress(int id, String position) {
-    return (update(book)..where((b) => b.id.equals(id))).write(
-      BookCompanion(cfi: Value(position)),
+    return (update(books)..where((b) => b.id.equals(id))).write(
+      BooksCompanion(cfi: Value(position)),
     );
   }
 
   //Update Epub Position
   Future updateProgress(int id, double progress) {
-    return (update(book)..where((b) => b.id.equals(id))).write(
-      BookCompanion(progress: Value(progress)),
+    return (update(books)..where((b) => b.id.equals(id))).write(
+      BooksCompanion(progress: Value(progress)),
     );
   }
 }

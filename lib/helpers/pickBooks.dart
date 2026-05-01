@@ -45,9 +45,9 @@ class Pick_Books {
           print("start of pdf code");
 
           await database
-              .into(database.book)
+              .into(database.books)
               .insert(
-                BookCompanion.insert(
+                BooksCompanion.insert(
                   name: file.name.split('.')[0],
                   path: destinationPath,
                   extension: extension,
@@ -56,9 +56,9 @@ class Pick_Books {
               );
         } else if (extension == 'epub') {
           await database
-              .into(database.book)
+              .into(database.books)
               .insert(
-                BookCompanion.insert(
+                BooksCompanion.insert(
                   name: file.name.split('.')[0],
                   path: destinationPath,
                   extension: extension,
@@ -66,9 +66,9 @@ class Pick_Books {
               );
         } else if (extension == 'docx' || extension == 'pptx') {
           await database
-              .into(database.book)
+              .into(database.books)
               .insert(
-                BookCompanion.insert(
+                BooksCompanion.insert(
                   name: file.name.split('.')[0],
                   path: destinationPath,
                   extension: extension,

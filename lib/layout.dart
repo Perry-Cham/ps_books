@@ -51,8 +51,8 @@ class LayoutState extends State<Layout> {
                 label: Text('Study'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.search),
-                selectedIcon: Icon(Icons.menu_book),
+                icon: Icon(Icons.search_outlined),
+                selectedIcon: Icon(Icons.search),
                 label: Text('Goals'),
               ),
             ],

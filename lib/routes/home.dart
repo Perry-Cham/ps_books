@@ -14,7 +14,7 @@ BookToDb bookService = BookToDb();
 class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final library_state = ref.watch(LibraryStateProvider);
+  //  final library_state = ref.watch(LibraryStateProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text("Library"),
@@ -78,7 +78,7 @@ class BooksContainer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final _library_state = ref.watch(LibraryStateProvider);
     return Expanded(
-      child: StreamBuilder<List<BookData>>(
+      child: StreamBuilder<List<Book>>(
         stream: database.watchAllBooks(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -119,7 +119,7 @@ class BooksContainer extends ConsumerWidget {
 
 class BookCard extends ConsumerStatefulWidget {
   BookCard({super.key, required this.book});
-  BookData book;
+  Book book;
 
   @override
   ConsumerState<BookCard> createState() {
