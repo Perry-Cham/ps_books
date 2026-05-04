@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/dbs/database.dart';
-import './utils.dart';
-import './dialogs.dart';
+import 'utils.dart';
+import 'dialogs.dart';
 
 
 class FilterBar extends ConsumerWidget {

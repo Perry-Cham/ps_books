@@ -5,9 +5,9 @@ import 'package:ps_books/state/library_state.dart';
 import '../readers/reader.dart';
 import '../helpers/pickBooks.dart';
 import '../helpers/utils.dart';
-import './home screen comp/control_bars.dart';
+import 'home comp/control_bars.dart';
 import 'package:ps_books/dbs/database.dart';
-import "home screen comp/dialogs.dart";
+import "home comp/dialogs.dart";
 
 BookToDb bookService = BookToDb();
 
