@@ -1,0 +1,1 @@
+- Make the email and username visible for mobile auth flow in google drive sign in to give visual feedback.

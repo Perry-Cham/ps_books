@@ -51,6 +51,13 @@ class TargetTopics extends Table {
   IntColumn get subjectId => integer().references(TargetSubjects, #id)();
 }
 
+class SavedBooks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  TextColumn get author => text()();
+  IntColumn get collection => integer().references(Collections, #id).nullable()();
+}
+
 @DriftDatabase(
   tables: [
     Books,
@@ -59,6 +66,7 @@ class TargetTopics extends Table {
     TimetableSessions,
     TargetSubjects,
     TargetTopics,
+    SavedBooks,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -85,6 +93,11 @@ class AppDatabase extends _$AppDatabase {
   // Or as a reactive Stream (recommended for Flutter UI)
   Stream<List<Book>> watchAllBooks() {
     return select(books).watch(); // Auto-updates when data changes
+  }
+
+  // Watch all saved books
+  Stream<List<SavedBook>> watchAllSavedBooks() {
+    return select(savedBooks).watch();
   }
 
   //Get single Book
@@ -121,5 +134,20 @@ class AppDatabase extends _$AppDatabase {
     return (update(books)..where((b) => b.id.equals(id))).write(
       BooksCompanion(progress: Value(progress)),
     );
+  }
+
+  // Add saved book
+  Future<int> addSavedBook(SavedBooksCompanion entry) {
+    return into(savedBooks).insert(entry);
+  }
+
+  // Delete saved book
+  Future deleteSavedBook(int id) {
+    return (delete(savedBooks)..where((b) => b.id.equals(id))).go();
+  }
+
+  // Get saved book by id
+  Future<SavedBook> getSavedBookById(int id) {
+    return (select(savedBooks)..where((t) => t.id.equals(id))).getSingle();
   }
 }

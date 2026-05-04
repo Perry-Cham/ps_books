@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:microsoft_viewer/microsoft_viewer.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:ps_books/readers/epubReader.dart';
@@ -13,7 +14,7 @@ import '../helpers/utils.dart';
 
 
 
-class Reader extends StatefulWidget {
+class Reader extends ConsumerStatefulWidget {
   const Reader({
     super.key,
     required this.type,
@@ -27,14 +28,15 @@ class Reader extends StatefulWidget {
   final int id;
   final int? page;
   final position;
+  
 
   @override
-  State<Reader> createState() => ReaderState();
+  ConsumerState<Reader> createState() => ReaderState();
 }
 
-class ReaderState extends State<Reader> {
+class ReaderState extends ConsumerState<Reader> {
   final controller = PdfViewerController();
-
+  
   @override
   void dispose() {
     // TODO: implement dispose

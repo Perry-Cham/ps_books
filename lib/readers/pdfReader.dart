@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:ps_books/services/reader-preferences.dart';
 
-class PDF extends StatefulWidget {
+class PDF extends ConsumerStatefulWidget {
   PDF({
     super.key,
     required this.path,
@@ -16,11 +19,24 @@ class PDF extends StatefulWidget {
   final int page;
 
   @override
-  State<PDF> createState() => _PDFState();
+  ConsumerState<PDF> createState() => _PDFState();
 }
 
-class _PDFState extends State<PDF> {
+class _PDFState extends ConsumerState<PDF> {
   List<PdfOutlineNode> outline = [];
+  double? initialZoom;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(pdfPrefsProvider.future).then((prefs) {
+      setState(() {
+        initialZoom = prefs.zoom;
+      });
+    }).catchError((_) {
+      // Load failed, initialZoom remains null, use default zoom
+    });
+  }
 
   // Recursive function to handle nested chapters
   List<Widget> _buildOutlineItems(
@@ -112,7 +128,7 @@ class _PDFState extends State<PDF> {
           // The controller notifies when the document is loaded
           valueListenable: widget.controller,
           builder: (context, value, child) {
-            if (outline == null || outline.isEmpty) {
+            if (outline.isEmpty) {
               return const Center(child: Text('No outline available'));
             }
 
@@ -132,8 +148,25 @@ class _PDFState extends State<PDF> {
             controller: widget.controller,
             initialPageNumber: widget.page,
             params: PdfViewerParams(
+              linkHandlerParams: PdfLinkHandlerParams(
+                onLinkTap: (link) async {
+                  // handle URL or Dest
+                  if (link.url != null) {
+                    // FIXME: Don't open the link without prompting user to do so or validating the link destination
+                    final result = await shouldOpenUrl(context, link.url!);
+                    if (result) {
+                      launchUrl(link.url!);
+                    }
+                  } else if (link.dest != null) {
+                    widget.controller.goToDest(link.dest);
+                  }
+                },
+              ),
               onViewerReady: (document, controller) async {
                 outline = await document.loadOutline();
+                if (initialZoom != null) {
+                  widget.controller.setZoom(widget.controller.centerPosition, initialZoom!);
+                }
                 setState(() {}); // trigger rebuild now that controller is ready
               },
             ),
@@ -201,20 +234,23 @@ class _pageNumberDisplayState extends State<pageNumberDisplay> {
                   _debounceTimer?.cancel();
 
                   // start a new timer — only fires if user stops typing for 600ms
-                  _debounceTimer = Timer(const Duration(milliseconds: 1000), () {
-                    final page = int.tryParse(value);
-                    if (page == null) return;
+                  _debounceTimer = Timer(
+                    const Duration(milliseconds: 1000),
+                    () {
+                      final page = int.tryParse(value);
+                      if (page == null) return;
 
-                    if (page > widget.pdfController.pageCount) {
-                      widget.pdfController.goToPage(
-                        pageNumber: widget.pdfController.pageCount,
-                      );
-                    } else if (page < 1) {
-                      widget.pdfController.goToPage(pageNumber: 1);
-                    } else {
-                      widget.pdfController.goToPage(pageNumber: page);
-                    }
-                  });
+                      if (page > widget.pdfController.pageCount) {
+                        widget.pdfController.goToPage(
+                          pageNumber: widget.pdfController.pageCount,
+                        );
+                      } else if (page < 1) {
+                        widget.pdfController.goToPage(pageNumber: 1);
+                      } else {
+                        widget.pdfController.goToPage(pageNumber: page);
+                      }
+                    },
+                  );
                 },
               ),
             ),
@@ -226,4 +262,42 @@ class _pageNumberDisplayState extends State<pageNumberDisplay> {
       ),
     );
   }
+}
+
+Future<bool> shouldOpenUrl(BuildContext context, Uri url) async {
+  final result = await showDialog<bool?>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Navigate to URL?'),
+        content: SelectionArea(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                const TextSpan(
+                  text: 'Do you want to navigate to the following location?\n',
+                ),
+                TextSpan(
+                  text: url.toString(),
+                  style: const TextStyle(color: Colors.blue),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Go'),
+          ),
+        ],
+      );
+    },
+  );
+  return result ?? false;
 }
