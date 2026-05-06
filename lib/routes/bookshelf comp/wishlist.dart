@@ -3,28 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
+import 'package:ps_books/routes/home%20comp/control_bars.dart';
+import 'package:ps_books/services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
+import 'package:ps_books/state/wishlist.dart';
 
 final _db = DBProvider().db;
 
-class Wishlist extends ConsumerWidget {
-  const Wishlist({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Wishlist'),
-        backgroundColor: Colors.cyan,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: Page(),
-    );
-  }
-}
-
-class Page extends StatelessWidget {
-  const Page({super.key});
+class WishlistPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +20,7 @@ class Page extends StatelessWidget {
         spacing: 15,
         children: [
           FilterBar(),
+          ControlBar(provider: WishlistStateProvider,),
           SavedBooksTable(),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -128,10 +115,10 @@ class FilterBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final libraryState = ref.watch(LibraryStateProvider);
+    final wishlist = ref.watch(WishlistStateProvider);
 
     return StreamBuilder<List<Collection>>(
-      stream: _db.select(_db.collections).watch(),
+      stream: BookToDb().getSavedCategories(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox.shrink();
@@ -147,10 +134,10 @@ class FilterBar extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(horizontal: 5),
                 child: FilterChip(
                   label: Text('All'),
-                  selected: libraryState.filter == null,
+                  selected: wishlist.filter == null,
                   onSelected: (selected) {
                     if (selected) {
-                      ref.read(LibraryStateProvider.notifier).setFilter(null);
+                      ref.read(WishlistStateProvider.notifier).setFilter(null);
                     }
                   },
                 ),
@@ -160,17 +147,17 @@ class FilterBar extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(horizontal: 5),
                   child: FilterChip(
                     label: Text(collection.name),
-                    selected: libraryState.filter == collection.id,
+                    selected: wishlist.filter == collection.id,
                     onSelected: (selected) {
                       if (selected) {
                         ref
-                            .read(LibraryStateProvider.notifier)
+                            .read(WishlistStateProvider.notifier)
                             .setFilter(collection.id);
                       }
                     },
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         );
@@ -184,7 +171,7 @@ class SavedBooksTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final libraryState = ref.watch(LibraryStateProvider);
+    final wishlistState = ref.watch(WishlistStateProvider);
 
     return Expanded(
       child: StreamBuilder<List<SavedBook>>(
@@ -199,9 +186,9 @@ class SavedBooksTable extends ConsumerWidget {
           }
 
           final data = snapshot.data ?? [];
-          final savedBooks = libraryState.filter != null
+          final savedBooks = wishlistState.filter != null
               ? data
-                  .where((book) => book.collection == libraryState.filter)
+                  .where((book) => book.collection == wishlistState.filter)
                   .toList()
               : data;
 
@@ -209,38 +196,49 @@ class SavedBooksTable extends ConsumerWidget {
             return Center(child: Text('No books in wishlist'));
           }
 
-          return SingleChildScrollView(
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text('Title')),
-                DataColumn(label: Text('Author')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: savedBooks.map((book) {
-                return DataRow(
-                  cells: [
-                    DataCell(Text(book.title)),
-                    DataCell(Text(book.author)),
-                    DataCell(
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () async {
-                          await _db.deleteSavedBook(book.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Book removed from wishlist'),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
+          final isDesktop = MediaQuery.of(context).size.width > 600;
+          final crossAxisCount = isDesktop ? 5 : 2;
+
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.7,
             ),
+            itemCount: savedBooks.length,
+            itemBuilder: (context, index) {
+              final book = savedBooks[index];
+              return SavedBookCard(
+                name: book.title,
+                author: book.author,
+              );
+            },
           );
         },
       ),
     );
+  }
+}
+
+class SavedBookCard extends StatelessWidget{
+  SavedBookCard({
+    required this.name,
+    required this.author,
+  });
+
+  final String name;
+  final String author;
+  @override
+  Widget build(BuildContext context) {
+   return Card(
+    child: Column(
+      children: [
+        Text(name),
+        Text(author)
+      ],
+    ),
+   );
+
   }
 }

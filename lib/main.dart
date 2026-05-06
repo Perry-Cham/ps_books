@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/routes/settings.dart';
-import 'package:ps_books/routes/wishlist.dart';
-import 'package:ps_books/services/reader-preferences.dart';
+import 'package:ps_books/routes/bookshelf.dart';
 import 'package:ps_books/state/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './layout.dart';
@@ -40,7 +39,7 @@ class MyApp extends StatelessWidget {
         },
         routes: [
           GoRoute(path: '/', builder: (context, state) => HomePage()),
-          GoRoute(path: '/bookshelf', builder: (context, state) => Wishlist()),
+          GoRoute(path: '/bookshelf', builder: (context, state) => Bookshelf()),
           GoRoute(path: '/goals', builder: (context, state) => StudyPage()),
           GoRoute(
             path: '/download',

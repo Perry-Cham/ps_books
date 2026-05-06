@@ -48,7 +48,7 @@ class Page extends StatelessWidget {
       child: Column(
         spacing: 15,
         children: [
-          ControlBar(),
+          ControlBar(provider: LibraryStateProvider,),
           FilterBar(),
           BooksContainer(),
           Row(

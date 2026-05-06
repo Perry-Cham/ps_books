@@ -51,12 +51,13 @@ class FilterBar extends ConsumerWidget {
 }
 
 
-
 class ControlBar extends ConsumerWidget {
+  ControlBar({required this.provider});
+  final NotifierProvider provider;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedBookIds = ref.watch(
-      LibraryStateProvider.select((state) => state.selectedBookIds),
+      provider.select((state) => state.selectedBookIds),
     );
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,

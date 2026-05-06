@@ -31,8 +31,22 @@ class $CollectionsTable extends Collections
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _isSavedCollectionMeta = const VerificationMeta(
+    'isSavedCollection',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<bool> isSavedCollection = GeneratedColumn<bool>(
+    'is_saved_collection',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_saved_collection" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, isSavedCollection];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -56,6 +70,17 @@ class $CollectionsTable extends Collections
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('is_saved_collection')) {
+      context.handle(
+        _isSavedCollectionMeta,
+        isSavedCollection.isAcceptableOrUnknown(
+          data['is_saved_collection']!,
+          _isSavedCollectionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_isSavedCollectionMeta);
+    }
     return context;
   }
 
@@ -73,6 +98,10 @@ class $CollectionsTable extends Collections
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      isSavedCollection: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_saved_collection'],
+      )!,
     );
   }
 
@@ -85,17 +114,27 @@ class $CollectionsTable extends Collections
 class Collection extends DataClass implements Insertable<Collection> {
   final int id;
   final String name;
-  const Collection({required this.id, required this.name});
+  final bool isSavedCollection;
+  const Collection({
+    required this.id,
+    required this.name,
+    required this.isSavedCollection,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['is_saved_collection'] = Variable<bool>(isSavedCollection);
     return map;
   }
 
   CollectionsCompanion toCompanion(bool nullToAbsent) {
-    return CollectionsCompanion(id: Value(id), name: Value(name));
+    return CollectionsCompanion(
+      id: Value(id),
+      name: Value(name),
+      isSavedCollection: Value(isSavedCollection),
+    );
   }
 
   factory Collection.fromJson(
@@ -106,6 +145,7 @@ class Collection extends DataClass implements Insertable<Collection> {
     return Collection(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      isSavedCollection: serializer.fromJson<bool>(json['isSavedCollection']),
     );
   }
   @override
@@ -114,15 +154,23 @@ class Collection extends DataClass implements Insertable<Collection> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'isSavedCollection': serializer.toJson<bool>(isSavedCollection),
     };
   }
 
-  Collection copyWith({int? id, String? name}) =>
-      Collection(id: id ?? this.id, name: name ?? this.name);
+  Collection copyWith({int? id, String? name, bool? isSavedCollection}) =>
+      Collection(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        isSavedCollection: isSavedCollection ?? this.isSavedCollection,
+      );
   Collection copyWithCompanion(CollectionsCompanion data) {
     return Collection(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      isSavedCollection: data.isSavedCollection.present
+          ? data.isSavedCollection.value
+          : this.isSavedCollection,
     );
   }
 
@@ -130,42 +178,60 @@ class Collection extends DataClass implements Insertable<Collection> {
   String toString() {
     return (StringBuffer('Collection(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('isSavedCollection: $isSavedCollection')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, isSavedCollection);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Collection && other.id == this.id && other.name == this.name);
+      (other is Collection &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.isSavedCollection == this.isSavedCollection);
 }
 
 class CollectionsCompanion extends UpdateCompanion<Collection> {
   final Value<int> id;
   final Value<String> name;
+  final Value<bool> isSavedCollection;
   const CollectionsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.isSavedCollection = const Value.absent(),
   });
   CollectionsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-  }) : name = Value(name);
+    required bool isSavedCollection,
+  }) : name = Value(name),
+       isSavedCollection = Value(isSavedCollection);
   static Insertable<Collection> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<bool>? isSavedCollection,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (isSavedCollection != null) 'is_saved_collection': isSavedCollection,
     });
   }
 
-  CollectionsCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return CollectionsCompanion(id: id ?? this.id, name: name ?? this.name);
+  CollectionsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<bool>? isSavedCollection,
+  }) {
+    return CollectionsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isSavedCollection: isSavedCollection ?? this.isSavedCollection,
+    );
   }
 
   @override
@@ -177,6 +243,9 @@ class CollectionsCompanion extends UpdateCompanion<Collection> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (isSavedCollection.present) {
+      map['is_saved_collection'] = Variable<bool>(isSavedCollection.value);
+    }
     return map;
   }
 
@@ -184,7 +253,8 @@ class CollectionsCompanion extends UpdateCompanion<Collection> {
   String toString() {
     return (StringBuffer('CollectionsCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('isSavedCollection: $isSavedCollection')
           ..write(')'))
         .toString();
   }
@@ -2103,9 +2173,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 }
 
 typedef $$CollectionsTableCreateCompanionBuilder =
-    CollectionsCompanion Function({Value<int> id, required String name});
+    CollectionsCompanion Function({
+      Value<int> id,
+      required String name,
+      required bool isSavedCollection,
+    });
 typedef $$CollectionsTableUpdateCompanionBuilder =
-    CollectionsCompanion Function({Value<int> id, Value<String> name});
+    CollectionsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<bool> isSavedCollection,
+    });
 
 final class $$CollectionsTableReferences
     extends BaseReferences<_$AppDatabase, $CollectionsTable, Collection> {
@@ -2168,6 +2246,11 @@ class $$CollectionsTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSavedCollection => $composableBuilder(
+    column: $table.isSavedCollection,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2240,6 +2323,11 @@ class $$CollectionsTableOrderingComposer
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isSavedCollection => $composableBuilder(
+    column: $table.isSavedCollection,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CollectionsTableAnnotationComposer
@@ -2256,6 +2344,11 @@ class $$CollectionsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSavedCollection => $composableBuilder(
+    column: $table.isSavedCollection,
+    builder: (column) => column,
+  );
 
   Expression<T> booksRefs<T extends Object>(
     Expression<T> Function($$BooksTableAnnotationComposer a) f,
@@ -2338,10 +2431,22 @@ class $$CollectionsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-              }) => CollectionsCompanion(id: id, name: name),
+                Value<bool> isSavedCollection = const Value.absent(),
+              }) => CollectionsCompanion(
+                id: id,
+                name: name,
+                isSavedCollection: isSavedCollection,
+              ),
           createCompanionCallback:
-              ({Value<int> id = const Value.absent(), required String name}) =>
-                  CollectionsCompanion.insert(id: id, name: name),
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required bool isSavedCollection,
+              }) => CollectionsCompanion.insert(
+                id: id,
+                name: name,
+                isSavedCollection: isSavedCollection,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (

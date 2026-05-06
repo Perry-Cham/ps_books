@@ -8,6 +8,7 @@ class MobileAuthService implements AuthService {
   static final _googleSignIn = GoogleSignIn.instance;
   String? userName;
   String? userEmail;
+  String? _folderId;
 
   @override
   Future<drive.DriveApi?> getDriveApi() async {
@@ -35,7 +36,11 @@ class MobileAuthService implements AuthService {
         scopes: [drive.DriveApi.driveFileScope],
       );
 
-      return drive.DriveApi(client);
+      final driveD = drive.DriveApi(client);
+
+      //Get
+      _folderId = await getOrCreateAppFolder(driveD);
+      return driveD;
     } catch (e) {
       print('Mobile auth error: $e');
       return null;
@@ -47,6 +52,13 @@ class MobileAuthService implements AuthService {
     // signInSilently returns null if not signed in
     final account = await _googleSignIn.attemptLightweightAuthentication();
     return account != null;
+  }
+
+  @override
+  Future<String?> get folderId async {
+    if (_folderId != null) return _folderId;
+    await getDriveApi();
+    return _folderId;
   }
 
   // TODO: make these actually return the email and displaynam

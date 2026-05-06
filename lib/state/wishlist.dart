@@ -1,17 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LibraryState {
+class WishlistState {
   bool multi_select;
   int? filter;
   List<int> selectedBookIds;
-  LibraryState({
+  WishlistState({
     this.multi_select = false,
     this.filter,
     this.selectedBookIds = const [],
   });
 
   updateState({bool? multi_select_value}) {
-    return LibraryState(
+    return WishlistState(
       multi_select: multi_select_value ?? this.multi_select,
       filter: this.filter,
       selectedBookIds: this.selectedBookIds,
@@ -19,7 +19,7 @@ class LibraryState {
   }
 
   setFilter({int? f}) {
-    return LibraryState(
+    return WishlistState(
       multi_select: this.multi_select,
       filter: f,
       selectedBookIds: this.selectedBookIds,
@@ -27,7 +27,7 @@ class LibraryState {
   }
 
   updateSelected(List<int> newSelected) {
-    return LibraryState(
+    return WishlistState(
       multi_select: this.multi_select,
       filter: this.filter,
       selectedBookIds: newSelected,
@@ -35,9 +35,9 @@ class LibraryState {
   }
 }
 
-class LibraryNotifier extends Notifier<LibraryState> {
+class WishlistNotifier extends Notifier<WishlistState> {
   @override
-  LibraryState build() => LibraryState();
+  WishlistState build() => WishlistState();
 
   void toggleMultiSelect() {
     state = state.updateState(multi_select_value: !state.multi_select);
@@ -64,6 +64,6 @@ class LibraryNotifier extends Notifier<LibraryState> {
   }
 }
 
-final LibraryStateProvider = NotifierProvider<LibraryNotifier, LibraryState>(
-  LibraryNotifier.new,
+final WishlistStateProvider = NotifierProvider<WishlistNotifier, WishlistState>(
+  WishlistNotifier.new,
 );

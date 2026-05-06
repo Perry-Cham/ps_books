@@ -55,7 +55,7 @@ dependencies:
   dio: ^5.9.2
   microsoft_viewer: ^0.0.8
   url_launcher: ^6.3.2
-  google_sign_in: ^7.2.0
+ # google_sign_in: ^7.2.0
   extension_google_sign_in_as_googleapis_auth: ^3.0.0
   googleapis: ^16.0.0
   crypto: ^3.0.7
