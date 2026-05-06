@@ -15,9 +15,11 @@ class DesktopAuthService implements AuthService {
   // Desktop app client credentials from Google Cloud Console
   // These are intentionally not secret — Google designed Desktop app
   // client type for exactly this public client scenario
-  static final id = String.fromEnvironment('DRIVE_CLIENT_ID', defaultValue: "UNKNOWN");
-  static final _clientId =
-      "$id.apps.googleusercontent.com";
+  static final id = String.fromEnvironment(
+    'DRIVE_CLIENT_ID',
+    defaultValue: "UNKNOWN",
+  );
+  static final _clientId = "338563215929-tshvf72vgi9aso3hnspubi6ba120sjr5.apps.googleusercontent.com";
   static const _redirectPort = 8080;
   static const _redirectUri = 'http://localhost:$_redirectPort';
   static const _scopes = [drive.DriveApi.driveFileScope];
@@ -34,6 +36,7 @@ class DesktopAuthService implements AuthService {
   DateTime? _tokenExpiry;
   String? _displayName;
   String? _userEmail;
+  String? _folderId;
 
   // ── PKCE HELPERS ──
 
@@ -72,10 +75,7 @@ class DesktopAuthService implements AuthService {
       await prefs.setString(_refreshTokenKey, _refreshToken!);
     }
     if (_tokenExpiry != null) {
-      await prefs.setInt(
-        _tokenExpiryKey,
-        _tokenExpiry!.millisecondsSinceEpoch,
-      );
+      await prefs.setInt(_tokenExpiryKey, _tokenExpiry!.millisecondsSinceEpoch);
     }
     if (_displayName != null) {
       await prefs.setString(_displayNameKey, _displayName!);
@@ -131,19 +131,26 @@ class DesktopAuthService implements AuthService {
 
   // ── BUILD DRIVE API FROM TOKEN ──
 
-  drive.DriveApi _buildDriveApi() {
+  Future<drive.DriveApi> _buildDriveApi() async {
     final credentials = auth.AccessCredentials(
-      auth.AccessToken(
-        'Bearer',
-        _accessToken!,
-        _tokenExpiry!.toUtc(),
-      ),
+      auth.AccessToken('Bearer', _accessToken!, _tokenExpiry!.toUtc()),
       _refreshToken,
       _scopes,
     );
 
     final client = auth.authenticatedClient(http.Client(), credentials);
-    return drive.DriveApi(client);
+    final driveD = drive.DriveApi(client);
+
+    //Get
+    _folderId = await getOrCreateAppFolder(driveD);
+    return driveD;
+  }
+
+  @override
+  Future<String?> get folderId async {
+    if (_folderId != null) return _folderId;
+    await getDriveApi();
+    return _folderId;
   }
 
   // ── FETCH USER INFO ──
@@ -173,21 +180,17 @@ class DesktopAuthService implements AuthService {
     final codeChallenge = _generateCodeChallenge(codeVerifier);
     final state = _generateCodeVerifier(); // random CSRF token
 
-    final authUrl = Uri.https(
-      'accounts.google.com',
-      '/o/oauth2/v2/auth',
-      {
-        'client_id': _clientId,
-        'redirect_uri': _redirectUri,
-        'response_type': 'code',
-        'scope': _scopes.join(' '),
-        'code_challenge': codeChallenge,
-        'code_challenge_method': 'S256',
-        'state': state,
-        'access_type': 'offline',
-        'prompt': 'consent',
-      },
-    );
+    final authUrl = Uri.https('accounts.google.com', '/o/oauth2/v2/auth', {
+      'client_id': _clientId,
+      'redirect_uri': _redirectUri,
+      'response_type': 'code',
+      'scope': _scopes.join(' '),
+      'code_challenge': codeChallenge,
+      'code_challenge_method': 'S256',
+      'state': state,
+      'access_type': 'offline',
+      'prompt': 'consent',
+    });
 
     final codeCompleter = Completer<String?>();
     HttpServer? server;
@@ -284,7 +287,7 @@ class DesktopAuthService implements AuthService {
     await _fetchUserInfo();
     await _saveTokens();
 
-    return _buildDriveApi();
+    return await _buildDriveApi();
   }
 
   // ── PUBLIC INTERFACE ──
@@ -350,5 +353,25 @@ class DesktopAuthService implements AuthService {
       }
     }
     await _clearTokens();
+  }
+
+  Future<String> getOrCreateAppFolder(drive.DriveApi driveApi) async {
+    // 1. Search for the directory by name
+    final String query =
+        "name = 'P\'s Books' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+    final folderList = await driveApi.files.list(q: query);
+
+    if (folderList.files != null && folderList.files!.isNotEmpty) {
+      // 2. Folder exists! Return the ID
+      return folderList.files!.first.id!;
+    } else {
+      // 3. Folder doesn't exist! Create it now
+      var folderMetadata = drive.File()
+        ..name = "P's Books"
+        ..mimeType = 'application/vnd.google-apps.folder';
+
+      var folder = await driveApi.files.create(folderMetadata);
+      return folder.id!;
+    }
   }
 }

@@ -70,7 +70,11 @@ class BookToDb {
 
   // Get Categories Stream
   Stream<List<Collection>> getCategories() {
-    return _db.select(_db.collections).watch();
+    return (_db.select(_db.collections)..where((t) => t.isSavedCollection.equals(false))).watch();
+  }
+
+   Stream<List<Collection>> getSavedCategories() {
+    return (_db.select(_db.collections)..where((t) => t.isSavedCollection.equals(true))).watch();
   }
 
   //Get Single Collection
