@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/routes/study%20route%20comp/display.dart';
 import 'package:ps_books/routes/study%20route%20comp/targets.dart';
-import './study route comp/timetable.dart';
 
 //Finish session logic
 
@@ -19,6 +18,8 @@ class StudyPage extends StatelessWidget {
 }
 
 class Page extends StatelessWidget {
+  const Page({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [Expanded(child: _TabbedPage())]);
@@ -26,7 +27,7 @@ class Page extends StatelessWidget {
 }
 
 class _TabbedPage extends StatefulWidget {
-  const _TabbedPage({super.key});
+  const _TabbedPage();
 
   @override
   State<_TabbedPage> createState() => _TabbedPageState();

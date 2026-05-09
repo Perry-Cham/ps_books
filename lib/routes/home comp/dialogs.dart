@@ -8,6 +8,8 @@ import 'utils.dart';
 final bookService = BookToDb();
 
 class DeleteCollectionDialog extends StatefulWidget {
+  const DeleteCollectionDialog({super.key});
+
   @override
   State<DeleteCollectionDialog> createState() => _DeleteCollectionDialogState();
 }
@@ -106,6 +108,8 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
 }
 
 class AddToCollectionDialog extends ConsumerStatefulWidget {
+  const AddToCollectionDialog({super.key});
+
   @override
   ConsumerState<AddToCollectionDialog> createState() =>
       _AddToCollectionDialogState();

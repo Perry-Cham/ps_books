@@ -10,26 +10,26 @@ class WishlistState {
     this.selectedBookIds = const [],
   });
 
-  updateState({bool? multi_select_value}) {
+  WishlistState updateState({bool? multi_select_value}) {
     return WishlistState(
-      multi_select: multi_select_value ?? this.multi_select,
-      filter: this.filter,
-      selectedBookIds: this.selectedBookIds,
+      multi_select: multi_select_value ?? multi_select,
+      filter: filter,
+      selectedBookIds: selectedBookIds,
     );
   }
 
-  setFilter({int? f}) {
+  WishlistState setFilter({int? f}) {
     return WishlistState(
-      multi_select: this.multi_select,
+      multi_select: multi_select,
       filter: f,
-      selectedBookIds: this.selectedBookIds,
+      selectedBookIds: selectedBookIds,
     );
   }
 
-  updateSelected(List<int> newSelected) {
+  WishlistState updateSelected(List<int> newSelected) {
     return WishlistState(
-      multi_select: this.multi_select,
-      filter: this.filter,
+      multi_select: multi_select,
+      filter: filter,
       selectedBookIds: newSelected,
     );
   }

@@ -3,7 +3,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 
 abstract class AuthService {
   /// Returns an authenticated DriveApi instance or null if auth failed
-  Future<drive.DriveApi?> getDriveApi();
+  dynamic getDriveApi();
 
   /// True if the user is currently signed in
   Future<bool> get isSignedIn;
@@ -23,7 +23,7 @@ abstract class AuthService {
 
 Future<String> getOrCreateAppFolder(drive.DriveApi driveApi) async {
   // 1. Search for the directory by name
-  final String query = "name = 'P\'s Books' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+  final String query = "name = 'P's Books' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
   final folderList = await driveApi.files.list(q: query);
 
   if (folderList.files != null && folderList.files!.isNotEmpty) {

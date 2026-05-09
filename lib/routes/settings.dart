@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:ps_books/services/auth/google/desktop.dart';
 import '../state/google_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ps_books/routes/settings_comp/user_cards.dart';
+
 
 class Settings extends ConsumerWidget {
+  const Settings({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: implement build
@@ -21,6 +26,8 @@ class Settings extends ConsumerWidget {
               child: Column(
                 spacing: 10,
                 children: [
+                  //TODO: Add logic that checks authstate and allows this card to render when its true
+                  if(false) Google_Card(name: 'perry', email:'xxxxx'),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -54,10 +61,17 @@ class Settings extends ConsumerWidget {
                       Text("Sync With Google"),
                       ElevatedButton(
                         onPressed: () async {
-                          final authService = ref.read(authServiceProvider);
-                          final driveApi = await authService.getDriveApi();
+                          try {
+                            await ref.read(authServiceProvider).getDriveApi();
+                             ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Signed in successfully',
+                                ),
+                              ),
+                            );
 
-                          if (driveApi == null) {
+                          } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
@@ -65,7 +79,6 @@ class Settings extends ConsumerWidget {
                                 ),
                               ),
                             );
-                            return;
                           }
 
                           // invalidate the providers so isSignedIn and displayName refresh

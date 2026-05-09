@@ -43,7 +43,7 @@ class ReaderState extends ConsumerState<Reader> {
     super.dispose();
   }
 
-  savePDFProgress() async {
+  Future<void> savePDFProgress() async {
     int Page = controller.pageNumber ?? 1;
     int totalPages = controller.pageCount;
     double progress = Page / totalPages;
@@ -51,12 +51,12 @@ class ReaderState extends ConsumerState<Reader> {
     await database.updateProgress(widget.id, progress);
   }
 
-  saveEpubPosition(position) {
+  void saveEpubPosition(position) {
     String pos = jsonEncode(position);
     database.updatePositionAndProgress(widget.id, pos);
   }
 
-  saveEpubProgress(progress) {
+  void saveEpubProgress(progress) {
     database.updateProgress(widget.id, progress);
   }
 
@@ -71,7 +71,7 @@ class ReaderState extends ConsumerState<Reader> {
     return pos;
   }
 
-  checkWidget() {
+  Widget checkWidget() {
     if (widget.type == 'pdf') {
       return PDF(
         path: widget.path,

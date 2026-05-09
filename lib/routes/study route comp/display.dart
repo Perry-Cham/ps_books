@@ -4,6 +4,8 @@ import 'package:ps_books/routes/study%20route%20comp/timetable.dart';
 import 'package:ps_books/services/timetableToDB.dart';
 
 class TimetableDisplay extends StatelessWidget {
+  const TimetableDisplay({super.key});
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -61,7 +63,7 @@ class TimetableDisplay extends StatelessWidget {
 }
 
 class Display extends StatefulWidget {
-  Display({super.key, required this.timetable});
+  const Display({super.key, required this.timetable});
   final List<TimeTable> timetable;
 
   @override
@@ -221,7 +223,7 @@ class _SessionCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: const BorderRadius.only(
           topRight: Radius.circular(10),
           bottomRight: Radius.circular(10),
@@ -325,7 +327,7 @@ class _SubjectPill extends StatelessWidget {
 
 // Forms
 class _AddSessionForm extends StatefulWidget {
-  _AddSessionForm({required this.dayId});
+  const _AddSessionForm({required this.dayId});
   final int dayId;
 
   @override
@@ -413,7 +415,7 @@ class _SessionFormState extends State<_AddSessionForm> {
 // Edit Session
 
 class _EditSessionForm extends StatefulWidget {
-  _EditSessionForm({
+  const _EditSessionForm({
     required this.sessionId,
     required this.session,
   });

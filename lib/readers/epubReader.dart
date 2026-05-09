@@ -4,7 +4,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
-import 'package:katbook_epub_reader/src/models/reading_position.dart';
 import 'package:ps_books/services/reader-preferences.dart';
 
 class EpubReaderScreen extends ConsumerStatefulWidget {

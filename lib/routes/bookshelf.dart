@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart' hide Column;
-import 'package:ps_books/dbs/database.dart';
-import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/routes/bookshelf%20comp/uploaded_books.dart';
 import 'package:ps_books/routes/bookshelf%20comp/wishlist.dart';
-import 'package:ps_books/state/library_state.dart';
 
-final _db = DBProvider().db;
 
 class Bookshelf extends ConsumerWidget {
+  const Bookshelf({super.key});
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,6 +22,8 @@ class Bookshelf extends ConsumerWidget {
 }
 
 class Page extends StatelessWidget {
+  const Page({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [Expanded(child: _TabbedPage())]);
@@ -32,7 +31,7 @@ class Page extends StatelessWidget {
 }
 
 class _TabbedPage extends StatefulWidget {
-  const _TabbedPage({super.key});
+  const _TabbedPage();
 
   @override
   State<_TabbedPage> createState() => _TabbedPageState();

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth/google/auth_service.dart';
 import '../services/auth/google/abstract.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
-import '../state/google_auth.dart';
 
 // single instance shared across the app
 final authServiceProvider = Provider<AuthService>((ref) {

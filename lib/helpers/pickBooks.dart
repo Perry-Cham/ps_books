@@ -1,7 +1,4 @@
-import 'package:dart_pdf_reader/dart_pdf_reader.dart';
 import 'package:drift/drift.dart';
-import 'dart:ui';
-import 'package:pdfrx/pdfrx.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';

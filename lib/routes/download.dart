@@ -4,6 +4,8 @@ import '../services/downloader.dart';
 import '../state/download_state.dart';
 
 class DownloadSearch extends ConsumerWidget {
+  const DownloadSearch({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
@@ -29,6 +31,8 @@ class DownloadSearch extends ConsumerWidget {
 }
 
 class Page extends ConsumerWidget {
+  const Page({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final downloadState = ref.watch(DownloadStateProvider);
@@ -189,6 +193,8 @@ class BookGrid extends ConsumerWidget {
 }
 
 class DownloadsDisplay extends ConsumerWidget {
+  const DownloadsDisplay({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final downloadProgress = ref.watch(downloadProgressProvider);

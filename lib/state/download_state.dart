@@ -6,7 +6,7 @@ class DownloadState {
 
   DownloadState({this.searchResults = const []});
 
-  updateState(List<DownloadBook> books) {
+  DownloadState updateState(List<DownloadBook> books) {
     return DownloadState(searchResults: books);
   }
 }
