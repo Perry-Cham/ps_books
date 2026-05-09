@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/services/target.dart';
 import 'package:ps_books/dbs/database.dart';
-import '../../services/target.dart';
 
 class Targets extends StatelessWidget {
   const Targets({super.key});
@@ -179,7 +178,7 @@ class SubjectCard extends StatelessWidget {
                 value: progress,
                 minHeight: 4,
                 backgroundColor:
-                    Theme.of(context).colorScheme.surfaceVariant,
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
 
               // topic list

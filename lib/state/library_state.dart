@@ -10,26 +10,26 @@ class LibraryState {
     this.selectedBookIds = const [],
   });
 
-  updateState({bool? multi_select_value}) {
+  LibraryState updateState({bool? multi_select_value}) {
     return LibraryState(
-      multi_select: multi_select_value ?? this.multi_select,
-      filter: this.filter,
-      selectedBookIds: this.selectedBookIds,
+      multi_select: multi_select_value ?? multi_select,
+      filter: filter,
+      selectedBookIds: selectedBookIds,
     );
   }
 
-  setFilter({int? f}) {
+  LibraryState setFilter({int? f}) {
     return LibraryState(
-      multi_select: this.multi_select,
+      multi_select: multi_select,
       filter: f,
-      selectedBookIds: this.selectedBookIds,
+      selectedBookIds: selectedBookIds,
     );
   }
 
-  updateSelected(List<int> newSelected) {
+  LibraryState updateSelected(List<int> newSelected) {
     return LibraryState(
-      multi_select: this.multi_select,
-      filter: this.filter,
+      multi_select: multi_select,
+      filter: filter,
       selectedBookIds: newSelected,
     );
   }

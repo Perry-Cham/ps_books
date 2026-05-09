@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ps_books/services/timetableToDB.dart';
 
 class TimeTableForm extends StatefulWidget {
+  const TimeTableForm({super.key});
+
   @override
   State<TimeTableForm> createState() => TimeTableFormState();
 }
@@ -30,7 +32,7 @@ class TimeTableFormState extends State<TimeTableForm> {
   // equivalent of your updateTimetableDayData function
   void _toggleBreak(int dayIndex, bool value) {
     setState(() {
-      print("${Days[dayIndex].isBreak}, ${value}");
+      print("${Days[dayIndex].isBreak}, $value");
       Days[dayIndex].isBreak = value;
     });
   }
@@ -77,7 +79,7 @@ class TimeTableFormState extends State<TimeTableForm> {
     // TODO: implement build
     return AlertDialog(
       title: Text('Timetable'),
-      content: Container(
+      content: SizedBox(
         width: 500,
         child: ListView.builder(
           itemBuilder: (context, index) {
@@ -108,6 +110,7 @@ class TimeTableFormState extends State<TimeTableForm> {
                     },
               );
             }
+            return null;
           },
         ),
       ),
@@ -182,7 +185,7 @@ class DayWidget extends StatelessWidget {
 }
 
 class SessionWidget extends StatelessWidget {
-  SessionWidget({
+  const SessionWidget({
     super.key,
     required this.session,
     required this.index,

@@ -7,7 +7,7 @@ class Timetabletodb {
   final _db = DBProvider().db;
   List<Day>? Timetable;
 
-  insertTimetable(List<Day> timetable) async {
+  Future<void> insertTimetable(List<Day> timetable) async {
     for (var day in timetable) {
       int dayId = await (_db
           .into(_db.timetableDays)
@@ -95,12 +95,14 @@ class Timetabletodb {
     required String end,
     required String subjects,
   }) async {
-    print("${dayId} ${start} ${end} ${subjects}");
+    print("$dayId $start $end $subjects");
 
 TimetableDay day = await (_db.select(_db.timetableDays)..where((t) => t.id.equals(dayId))).getSingle();
-if(day.isBreakDay) await (_db.update(_db.timetableDays)..where((t) => t.id.equals(dayId))).write(TimetableDaysCompanion(
+if(day.isBreakDay) {
+  await (_db.update(_db.timetableDays)..where((t) => t.id.equals(dayId))).write(TimetableDaysCompanion(
   isBreakDay: Value(false)
 ));
+}
 
     return await (_db
         .into(_db.timetableSessions)
@@ -122,7 +124,7 @@ if(day.isBreakDay) await (_db.update(_db.timetableDays)..where((t) => t.id.equal
     int id = await (_db.delete(
       _db.timetableSessions,
     )..where((t) => t.id.equals(index))).go();
-    print("the id is ${id}");
+    print("the id is $id");
     
     // Check if day has any remaining sessions
     if (session != null) {
@@ -170,7 +172,7 @@ if(day.isBreakDay) await (_db.update(_db.timetableDays)..where((t) => t.id.equal
     required String end,
     required String subjects,
   }) {
-    print("${id}, ${start}, ${end}, ${subjects}");
+    print("$id, $start, $end, $subjects");
     return (_db.update(
       _db.timetableSessions,
     )..where((t) => t.id.equals(id))).write(

@@ -12,7 +12,7 @@ class FilterBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _library_state = ref.watch(LibraryStateProvider);
+    final libraryState = ref.watch(LibraryStateProvider);
     return StreamBuilder<List<Collection>>(
       stream: BookToDb().getCategories(),
       builder: (context, snapshot) {
@@ -52,7 +52,7 @@ class FilterBar extends ConsumerWidget {
 
 
 class ControlBar extends ConsumerWidget {
-  ControlBar({required this.provider});
+  const ControlBar({super.key, required this.provider});
   final NotifierProvider provider;
   @override
   Widget build(BuildContext context, WidgetRef ref) {

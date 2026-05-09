@@ -5,6 +5,7 @@ import 'package:ps_books/dbs/initdb.dart';
 class BookToDb {
   final _db = DBProvider().db;
 
+  /* === BOOKS === */
   // Or as a reactive Stream (recommended for Flutter UI)
   Stream<List<Book>> watchAllBooks() {
     return _db.select(_db.books).watch(); // Auto-updates when data changes
@@ -15,8 +16,13 @@ class BookToDb {
     return (_db.select(_db.books)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  //Insert Single Book returns the generated id
-  Future<int> addBook({required String name, required String path, required String extension, int? page}) {
+  //Insert Single Book
+  Future<int> addBook({
+    required String name,
+    required String path,
+    required String extension,
+    int? page,
+  }) {
     return _db
         .into(_db.books)
         .insert(
@@ -26,6 +32,15 @@ class BookToDb {
             extension: Value(extension),
             page: Value(page),
           ),
+        );
+  }
+
+  //Insert Wishlist Book or Saved Book
+  Future<int> addWishBook(String title, String author) async {
+    return _db
+        .into(_db.savedBooks)
+        .insert(
+          SavedBooksCompanion(title: Value(title), author: Value(author)),
         );
   }
 
@@ -48,13 +63,14 @@ class BookToDb {
     );
   }
 
-  //Update Epub Position
+  //Update Epub Progress
   Future updateProgress(int id, double progress) {
     return (_db.update(_db.books)..where((b) => b.id.equals(id))).write(
       BooksCompanion(progress: Value(progress)),
     );
   }
 
+  /* === COLLECTIONS === */
   // Update categories
   Future updateCategories(int id, int categories) {
     return (_db.update(_db.books)..where((b) => b.id.equals(id))).write(
@@ -62,19 +78,23 @@ class BookToDb {
     );
   }
 
-  // Set categories for all books
+  // Set Collections for all books
   Future<int> setBookCollection(int bookId, int collectionId) async {
     return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(collection: Value(collectionId)));
   }
 
-  // Get Categories Stream
+  // Get Collections Stream
   Stream<List<Collection>> getCategories() {
-    return (_db.select(_db.collections)..where((t) => t.isSavedCollection.equals(false))).watch();
+    return (_db.select(
+      _db.collections,
+    )..where((t) => t.isSavedCollection.equals(false))).watch();
   }
 
-   Stream<List<Collection>> getSavedCategories() {
-    return (_db.select(_db.collections)..where((t) => t.isSavedCollection.equals(true))).watch();
+  Stream<List<Collection>> getSavedCategories() {
+    return (_db.select(
+      _db.collections,
+    )..where((t) => t.isSavedCollection.equals(true))).watch();
   }
 
   //Get Single Collection

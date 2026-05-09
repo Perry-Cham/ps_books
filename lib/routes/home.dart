@@ -7,11 +7,12 @@ import '../helpers/pickBooks.dart';
 import '../helpers/utils.dart';
 import 'home comp/control_bars.dart';
 import 'package:ps_books/dbs/database.dart';
-import "home comp/dialogs.dart";
 
 BookToDb bookService = BookToDb();
 
 class HomePage extends ConsumerWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
   //  final library_state = ref.watch(LibraryStateProvider);
@@ -76,7 +77,7 @@ class BooksContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _library_state = ref.watch(LibraryStateProvider);
+    final libraryState = ref.watch(LibraryStateProvider);
     return Expanded(
       child: StreamBuilder<List<Book>>(
         stream: database.watchAllBooks(),
@@ -90,12 +91,12 @@ class BooksContainer extends ConsumerWidget {
           }
 
           final data = snapshot.data ?? [];
-          final books = _library_state.filter != null
+          final books = libraryState.filter != null
               ? data
-                    .where((t) => t.collection == _library_state.filter)
+                    .where((t) => t.collection == libraryState.filter)
                     .toList()
               : [...data];
-          print(_library_state.filter);
+          print(libraryState.filter);
           if (books.isEmpty) {
             return const Center(child: Text('No books yet'));
           }
@@ -118,8 +119,8 @@ class BooksContainer extends ConsumerWidget {
 }
 
 class BookCard extends ConsumerStatefulWidget {
-  BookCard({super.key, required this.book});
-  Book book;
+  const BookCard({super.key, required this.book});
+  final Book book;
 
   @override
   ConsumerState<BookCard> createState() {

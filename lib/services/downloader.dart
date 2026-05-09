@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:html/dom.dart';
 import "package:html/parser.dart" as html;
 import 'package:path_provider/path_provider.dart';
-import 'package:ps_books/helpers/pickBooks.dart';
 import 'package:ps_books/services/bookToDb.dart';
 
 final String url = "https://libgen.gl";
@@ -82,7 +80,7 @@ Future<dynamic> SearchBooks(String query) async {
 
 Map<String, dynamic>? convertToMap(Element el) {
   List<Element> data = el.querySelectorAll("td");
-  if (data.length < 1) return null;
+  if (data.isEmpty) return null;
 
   List<Element> titles = data[0].querySelectorAll("a[data-html='true']");
   List<String> candidates = [];
@@ -109,13 +107,13 @@ Map<String, dynamic>? convertToMap(Element el) {
 Future<String?> downloadPageScraper(String link) async {
   final dio = Dio();
   print(link);
-  final response = await dio.get("${url}${link}");
+  final response = await dio.get("$url$link");
   final page = html.parse(response.data);
   final downloadLink = page.querySelector("#main a")!.attributes['href'];
-  print("${url}/${downloadLink}");
+  print("$url/$downloadLink");
 
   if (downloadLink != null) {
-    return "${url}/${downloadLink}";
+    return "$url/$downloadLink";
   } else {
     return null;
   }

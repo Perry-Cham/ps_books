@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:ps_books/services/reader-preferences.dart';
 
 class PDF extends ConsumerStatefulWidget {
-  PDF({
+  const PDF({
     super.key,
     required this.path,
     required this.controller,

@@ -5,12 +5,13 @@ import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/routes/home%20comp/control_bars.dart';
 import 'package:ps_books/services/bookToDb.dart';
-import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/state/wishlist.dart';
 
 final _db = DBProvider().db;
 
 class WishlistPage extends StatelessWidget {
+  const WishlistPage({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +223,7 @@ class SavedBooksTable extends ConsumerWidget {
 }
 
 class SavedBookCard extends StatelessWidget{
-  SavedBookCard({
+  const SavedBookCard({super.key, 
     required this.name,
     required this.author,
   });
