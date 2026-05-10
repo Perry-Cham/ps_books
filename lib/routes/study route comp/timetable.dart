@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ps_books/services/timetableToDB.dart';
+import 'package:ps_books/services/DB%20services/timetableToDB.dart';
 
 class TimeTableForm extends StatefulWidget {
   const TimeTableForm({super.key});

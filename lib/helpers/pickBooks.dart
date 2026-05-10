@@ -1,4 +1,7 @@
+import 'package:dart_pdf_engine/dart_pdf_engine_viewer.dart';
+import 'package:dart_pdf_reader/dart_pdf_reader.dart';
 import 'package:drift/drift.dart';
+import 'package:epub_pro/epub_pro.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,32 +34,42 @@ class Pick_Books {
         final fileName = path.basename(file.name);
         await BooksDir.create();
         final destinationPath = '${BooksDir.path}/$fileName';
-        final destinationFile = File(destinationPath);
+        //   final destinationFile = File(destinationPath);
+        final fileBytes = await sourceFile.readAsBytes();
 
-        await sourceFile.copy(destinationFile.path);
+        await sourceFile.copy(destinationPath);
         paths.add(destinationPath);
         print("saved ${file.name} in $destinationPath");
 
         String extension = file.name.split('.').last;
         if (extension == 'pdf') {
           print("start of pdf code");
+          final doc = PdfDocument.fromBytes(fileBytes);
+          if (doc.isLoaded) {
+            await database
+                .into(database.books)
+                .insert(
+                  BooksCompanion.insert(
+                    name: doc.documentInfo.title ?? file.name.split('.')[0],
+                    path: destinationPath,
+                    extension: extension,
+                    page: Value(1),
+                  ),
+                );
+          }
+        } else if (extension == 'epub') {
+          EpubBook? doc;
+          try {
+            doc = await EpubReader.readBook(fileBytes);
+          } catch (e) {
+            print(e);
+          }
 
           await database
               .into(database.books)
               .insert(
                 BooksCompanion.insert(
-                  name: file.name.split('.')[0],
-                  path: destinationPath,
-                  extension: extension,
-                  page: Value(1),
-                ),
-              );
-        } else if (extension == 'epub') {
-          await database
-              .into(database.books)
-              .insert(
-                BooksCompanion.insert(
-                  name: file.name.split('.')[0],
+                  name: doc?.title ?? file.name.split('.')[0],
                   path: destinationPath,
                   extension: extension,
                 ),

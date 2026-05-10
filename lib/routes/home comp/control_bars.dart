@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ps_books/services/bookToDb.dart';
+import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'utils.dart';
@@ -59,60 +59,65 @@ class ControlBar extends ConsumerWidget {
     final selectedBookIds = ref.watch(
       provider.select((state) => state.selectedBookIds),
     );
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        ElevatedButton.icon(
-          onPressed: () async {
-            try {
-              await deleteBooks(selectedBookIds);
-              ref.read(LibraryStateProvider.notifier).clearSelected();
+    return Container(
+      decoration: BoxDecoration(border: Border.all(color: Colors.purple[800]!, width: 2.0), borderRadius: BorderRadius.all(Radius.circular(15))),
+      padding: EdgeInsets.all(10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        spacing: 10.0,
+        children: [
+          ElevatedButton.icon(
+            onPressed: () async {
+              try {
+                await deleteBooks(selectedBookIds);
+                ref.read(LibraryStateProvider.notifier).clearSelected();
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text("Success"),
+                      content: Text("The operation completed successfully!"),
+                    );
+                  },
+                );
+              } catch (e) {
+                print(e);
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text("Error"),
+                      content: Text("The operation failed!"),
+                    );
+                  },
+                );
+              }
+            },
+            icon: Icon(Icons.delete),
+            label: Text("Delete"),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text("Success"),
-                    content: Text("The operation completed successfully!"),
-                  );
-                },
+                builder: (context) => DeleteCollectionDialog(),
               );
-            } catch (e) {
-              print(e);
+            },
+            icon: Icon(Icons.folder_delete),
+            label: Text("Delete Collection"),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text("Error"),
-                    content: Text("The operation failed!"),
-                  );
-                },
+                builder: (context) => AddToCollectionDialog(),
               );
-            }
-          },
-          icon: Icon(Icons.delete),
-          label: Text("Delete"),
-        ),
-        ElevatedButton.icon(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => DeleteCollectionDialog(),
-            );
-          },
-          icon: Icon(Icons.folder_delete),
-          label: Text("Delete Collection"),
-        ),
-        ElevatedButton.icon(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AddToCollectionDialog(),
-            );
-          },
-          icon: Icon(Icons.add),
-          label: Text("Add To Collection"),
-        ),
-      ],
+            },
+            icon: Icon(Icons.add),
+            label: Text("Add To Collection"),
+          ),
+        ],
+      ),
     );
   }
 }

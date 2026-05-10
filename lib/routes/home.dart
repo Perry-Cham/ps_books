@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ps_books/services/bookToDb.dart';
+import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import '../readers/reader.dart';
 import '../helpers/pickBooks.dart';
@@ -15,7 +15,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  //  final library_state = ref.watch(LibraryStateProvider);
+    //  final library_state = ref.watch(LibraryStateProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text("Library"),
@@ -39,19 +39,32 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class Page extends StatelessWidget {
+class Page extends ConsumerWidget {
   const Page({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(LibraryStateProvider);
     return Padding(
       padding: EdgeInsetsGeometry.all(10),
       child: Column(
         spacing: 15,
         children: [
-          ControlBar(provider: LibraryStateProvider,),
           FilterBar(),
-          BooksContainer(),
+          Expanded(
+            child: Stack(
+              children: [
+                BooksContainer(),
+                if (state.multi_select)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 10.0,
+                    child: ControlBar(provider: LibraryStateProvider),
+                  ),
+              ],
+            ),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -72,48 +85,45 @@ class Page extends StatelessWidget {
     );
   }
 }
+
 class BooksContainer extends ConsumerWidget {
   const BooksContainer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final libraryState = ref.watch(LibraryStateProvider);
-    return Expanded(
-      child: StreamBuilder<List<Book>>(
-        stream: database.watchAllBooks(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return StreamBuilder<List<Book>>(
+      stream: database.watchAllBooks(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-          final data = snapshot.data ?? [];
-          final books = libraryState.filter != null
-              ? data
-                    .where((t) => t.collection == libraryState.filter)
-                    .toList()
-              : [...data];
-          print(libraryState.filter);
-          if (books.isEmpty) {
-            return const Center(child: Text('No books yet'));
-          }
+        final data = snapshot.data ?? [];
+        final books = libraryState.filter != null
+            ? data.where((t) => t.collection == libraryState.filter).toList()
+            : [...data];
+        print(libraryState.filter);
+        if (books.isEmpty) {
+          return const Center(child: Text('No books yet'));
+        }
 
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-            ),
-            itemCount: books.length,
-            itemBuilder: (context, index) {
-              return BookCard(book: books[index]);
-            },
-          );
-        },
-      ),
+        return GridView.builder(
+          gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _getCrossAxisCount(context),
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+          ),
+          itemCount: books.length,
+          itemBuilder: (context, index) {
+            return BookCard(book: books[index]);
+          },
+        );
+      },
     );
   }
 }
@@ -212,3 +222,13 @@ class BookCardState extends ConsumerState<BookCard> {
     );
   }
 }
+
+
+int _getCrossAxisCount(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    if (width > 1200) return 5;
+    if (width > 800) return 4;
+    if (width > 600) return 3;
+    if (width > 400) return 2;
+    return 2;
+  }
