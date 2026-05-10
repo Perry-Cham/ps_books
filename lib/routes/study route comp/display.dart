@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/routes/study%20route%20comp/timetable.dart';
-import 'package:ps_books/services/timetableToDB.dart';
+import 'package:ps_books/services/DB%20services/timetableToDB.dart';
 
 class TimetableDisplay extends StatelessWidget {
   const TimetableDisplay({super.key});

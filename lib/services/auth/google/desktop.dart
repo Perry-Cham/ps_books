@@ -15,8 +15,8 @@ class GoogleOAuth2Client extends OAuth2Client {
     : super(
         authorizeUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenUrl: 'https://oauth2.googleapis.com/token',
-        redirectUri: 'http:localhost:8080',
-        customUriScheme: 'http:localhost:8080',
+        redirectUri: 'http://localhost:8080',
+        customUriScheme: 'http://localhost:8080',
       );
 }
 
@@ -29,16 +29,21 @@ class DesktopAuthService implements AuthService {
   static const _scopes = [drive.DriveApi.driveFileScope, 'openid'];
 
   String? _folderId;
-
-  //final _oauthClient = GoogleOAuth2Client();
-  final helper = OAuth2Helper(
-    GoogleOAuth2Client(),
+  static drive.DriveApi? driveInst;
+  static final _oauthClient = GoogleOAuth2Client();
+  static final helper = OAuth2Helper(
+    _oauthClient,
     grantType: OAuth2Helper.authorizationCode,
     clientId:
         '338563215929-tshvf72vgi9aso3hnspubi6ba120sjr5.apps.googleusercontent.com',
     clientSecret: "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",
     webAuthOpts: {"useWebview": false},
-    scopes: ['openid', 'https://www.googleapis.com/auth/drive.readonly'],
+    scopes: [
+      'openid',
+      'profile',
+      'email',
+      'https://www.googleapis.com/auth/drive.file',
+    ],
   );
 
   // ── BUILD DRIVE API FROM TOKEN ──
@@ -58,6 +63,7 @@ class DesktopAuthService implements AuthService {
     final driveApi = drive.DriveApi(client);
 
     _folderId = await getOrCreateAppFolder(driveApi);
+    driveInst = driveApi;
     return driveApi;
   }
 
@@ -97,13 +103,56 @@ class DesktopAuthService implements AuthService {
 
   @override
   Future<drive.DriveApi?> getDriveApi() async {
-    final token = await helper.getToken();
+    final prefs = await SharedPreferences.getInstance();
+    final bool isSignedIn = prefs.getBool('google_signed_in') ?? false;
+    print("token");
+    print(await helper.getTokenFromStorage());
+    final token = await helper.getTokenFromStorage() ?? await helper.getToken();
 
+    // If first time signing in, fetch and store user info
+    if (!isSignedIn) {
+      try {
+        final data = await helper.get(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+        );
+        final userInfo = jsonDecode(data.body);
+        print(userInfo);
+        print(userInfo);
+        await prefs.setString('given_name', userInfo['name']);
+        await prefs.setString('google_email', userInfo['email']);
+      } catch (e) {
+        print('Failed to fetch user info: $e');
+      }
+      await prefs.setBool('google_signed_in', true);
+    }
+    if (driveInst != null) return driveInst;
     return _buildDriveApi(
       token.accessToken!,
       token.expirationDate!,
       token.refreshToken!,
     );
+  }
+
+  //TODO: Let this function extract name, email, profile picture form the data and pass it to the Google_User_State function
+  Future<void> getUserInfo() async {
+    final token = await helper.getTokenFromStorage();
+    if (token != null) {
+      if (token.isExpired()) {
+        await helper.refreshToken(token);
+        final data = await helper.get(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+        );
+        return jsonDecode(data.body)['given_name'];
+      }
+
+      final data = await helper.get(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+      );
+
+      return jsonDecode(data.body)['given_name'];
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -177,12 +226,16 @@ class DesktopAuthService implements AuthService {
 
   @override
   Future<void> signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('given_name');
+    await prefs.remove('email');
+    await prefs.remove('google_signed_in');
     await helper.removeAllTokens();
   }
 
   Future<String> getOrCreateAppFolder(drive.DriveApi driveApi) async {
     final String query =
-        "name = 'P's Books' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+        "name = 'P\\'s Books' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
     final folderList = await driveApi.files.list(q: query);
 
     if (folderList.files != null && folderList.files!.isNotEmpty) {

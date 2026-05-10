@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   //routes
   final GoRouter _router = GoRouter(
     initialLocation: '/',
-    routes: [
+    routes: [  
       ShellRoute(
         builder: (context, state, child) {
           return Layout(widget: child);

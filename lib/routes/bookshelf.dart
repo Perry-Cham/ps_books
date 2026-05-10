@@ -62,7 +62,7 @@ class _TabbedPageState extends State<_TabbedPage>
         Expanded(
           child: TabBarView(
             controller: _controller,
-            children: [DrivePage(), WishlistPage()],
+            children: [WishlistPage(), DrivePage()],
           ),
         ),
       ],

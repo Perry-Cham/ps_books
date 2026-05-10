@@ -30,24 +30,30 @@ class DrivePage extends ConsumerWidget {
               return ListTile(
                 leading: const Icon(Icons.book),
                 title: Text(book.name ?? "Unknown Title"),
-                subtitle: Text("${(int.parse(book.size ?? '0') / 1024).toStringAsFixed(2)} KB"),
+                subtitle: Text(
+                  "${(int.parse(book.size ?? '0') / 1024).toStringAsFixed(2)} KB",
+                ),
               );
             },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("Error accessing Google Drive"),
-              ElevatedButton(
-                onPressed: () => ref.refresh(driveBooksProvider),
-                child: const Text("Retry"),
-              ),
-            ],
-          ),
-        ),
+        error: (err, stack) {
+          print(err);
+          print(stack);
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Error accessing Google Drive"),
+                ElevatedButton(
+                  onPressed: () => ref.refresh(driveBooksProvider),
+                  child: const Text("Retry"),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
