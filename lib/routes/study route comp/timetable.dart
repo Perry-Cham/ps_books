@@ -117,7 +117,7 @@ class TimeTableFormState extends State<TimeTableForm> {
       actions: [
         ElevatedButton(
           onPressed: () async {
-            await Timetabletodb().insertTimetable(Days);
+            await TimetableToDb().insertTimetable(Days);
            // print(Days[0].sessions[0].subjects[0]);
             Navigator.pop(context);
           },

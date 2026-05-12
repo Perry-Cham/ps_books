@@ -3,7 +3,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 
 abstract class AuthService {
   /// Returns an authenticated DriveApi instance or null if auth failed
-  dynamic getDriveApi();
+  Future<drive.DriveApi?> getDriveApi();
 
   /// True if the user is currently signed in
   Future<bool> get isSignedIn;

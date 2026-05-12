@@ -22,17 +22,13 @@ final displayNameProvider = FutureProvider<String?>((ref) async {
 });
 
 class GoogleUser {
- final String? name;
+  final String? name;
   final String? email;
   final bool isSignedIn;
 
   GoogleUser({this.name, this.email, this.isSignedIn = false});
 
-  GoogleUser copyWith({
-    String? name,
-    String? email,
-    bool isSignedIn = false,
-  }) {
+  GoogleUser copyWith({String? name, String? email, bool isSignedIn = false}) {
     return GoogleUser(
       name: name ?? this.name,
       email: email ?? this.email,
@@ -46,15 +42,11 @@ class GoogleUserNotifier extends AsyncNotifier<GoogleUser> {
   Future<GoogleUser> build() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final name =  prefs.getString('given_name');
+    final name = prefs.getString('given_name');
     final email = prefs.getString('google_email');
-    final isSignedIn =  prefs.getBool('google_signed_in') ?? false;
+    final isSignedIn = prefs.getBool('google_signed_in') ?? false;
 
-    return GoogleUser(
-      name: name,
-      email: email,
-      isSignedIn: isSignedIn,
-    );
+    return GoogleUser(name: name, email: email, isSignedIn: isSignedIn);
   }
 
   Future<void> updateState(String name, String email, bool isSignedIn) async {
@@ -70,7 +62,10 @@ class GoogleUserNotifier extends AsyncNotifier<GoogleUser> {
   }
 }
 
-final GoogleUserProvider = AsyncNotifierProvider<GoogleUserNotifier, GoogleUser>(GoogleUserNotifier.new);
+final GoogleUserProvider =
+    AsyncNotifierProvider<GoogleUserNotifier, GoogleUser>(
+      GoogleUserNotifier.new,
+    );
 
 final driveBooksProvider = FutureProvider<List<drive.File>>((ref) async {
   final authService = ref.watch(authServiceProvider);
@@ -82,12 +77,13 @@ final driveBooksProvider = FutureProvider<List<drive.File>>((ref) async {
 
   // 2. Get the Folder ID (This method already handles creation if missing)
   final folderId = await authService.folderId;
-  if (folderId == null)
+  if (folderId == null) {
     throw Exception('Could not locate or create app folder');
+  }
 
   // 3. Fetch the metadata for files inside that folder
   final String query = "'$folderId' in parents and trashed = false";
-  final fileList = await driveApi.files.list(
+  final  fileList = await driveApi.files.list(
     q: query,
     $fields: "files(id, name, mimeType, size, modifiedTime, thumbnailLink)",
   );
