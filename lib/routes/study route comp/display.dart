@@ -10,7 +10,7 @@ class TimetableDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO: implement build
     return StreamBuilder(
-      stream: Timetabletodb().getTimeTable(),
+      stream: TimetableToDb().getTimeTable(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
@@ -128,7 +128,7 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
                       Switch(
                         value: isBreakDay,
                         onChanged: (value) async {
-                          await Timetabletodb().toggleBreakDay(
+                          await TimetableToDb().toggleBreakDay(
                             widget.timetable[_controller.index].day.id,
                           );
                           setState(() {});
@@ -154,7 +154,7 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
               ),
               ElevatedButton.icon(
                 onPressed: () async {
-                await Timetabletodb().deleteTimetable();
+                await TimetableToDb().deleteTimetable();
                 },
                 icon: Icon(Icons.delete),
                 label: Text("Delete Timetable"),
@@ -167,7 +167,7 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
   }
 
   Stream<bool> _breakDayStream(int dayId) {
-    return Timetabletodb().getTimeTable().map((timetables) {
+    return TimetableToDb().getTimeTable().map((timetables) {
       final day = timetables.firstWhere(
         (t) => t.day.id == dayId,
         orElse: () => TimeTable(day: TimetableDay(id: 0, day: '', isBreakDay: false), session: []),
@@ -286,7 +286,7 @@ class _SessionCard extends StatelessWidget {
                 ),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    await Timetabletodb().deleteSession(session.id);
+                    await TimetableToDb().deleteSession(session.id);
                   },
                   icon: Icon(Icons.delete),
                   label: Text("Delete"),
@@ -394,7 +394,7 @@ class _SessionFormState extends State<_AddSessionForm> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  await Timetabletodb().addSession(
+                  await TimetableToDb().addSession(
                     dayId: widget.dayId,
                     start: start_time.text,
                     end: end_time.text,
@@ -487,7 +487,7 @@ class __EditSessionFormState extends State<_EditSessionForm> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  await Timetabletodb().editSession(
+                  await TimetableToDb().editSession(
                     widget.sessionId,
                     start: start_time.text,
                     end: end_time.text,

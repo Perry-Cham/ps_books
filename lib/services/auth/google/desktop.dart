@@ -8,6 +8,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'abstract.dart';
 import 'package:oauth2_client/oauth2_helper.dart';
 
+const id = String.fromEnvironment(
+    'DRIVE_CLIENT_ID',
+  );
+
+const secret = String.fromEnvironment(
+    'DRIVE_CLIENT_SECRET',
+  );
+
 class GoogleOAuth2Client extends OAuth2Client {
   //static const String redirectUri = 'http://localhost:8080';
 
@@ -22,10 +30,7 @@ class GoogleOAuth2Client extends OAuth2Client {
 
 class DesktopAuthService implements AuthService {
   // Desktop app client credentials from Google Cloud Console
-  static final id = String.fromEnvironment(
-    'DRIVE_CLIENT_ID',
-    defaultValue: "UNKNOWN",
-  );
+  
   static const _scopes = [drive.DriveApi.driveFileScope, 'openid'];
 
   String? _folderId;
@@ -34,9 +39,8 @@ class DesktopAuthService implements AuthService {
   static final helper = OAuth2Helper(
     _oauthClient,
     grantType: OAuth2Helper.authorizationCode,
-    clientId:
-        '338563215929-tshvf72vgi9aso3hnspubi6ba120sjr5.apps.googleusercontent.com',
-    clientSecret: "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",
+    clientId: id,
+    clientSecret: secret,
     webAuthOpts: {"useWebview": false},
     scopes: [
       'openid',
