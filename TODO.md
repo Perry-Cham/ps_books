@@ -1,3 +1,0 @@
-- Make the email and username visible for mobile auth flow in google drive sign in to give visual feedback.
-- Replace the manual pkce implementation with a google_sign_in_all_platforms the current imp is broken
-- Take the token returned by get token and store it in shared preferences to get out of the infinite login loop on desktop

@@ -40,10 +40,11 @@ class $CollectionsTable extends Collections
     aliasedName,
     false,
     type: DriftSqlType.bool,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'CHECK ("is_saved_collection" IN (0, 1))',
     ),
+    defaultValue: Constant(false),
   );
   @override
   List<GeneratedColumn> get $columns => [id, name, isSavedCollection];
@@ -78,8 +79,6 @@ class $CollectionsTable extends Collections
           _isSavedCollectionMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_isSavedCollectionMeta);
     }
     return context;
   }
@@ -207,9 +206,8 @@ class CollectionsCompanion extends UpdateCompanion<Collection> {
   CollectionsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    required bool isSavedCollection,
-  }) : name = Value(name),
-       isSavedCollection = Value(isSavedCollection);
+    this.isSavedCollection = const Value.absent(),
+  }) : name = Value(name);
   static Insertable<Collection> custom({
     Expression<int>? id,
     Expression<String>? name,
@@ -351,6 +349,32 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
       'REFERENCES collections (id)',
     ),
   );
+  static const VerificationMeta _lastReadMeta = const VerificationMeta(
+    'lastRead',
+  );
+  @override
+  late final GeneratedColumn<bool> lastRead = GeneratedColumn<bool>(
+    'last_read',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("last_read" IN (0, 1))',
+    ),
+    defaultValue: Constant(false),
+  );
+  static const VerificationMeta _coverPathMeta = const VerificationMeta(
+    'coverPath',
+  );
+  @override
+  late final GeneratedColumn<String> coverPath = GeneratedColumn<String>(
+    'cover_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -361,6 +385,8 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     page,
     progress,
     collection,
+    lastRead,
+    coverPath,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -425,6 +451,18 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         collection.isAcceptableOrUnknown(data['collection']!, _collectionMeta),
       );
     }
+    if (data.containsKey('last_read')) {
+      context.handle(
+        _lastReadMeta,
+        lastRead.isAcceptableOrUnknown(data['last_read']!, _lastReadMeta),
+      );
+    }
+    if (data.containsKey('cover_path')) {
+      context.handle(
+        _coverPathMeta,
+        coverPath.isAcceptableOrUnknown(data['cover_path']!, _coverPathMeta),
+      );
+    }
     return context;
   }
 
@@ -466,6 +504,14 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         DriftSqlType.int,
         data['${effectivePrefix}collection'],
       ),
+      lastRead: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}last_read'],
+      )!,
+      coverPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover_path'],
+      ),
     );
   }
 
@@ -484,6 +530,8 @@ class Book extends DataClass implements Insertable<Book> {
   final int? page;
   final double progress;
   final int? collection;
+  final bool lastRead;
+  final String? coverPath;
   const Book({
     required this.id,
     required this.name,
@@ -493,6 +541,8 @@ class Book extends DataClass implements Insertable<Book> {
     this.page,
     required this.progress,
     this.collection,
+    required this.lastRead,
+    this.coverPath,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -511,6 +561,10 @@ class Book extends DataClass implements Insertable<Book> {
     if (!nullToAbsent || collection != null) {
       map['collection'] = Variable<int>(collection);
     }
+    map['last_read'] = Variable<bool>(lastRead);
+    if (!nullToAbsent || coverPath != null) {
+      map['cover_path'] = Variable<String>(coverPath);
+    }
     return map;
   }
 
@@ -526,6 +580,10 @@ class Book extends DataClass implements Insertable<Book> {
       collection: collection == null && nullToAbsent
           ? const Value.absent()
           : Value(collection),
+      lastRead: Value(lastRead),
+      coverPath: coverPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverPath),
     );
   }
 
@@ -543,6 +601,8 @@ class Book extends DataClass implements Insertable<Book> {
       page: serializer.fromJson<int?>(json['page']),
       progress: serializer.fromJson<double>(json['progress']),
       collection: serializer.fromJson<int?>(json['collection']),
+      lastRead: serializer.fromJson<bool>(json['lastRead']),
+      coverPath: serializer.fromJson<String?>(json['coverPath']),
     );
   }
   @override
@@ -557,6 +617,8 @@ class Book extends DataClass implements Insertable<Book> {
       'page': serializer.toJson<int?>(page),
       'progress': serializer.toJson<double>(progress),
       'collection': serializer.toJson<int?>(collection),
+      'lastRead': serializer.toJson<bool>(lastRead),
+      'coverPath': serializer.toJson<String?>(coverPath),
     };
   }
 
@@ -569,6 +631,8 @@ class Book extends DataClass implements Insertable<Book> {
     Value<int?> page = const Value.absent(),
     double? progress,
     Value<int?> collection = const Value.absent(),
+    bool? lastRead,
+    Value<String?> coverPath = const Value.absent(),
   }) => Book(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -578,6 +642,8 @@ class Book extends DataClass implements Insertable<Book> {
     page: page.present ? page.value : this.page,
     progress: progress ?? this.progress,
     collection: collection.present ? collection.value : this.collection,
+    lastRead: lastRead ?? this.lastRead,
+    coverPath: coverPath.present ? coverPath.value : this.coverPath,
   );
   Book copyWithCompanion(BooksCompanion data) {
     return Book(
@@ -591,6 +657,8 @@ class Book extends DataClass implements Insertable<Book> {
       collection: data.collection.present
           ? data.collection.value
           : this.collection,
+      lastRead: data.lastRead.present ? data.lastRead.value : this.lastRead,
+      coverPath: data.coverPath.present ? data.coverPath.value : this.coverPath,
     );
   }
 
@@ -604,14 +672,26 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('extension: $extension, ')
           ..write('page: $page, ')
           ..write('progress: $progress, ')
-          ..write('collection: $collection')
+          ..write('collection: $collection, ')
+          ..write('lastRead: $lastRead, ')
+          ..write('coverPath: $coverPath')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, path, cfi, extension, page, progress, collection);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    path,
+    cfi,
+    extension,
+    page,
+    progress,
+    collection,
+    lastRead,
+    coverPath,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -623,7 +703,9 @@ class Book extends DataClass implements Insertable<Book> {
           other.extension == this.extension &&
           other.page == this.page &&
           other.progress == this.progress &&
-          other.collection == this.collection);
+          other.collection == this.collection &&
+          other.lastRead == this.lastRead &&
+          other.coverPath == this.coverPath);
 }
 
 class BooksCompanion extends UpdateCompanion<Book> {
@@ -635,6 +717,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<int?> page;
   final Value<double> progress;
   final Value<int?> collection;
+  final Value<bool> lastRead;
+  final Value<String?> coverPath;
   const BooksCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -644,6 +728,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.page = const Value.absent(),
     this.progress = const Value.absent(),
     this.collection = const Value.absent(),
+    this.lastRead = const Value.absent(),
+    this.coverPath = const Value.absent(),
   });
   BooksCompanion.insert({
     this.id = const Value.absent(),
@@ -654,6 +740,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.page = const Value.absent(),
     this.progress = const Value.absent(),
     this.collection = const Value.absent(),
+    this.lastRead = const Value.absent(),
+    this.coverPath = const Value.absent(),
   }) : name = Value(name),
        path = Value(path),
        extension = Value(extension);
@@ -666,6 +754,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<int>? page,
     Expression<double>? progress,
     Expression<int>? collection,
+    Expression<bool>? lastRead,
+    Expression<String>? coverPath,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -676,6 +766,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (page != null) 'page': page,
       if (progress != null) 'progress': progress,
       if (collection != null) 'collection': collection,
+      if (lastRead != null) 'last_read': lastRead,
+      if (coverPath != null) 'cover_path': coverPath,
     });
   }
 
@@ -688,6 +780,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Value<int?>? page,
     Value<double>? progress,
     Value<int?>? collection,
+    Value<bool>? lastRead,
+    Value<String?>? coverPath,
   }) {
     return BooksCompanion(
       id: id ?? this.id,
@@ -698,6 +792,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
       page: page ?? this.page,
       progress: progress ?? this.progress,
       collection: collection ?? this.collection,
+      lastRead: lastRead ?? this.lastRead,
+      coverPath: coverPath ?? this.coverPath,
     );
   }
 
@@ -728,6 +824,12 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (collection.present) {
       map['collection'] = Variable<int>(collection.value);
     }
+    if (lastRead.present) {
+      map['last_read'] = Variable<bool>(lastRead.value);
+    }
+    if (coverPath.present) {
+      map['cover_path'] = Variable<String>(coverPath.value);
+    }
     return map;
   }
 
@@ -741,7 +843,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('extension: $extension, ')
           ..write('page: $page, ')
           ..write('progress: $progress, ')
-          ..write('collection: $collection')
+          ..write('collection: $collection, ')
+          ..write('lastRead: $lastRead, ')
+          ..write('coverPath: $coverPath')
           ..write(')'))
         .toString();
   }
@@ -2176,7 +2280,7 @@ typedef $$CollectionsTableCreateCompanionBuilder =
     CollectionsCompanion Function({
       Value<int> id,
       required String name,
-      required bool isSavedCollection,
+      Value<bool> isSavedCollection,
     });
 typedef $$CollectionsTableUpdateCompanionBuilder =
     CollectionsCompanion Function({
@@ -2441,7 +2545,7 @@ class $$CollectionsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
-                required bool isSavedCollection,
+                Value<bool> isSavedCollection = const Value.absent(),
               }) => CollectionsCompanion.insert(
                 id: id,
                 name: name,
@@ -2531,6 +2635,8 @@ typedef $$BooksTableCreateCompanionBuilder =
       Value<int?> page,
       Value<double> progress,
       Value<int?> collection,
+      Value<bool> lastRead,
+      Value<String?> coverPath,
     });
 typedef $$BooksTableUpdateCompanionBuilder =
     BooksCompanion Function({
@@ -2542,6 +2648,8 @@ typedef $$BooksTableUpdateCompanionBuilder =
       Value<int?> page,
       Value<double> progress,
       Value<int?> collection,
+      Value<bool> lastRead,
+      Value<String?> coverPath,
     });
 
 final class $$BooksTableReferences
@@ -2608,6 +2716,16 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<double> get progress => $composableBuilder(
     column: $table.progress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get lastRead => $composableBuilder(
+    column: $table.lastRead,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get coverPath => $composableBuilder(
+    column: $table.coverPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2679,6 +2797,16 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get lastRead => $composableBuilder(
+    column: $table.lastRead,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get coverPath => $composableBuilder(
+    column: $table.coverPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CollectionsTableOrderingComposer get collection {
     final $$CollectionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2732,6 +2860,12 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<double> get progress =>
       $composableBuilder(column: $table.progress, builder: (column) => column);
+
+  GeneratedColumn<bool> get lastRead =>
+      $composableBuilder(column: $table.lastRead, builder: (column) => column);
+
+  GeneratedColumn<String> get coverPath =>
+      $composableBuilder(column: $table.coverPath, builder: (column) => column);
 
   $$CollectionsTableAnnotationComposer get collection {
     final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
@@ -2793,6 +2927,8 @@ class $$BooksTableTableManager
                 Value<int?> page = const Value.absent(),
                 Value<double> progress = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
+                Value<bool> lastRead = const Value.absent(),
+                Value<String?> coverPath = const Value.absent(),
               }) => BooksCompanion(
                 id: id,
                 name: name,
@@ -2802,6 +2938,8 @@ class $$BooksTableTableManager
                 page: page,
                 progress: progress,
                 collection: collection,
+                lastRead: lastRead,
+                coverPath: coverPath,
               ),
           createCompanionCallback:
               ({
@@ -2813,6 +2951,8 @@ class $$BooksTableTableManager
                 Value<int?> page = const Value.absent(),
                 Value<double> progress = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
+                Value<bool> lastRead = const Value.absent(),
+                Value<String?> coverPath = const Value.absent(),
               }) => BooksCompanion.insert(
                 id: id,
                 name: name,
@@ -2822,6 +2962,8 @@ class $$BooksTableTableManager
                 page: page,
                 progress: progress,
                 collection: collection,
+                lastRead: lastRead,
+                coverPath: coverPath,
               ),
           withReferenceMapper: (p0) => p0
               .map(

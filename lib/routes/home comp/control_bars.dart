@@ -6,7 +6,6 @@ import 'package:ps_books/dbs/database.dart';
 import 'utils.dart';
 import 'dialogs.dart';
 
-
 class FilterBar extends ConsumerWidget {
   const FilterBar({super.key});
 
@@ -50,7 +49,6 @@ class FilterBar extends ConsumerWidget {
   }
 }
 
-
 class ControlBar extends ConsumerWidget {
   const ControlBar({super.key, required this.provider});
   final NotifierProvider provider;
@@ -60,7 +58,11 @@ class ControlBar extends ConsumerWidget {
       provider.select((state) => state.selectedBookIds),
     );
     return Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.purple[800]!, width: 2.0), borderRadius: BorderRadius.all(Radius.circular(15))),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.purple[800]!, width: 2.0),
+        borderRadius: BorderRadius.all(Radius.circular(15)),
+        color: Colors.purple[800]!,
+      ),
       padding: EdgeInsets.all(10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -118,6 +120,69 @@ class ControlBar extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class PopUpControls extends ConsumerWidget {
+  PopUpControls({super.key, required this.provider});
+  final NotifierProvider provider;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedBookIds = ref.watch(
+      provider.select((state) => state.selectedBookIds),
+    );
+    // TODO: implement build
+    return PopupMenuButton(
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => DeleteCollectionDialog(),
+            );
+          },
+          child: Row(spacing: 5, children: [Icon(Icons.delete), Text('Delete Collection')]),
+        ),
+        PopupMenuItem(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AddToCollectionDialog(),
+            );
+          },
+          child: Row(spacing: 5, children: [Icon(Icons.add), Text('Add To Collection')]),
+        ),
+        PopupMenuItem(
+          onTap: () async {
+            try {
+              await deleteBooks(selectedBookIds);
+              ref.read(LibraryStateProvider.notifier).clearSelected();
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("Success"),
+                    content: Text("The operation completed successfully!"),
+                  );
+                },
+              );
+            } catch (e) {
+              print(e);
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("Error"),
+                    content: Text("The operation failed!"),
+                  );
+                },
+              );
+            }
+          },
+          child: Row(spacing: 5, children: [Icon(Icons.delete), Text('Delete')]),
+        ),
+      ],
     );
   }
 }

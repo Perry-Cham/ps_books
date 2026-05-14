@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:ps_books/services/reader-preferences.dart';
+import 'package:ps_books/services/settings/reader-preferences.dart';
 
 class PDF extends ConsumerStatefulWidget {
   const PDF({
