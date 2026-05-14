@@ -1,26 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ps_books/routes/settings.dart';
-import 'package:ps_books/routes/bookshelf.dart';
-import 'package:ps_books/state/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
+import 'package:workmanager/workmanager.dart';
+import 'dart:io';
 
+import 'package:ps_books/services/notifications.dart';
 import 'routes/home.dart';
 import 'routes/study.dart';
 import 'package:ps_books/routes/download.dart';
+import 'package:ps_books/routes/settings.dart';
+import 'package:ps_books/routes/bookshelf.dart';
+import 'package:ps_books/state/prefs.dart';
+import './layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
 
+  if (Platform.isAndroid) {
+    await Workmanager().initialize(registerStudyNotifications);
+    await Workmanager().registerPeriodicTask(
+      "timetable-sync-task", // Unique name
+      "sync-timetable", // Internal task key
+      frequency: const Duration(hours: 24), // Run once a day
+      constraints: Constraints(
+        networkType: NetworkType.notRequired, // Run even offline
+        requiresBatteryNotLow: false,
+      ),
+    );
+  }
+
   runApp(
     ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
       child: MyApp(),
     ),
   );
@@ -32,7 +46,7 @@ class MyApp extends StatelessWidget {
   //routes
   final GoRouter _router = GoRouter(
     initialLocation: '/',
-    routes: [  
+    routes: [
       ShellRoute(
         builder: (context, state, child) {
           return Layout(widget: child);

@@ -38,8 +38,10 @@ class Page extends ConsumerWidget {
     final downloadState = ref.watch(DownloadStateProvider);
     return Column(
       children: [
-        SearchBar(),
-        if (downloadState.searchResults != null &&
+        Center(child: SizedBox(width: 400, height: 100, child: SearchBar())),
+        if (downloadState.loading != null && downloadState.loading!)
+          LoadingResults()
+        else if (downloadState.searchResults != null &&
             downloadState.searchResults!.isNotEmpty)
           Expanded(child: BookGrid(books: downloadState.searchResults!))
         else
@@ -77,20 +79,34 @@ class _SearchBarState extends ConsumerState<SearchBar> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: TextFormField(controller: _searchController)),
-        FilledButton.icon(
-          onPressed: () async {
-            List<DownloadBook> books = await SearchBooks(
-              _searchController.text,
-            );
-            print("The book objects are here");
-            print(books);
+        Expanded(
+          child: TextFormField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              suffixIcon: IconButton(
+                onPressed: () async {
+                  ref
+                      .read(DownloadStateProvider.notifier)
+                      .updateState(loading: true);
+                  List<DownloadBook> books = await SearchBooks(
+                    _searchController.text,
+                  );
+                  print("The book objects are here");
+                  print(books);
 
-            print("State update section is here");
-            ref.read(DownloadStateProvider.notifier).updateState(books);
-          },
-          label: Text("Search"),
-          icon: Icon(Icons.search_sharp),
+                  print("State update section is here");
+                  ref
+                      .read(DownloadStateProvider.notifier)
+                      .updateState(books: books, loading: false);
+                },
+                icon: Icon(Icons.search),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              label: Text("Search"),
+            ),
+          ),
         ),
       ],
     );
@@ -107,76 +123,87 @@ class BookGrid extends ConsumerWidget {
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: _getCrossAxisCount(context),
-        childAspectRatio: 0.7,
+        crossAxisSpacing: 10,
+        childAspectRatio: 200 / 300,
       ),
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Text(book.title, textAlign: TextAlign.center),
-                  ),
+        return Stack(
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Text(book.title, textAlign: TextAlign.center),
+                      ),
+                    ),
+                    Text('Year: ${book.year}'),
+                    Text('Extension: ${book.extension}'),
+                    Text('Extension: ${book.size}'),
+                  ],
                 ),
-                Text('Year: ${book.year}'),
-                Text('Extension: ${book.extension}'),
-                Text('Extension: ${book.size}'),
-                ElevatedButton(
-                  onPressed: () async {
-                    String? link = await downloadPageScraper(book.href);
-                    if (link != null) {
-                      // Get filename first
-                      try {
-                        String fileName = await getFileName(link);
-                        // Set the file name in the provider
-                        ref
-                            .read(downloadProgressProvider.notifier)
-                            .setFileName(fileName);
+              ),
+            ),
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: IconButton.filled(
+                onPressed: () async {
+                  String? link = await downloadPageScraper(book.href);
+                  if (link != null) {
+                    // Get filename first
+                    try {
+                      String fileName = await getFileName(link);
+                      // Set the file name in the provider
+                      ref
+                          .read(downloadProgressProvider.notifier)
+                          .setFileName(fileName);
 
-                        // Listen to download progress stream
-                        downloadBookWithProgress(link).listen(
-                          (progress) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Download has started")));
-                            // Update progress in the provider
-                            ref
-                                .read(downloadProgressProvider.notifier)
-                                .updateProgress(progress);
-                          },
-                          onDone: () {
-                            // Reset when download is complete
-                            Future.delayed(Duration(seconds: 2), () {
-                              ref
-                                  .read(downloadProgressProvider.notifier)
-                                  .resetProgress();
-                            });
-                          },
-                          onError: (error) {
-                            print('Download error: $error');
+                      // Listen to download progress stream
+                      downloadBookWithProgress(link).listen(
+                        (progress) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Download has started")),
+                          );
+                          // Update progress in the provider
+                          ref
+                              .read(downloadProgressProvider.notifier)
+                              .updateProgress(progress);
+                        },
+                        onDone: () {
+                          // Reset when download is complete
+                          Future.delayed(Duration(seconds: 2), () {
                             ref
                                 .read(downloadProgressProvider.notifier)
                                 .resetProgress();
-                          },
-                        );
+                          });
+                        },
+                        onError: (error) {
+                          print('Download error: $error');
+                          ref
+                              .read(downloadProgressProvider.notifier)
+                              .resetProgress();
+                        },
+                      );
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Downloading $fileName')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Download failed: $e')),
-                        );
-                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Downloading $fileName')),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Download failed: $e')),
+                      );
                     }
-                  },
-                  child: Text('Download'),
-                ),
-              ],
+                  }
+                },
+                icon: Icon(Icons.file_download_outlined),
+              ),
             ),
-          ),
+          ],
         );
       },
     );
@@ -198,7 +225,7 @@ class DownloadsDisplay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final downloadProgress = ref.watch(downloadProgressProvider);
-    if(downloadProgress.progress == 1) Navigator.pop(context);
+    if (downloadProgress.progress == 1) Navigator.pop(context);
     return AlertDialog(
       content: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -234,6 +261,18 @@ class DownloadsDisplay extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class LoadingResults extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CircularProgressIndicator(),
+        Text('Fetching The results For You'),
+      ],
     );
   }
 }

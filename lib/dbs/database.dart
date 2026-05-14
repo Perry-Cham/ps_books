@@ -17,12 +17,17 @@ class Books extends Table {
   //Progress
   RealColumn get progress => real().withDefault(Constant(0.0))();
   //Collections
-  IntColumn get collection => integer().references(Collections, #id).nullable()();
+  IntColumn get collection =>
+      integer().references(Collections, #id).nullable()();
+  //Is set to true if it was the last read book,
+  BoolColumn get lastRead => boolean().withDefault(Constant(false))();
+  //Image cover path
+  TextColumn get coverPath => text().nullable()();
 }
 
 class Collections extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get  name => text()();
+  TextColumn get name => text()();
   BoolColumn get isSavedCollection => boolean().withDefault(Constant(false))();
 }
 
@@ -56,7 +61,8 @@ class SavedBooks extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
   TextColumn get author => text()();
-  IntColumn get collection => integer().references(Collections, #id).nullable()();
+  IntColumn get collection =>
+      integer().references(Collections, #id).nullable()();
 }
 
 @DriftDatabase(

@@ -3,11 +3,12 @@ import 'package:ps_books/services/downloader.dart';
 
 class DownloadState {
   final List<DownloadBook>? searchResults;
+  final bool? loading;
 
-  DownloadState({this.searchResults = const []});
+  DownloadState({this.searchResults = const [], this.loading});
 
-  DownloadState updateState(List<DownloadBook> books) {
-    return DownloadState(searchResults: books);
+  DownloadState updateState(List<DownloadBook>? books, bool? loading) {
+    return DownloadState(searchResults: books ?? this.searchResults, loading: loading ?? this.loading);
   }
 }
 
@@ -15,8 +16,8 @@ class DownloadNotifier extends Notifier<DownloadState> {
   @override
   DownloadState build() => DownloadState();
 
-  void updateState(List<DownloadBook> books) {
-    state = state.updateState(books);
+  void updateState({List<DownloadBook>? books, bool? loading}) {
+    state = state.updateState(books, loading);
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:googleapis/binaryauthorization/v1.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import '../readers/reader.dart';
@@ -15,7 +16,6 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    //  final library_state = ref.watch(LibraryStateProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text("Library"),
@@ -26,12 +26,7 @@ class HomePage extends ConsumerWidget {
             onPressed: () => print('testing'),
             icon: Icon(Icons.search),
           ),
-          IconButton(
-            onPressed: () {
-              ref.read(LibraryStateProvider.notifier).toggleMultiSelect();
-            },
-            icon: Icon(Icons.done_all),
-          ),
+          PopUpControls(provider: LibraryStateProvider),
         ],
       ),
       body: Page(),
@@ -55,7 +50,7 @@ class Page extends ConsumerWidget {
             child: Stack(
               children: [
                 BooksContainer(),
-                if (state.multi_select)
+                if (state.selectedBookIds.isNotEmpty)
                   Positioned(
                     left: 0,
                     right: 0,
@@ -107,16 +102,16 @@ class BooksContainer extends ConsumerWidget {
         final books = libraryState.filter != null
             ? data.where((t) => t.collection == libraryState.filter).toList()
             : [...data];
-        print(libraryState.filter);
         if (books.isEmpty) {
           return const Center(child: Text('No books yet'));
         }
 
         return GridView.builder(
-          gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: _getCrossAxisCount(context),
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
+            childAspectRatio: 150 / 200,
           ),
           itemCount: books.length,
           itemBuilder: (context, index) {
@@ -139,24 +134,39 @@ class BookCard extends ConsumerStatefulWidget {
 }
 
 class BookCardState extends ConsumerState<BookCard> {
+  bool display_checkbox = false;
+  bool checkbox_clicked = false;
   @override
   Widget build(BuildContext context) {
-    final selectedBookIds = ref.watch(
+    final selectedBookIds = ref.read(
       LibraryStateProvider.select((state) => state.selectedBookIds),
     );
-    final isSelected = selectedBookIds.contains(widget.book.id);
+    final controlState = ref.watch(LibraryStateProvider.select((state) => state.multi_select));
+    bool isSelected = ref.watch(
+      LibraryStateProvider.select((state) => state.selectedBookIds.contains(widget.book.id)));
     // TODO: implement build
     return InkWell(
+      onHover: (val) {
+        setState(() {
+          display_checkbox = val;
+        });
+      },
+      onLongPress: () {
+        ref.read(LibraryStateProvider.notifier).toggleMultiSelect();
+        ref.read(LibraryStateProvider.notifier).addSelected(widget.book.id);
+      },
       onTap: () {
-        final controlState = ref.watch(LibraryStateProvider);
-        print(controlState.multi_select);
-        if (controlState.multi_select) {
+   
+        if (controlState) {
           if (!isSelected) {
             ref.read(LibraryStateProvider.notifier).addSelected(widget.book.id);
           } else {
             ref
                 .read(LibraryStateProvider.notifier)
                 .removeSelected(widget.book.id);
+            if (selectedBookIds.isEmpty) {
+              ref.read(LibraryStateProvider.notifier).toggleMultiSelect();
+            }
           }
         } else {
           Navigator.push(
@@ -173,62 +183,82 @@ class BookCardState extends ConsumerState<BookCard> {
           );
         }
       },
-      child: Card(
-        color: isSelected ? Colors.cyan : Colors.white,
-        elevation: 5,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Column(
-            children: [
-              Expanded(child: Container()),
-              Text(widget.book.name, maxLines: 1, overflow: TextOverflow.fade),
-              //Text(widget.book.name),
-              Text("${(widget.book.progress * 100).toStringAsFixed(2)}%"),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Stack(
+        children: [
+          Card(
+            shape: isSelected
+                ? RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.all(Radius.circular(5)),
+                    side: BorderSide(
+                      color: Colors.deepPurple.shade600,
+                      width: 2,
+                    ),
+                  )
+                : null,
+            elevation: 5,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      await deleteBook(
-                        path: widget.book.path,
-                        id: widget.book.id,
-                      );
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text('Book(s) Deleted'),
-                            content: Text('Deleted Book(s)'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Text('Close'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Text("Delete"),
+                  Expanded(child: widget.book.coverPath != null ? Image.file(widget.book.coverPath!): Image.asset('assets/no_book.jpg')),
+                  Padding(
+                    padding: EdgeInsetsGeometry.all(2),
+                    child: Column(
+                      children: [
+                        Text(
+                          widget.book.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          "${(widget.book.progress * 100).toStringAsFixed(2)}%",
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+          if (display_checkbox || isSelected)
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Checkbox(
+                value: isSelected,
+                onChanged: (val) {
+             
+                  if (val != null) {
+                    if (val) {
+                      ref
+                          .read(LibraryStateProvider.notifier)
+                          .addSelected(widget.book.id);
+                    } else {
+                      ref
+                          .read(LibraryStateProvider.notifier)
+                          .removeSelected(widget.book.id);
+                    }
+                  }
+                },
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-
 int _getCrossAxisCount(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    if (width > 1200) return 5;
-    if (width > 800) return 4;
-    if (width > 600) return 3;
-    if (width > 400) return 2;
-    return 2;
-  }
+  double width = MediaQuery.of(context).size.width;
+  if (width > 1200) return 6;
+  if (width > 800) return 4;
+  if (width > 600) return 3;
+  if (width > 400) return 2;
+  return 2;
+}
