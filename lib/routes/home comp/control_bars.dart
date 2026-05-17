@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/dbs/database.dart';
-import 'utils.dart';
+import 'package:ps_books/helpers/utils.dart';
+import 'package:ps_books/state/wishlist.dart';
 import 'dialogs.dart';
 
 class FilterBar extends ConsumerWidget {
@@ -50,12 +51,13 @@ class FilterBar extends ConsumerWidget {
 }
 
 class ControlBar extends ConsumerWidget {
-  const ControlBar({super.key, required this.provider});
+  const ControlBar({super.key, required this.provider, this.wishlist = false});
   final NotifierProvider provider;
+  final bool wishlist;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedBookIds = ref.watch(
-      provider.select((state) => state.selectedBookIds),
+      provider.select((state) => (state as dynamic).selectedBookIds),
     );
     return Container(
       decoration: BoxDecoration(
@@ -71,8 +73,13 @@ class ControlBar extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () async {
               try {
-                await deleteBooks(selectedBookIds);
-                ref.read(LibraryStateProvider.notifier).clearSelected();
+                if (wishlist) {
+                  await deleteSavedBooks(booksToDelete: selectedBookIds);
+                    ref.read(WishlistStateProvider.notifier).clearSelected();
+                } else {
+                  await deleteBooks(selectedBookIds);
+                  ref.read(LibraryStateProvider.notifier).clearSelected();
+                }
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -102,7 +109,7 @@ class ControlBar extends ConsumerWidget {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => DeleteCollectionDialog(),
+                builder: (context) => DeleteCollectionDialog(wishlist: wishlist),
               );
             },
             icon: Icon(Icons.folder_delete),
@@ -112,7 +119,7 @@ class ControlBar extends ConsumerWidget {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => AddToCollectionDialog(),
+                builder: (context) => AddToCollectionDialog(provider: provider, wishlist: wishlist),
               );
             },
             icon: Icon(Icons.add),
@@ -125,12 +132,13 @@ class ControlBar extends ConsumerWidget {
 }
 
 class PopUpControls extends ConsumerWidget {
-  PopUpControls({super.key, required this.provider});
+  const PopUpControls({super.key, required this.provider, this.wishlist = false});
   final NotifierProvider provider;
+  final bool wishlist;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedBookIds = ref.watch(
-      provider.select((state) => state.selectedBookIds),
+      provider.select((state) => (state as dynamic).selectedBookIds),
     );
     // TODO: implement build
     return PopupMenuButton(
@@ -139,25 +147,36 @@ class PopUpControls extends ConsumerWidget {
           onTap: () {
             showDialog(
               context: context,
-              builder: (context) => DeleteCollectionDialog(),
+              builder: (context) => DeleteCollectionDialog(wishlist: wishlist),
             );
           },
-          child: Row(spacing: 5, children: [Icon(Icons.delete), Text('Delete Collection')]),
+          child: Row(
+            spacing: 5,
+            children: [Icon(Icons.delete), Text('Delete Collection')],
+          ),
         ),
         PopupMenuItem(
           onTap: () {
             showDialog(
               context: context,
-              builder: (context) => AddToCollectionDialog(),
+              builder: (context) => AddToCollectionDialog(provider: provider, wishlist: wishlist),
             );
           },
-          child: Row(spacing: 5, children: [Icon(Icons.add), Text('Add To Collection')]),
+          child: Row(
+            spacing: 5,
+            children: [Icon(Icons.add), Text('Add To Collection')],
+          ),
         ),
         PopupMenuItem(
           onTap: () async {
             try {
-              await deleteBooks(selectedBookIds);
-              ref.read(LibraryStateProvider.notifier).clearSelected();
+              if (wishlist) {
+                await deleteSavedBooks(booksToDelete: selectedBookIds);
+                ref.read(WishlistStateProvider.notifier).clearSelected();
+              } else {
+                await deleteBooks(selectedBookIds);
+                ref.read(LibraryStateProvider.notifier).clearSelected();
+              }
               showDialog(
                 context: context,
                 builder: (context) {
@@ -180,7 +199,10 @@ class PopUpControls extends ConsumerWidget {
               );
             }
           },
-          child: Row(spacing: 5, children: [Icon(Icons.delete), Text('Delete')]),
+          child: Row(
+            spacing: 5,
+            children: [Icon(Icons.delete), Text('Delete')],
+          ),
         ),
       ],
     );

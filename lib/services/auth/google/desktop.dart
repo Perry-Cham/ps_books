@@ -155,7 +155,7 @@ class DesktopAuthService implements AuthService {
 
       return jsonDecode(data.body)['given_name'];
     } else {
-      return null;
+      return;
     }
   }
 

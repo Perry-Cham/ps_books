@@ -2,13 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
+import 'package:ps_books/state/wishlist.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'utils.dart';
 
 final bookService = BookToDb();
 
 class DeleteCollectionDialog extends StatefulWidget {
-  const DeleteCollectionDialog({super.key});
+  const DeleteCollectionDialog({super.key, this.wishlist = false});
+  final bool wishlist;
 
   @override
   State<DeleteCollectionDialog> createState() => _DeleteCollectionDialogState();
@@ -23,7 +25,7 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
     return AlertDialog(
       title: const Text('Delete Collection'),
       content: StreamBuilder<List<Collection>>(
-        stream: BookToDb().getCategories(),
+        stream: widget.wishlist ? BookToDb().getSavedCategories() : BookToDb().getCategories(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SizedBox(
@@ -83,7 +85,7 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
                   final selectedId = _selectedCollectionId!;
                   await bookService.deleteCollection(selectedId);
 
-                  if (mounted && loading == false) {
+                  if (mounted) {
                     Navigator.pop(context);
                     showDialog(
                       context: context,
@@ -108,7 +110,9 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
 }
 
 class AddToCollectionDialog extends ConsumerStatefulWidget {
-  const AddToCollectionDialog({super.key});
+  const AddToCollectionDialog({super.key, required this.provider, this.wishlist = false});
+  final NotifierProvider provider;
+  final bool wishlist;
 
   @override
   ConsumerState<AddToCollectionDialog> createState() =>
@@ -127,7 +131,7 @@ class _AddToCollectionDialogState extends ConsumerState<AddToCollectionDialog> {
 
   Future<void> _submitForm() async {
     final selectedBookIds = ref.read(
-      LibraryStateProvider.select((state) => state.selectedBookIds),
+      widget.provider.select((state) => state.selectedBookIds),
     );
     final category = _categoryController.text.trim();
 
@@ -148,12 +152,27 @@ class _AddToCollectionDialogState extends ConsumerState<AddToCollectionDialog> {
     setState(() => _isLoading = true);
 
     try {
-      int? collectionId;
-      for (var id in selectedBookIds) {
-        await addToCollection(category, id);
+      Collection? collection = await BookToDb().getCollection(category);
+      int collectionId;
+      if (collection != null) {
+        collectionId = collection.id;
+      } else {
+        collectionId = await BookToDb().addCollection(category);
       }
 
-      ref.read(LibraryStateProvider.notifier).clearSelected();
+      for (var id in selectedBookIds) {
+        if (widget.wishlist) {
+          await BookToDb().setSavedBookCollection(id, collectionId);
+        } else {
+          await BookToDb().setBookCollection(id, collectionId);
+        }
+      }
+
+      if (widget.wishlist) {
+        ref.read(WishlistStateProvider.notifier).clearSelected();
+      } else {
+        ref.read(LibraryStateProvider.notifier).clearSelected();
+      }
 
       if (mounted) {
         Navigator.pop(context);

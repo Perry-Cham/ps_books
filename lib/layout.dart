@@ -24,7 +24,7 @@ class LayoutState extends State<Layout> {
 
   @override
   Widget build(BuildContext context) {
-    final locationUrl = GoRouterState.of(context).uri.toString();
+    final locationUrl = GoRouterState.of(context).uri.path;
     final index = destinations.indexOf(locationUrl);
     if (!Platform.isAndroid) {
       return Scaffold(
@@ -83,15 +83,15 @@ class LayoutState extends State<Layout> {
         ),
       );
     } else {
-      final locationUrl = GoRouterState.of(context).uri.toString();
+      final locationUrl = GoRouterState.of(context).uri.path;
       final index = destinations.indexOf(locationUrl);
       return Scaffold(
         body: widget.widget,
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.blueGrey, // Matches your NavigationRail
-          selectedItemColor: Colors.white, // Color of the active icon/label
-          unselectedItemColor: Colors.white70,
+          backgroundColor: Color(0xFF1E1729), // Matches your NavigationRail
+          selectedItemColor: Color(0xFFA78BFA), // Color of the active icon/label
+          unselectedItemColor: Colors.grey.shade200,
           currentIndex: index,
           onTap: (value) {
             context.go(destinations[value]);

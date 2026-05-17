@@ -15,6 +15,11 @@ class BookToDb {
   Future<Book> getBookById(int id) {
     return (_db.select(_db.books)..where((t) => t.id.equals(id))).getSingle();
   }
+Stream<Book?> getCurrentlyReading() {
+  return (_db.select(_db.books)..where((t) => t.lastRead.equals(true))).watch().map(
+    (list) => list.isNotEmpty ? list.first : null,
+  );
+}
 
   //Insert Single Book
   Future<int> addBook({
@@ -82,6 +87,12 @@ class BookToDb {
   Future<int> setBookCollection(int bookId, int collectionId) async {
     return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(collection: Value(collectionId)));
+  }
+
+  // Set Collections for all saved books
+  Future<int> setSavedBookCollection(int bookId, int collectionId) async {
+    return await (_db.update(_db.savedBooks)..where((t) => t.id.equals(bookId)))
+        .write(SavedBooksCompanion(collection: Value(collectionId)));
   }
 
   // Get Collections Stream

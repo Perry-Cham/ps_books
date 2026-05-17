@@ -49,7 +49,7 @@ class Pick_Books {
         try {
           if (extension == 'pdf') {
             print("start of pdf code");
-            await pdf.pdfrxInitialize();
+          //
 
             final doc = PdfDocument.fromBytes(fileBytes);
             final docForImage = await pdf.PdfDocument.openData(fileBytes);
@@ -64,7 +64,7 @@ class Pick_Books {
             final img = pageImage?.createImageNF();
 
             final coverImage = img != null ? encodePng(img) : null;
-            String path = '${CoversDir.path}/bookTitle';
+            String path = "${CoversDir.path}/$bookTitle";
             if (coverImage != null) {
               await File(path).writeAsBytes(coverImage);
             }

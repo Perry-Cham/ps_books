@@ -1,13 +1,6 @@
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 
-Future<void> deleteBooks(List<int> deletedBookIds) async {
-  if (deletedBookIds.isEmpty) return;
-
-  for (final id in deletedBookIds) {
-    await BookToDb().deleteBook(id);
-  }
-}
 
 Future<void> addToCollection(String collectionName, int bookId) async {
   Collection? collection = await BookToDb().getCollection(collectionName);

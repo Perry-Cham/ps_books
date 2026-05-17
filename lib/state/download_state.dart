@@ -8,7 +8,7 @@ class DownloadState {
   DownloadState({this.searchResults = const [], this.loading});
 
   DownloadState updateState(List<DownloadBook>? books, bool? loading) {
-    return DownloadState(searchResults: books ?? this.searchResults, loading: loading ?? this.loading);
+    return DownloadState(searchResults: books ?? searchResults, loading: loading ?? this.loading);
   }
 }
 

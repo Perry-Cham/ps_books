@@ -1,5 +1,4 @@
 // providers/auth_provider.dart
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth/google/auth_service.dart';
 import '../services/auth/google/abstract.dart';
@@ -72,8 +71,9 @@ final driveBooksProvider = FutureProvider<List<drive.File>>((ref) async {
 
   // 1. Get the Drive API instance
   final driveApi = await authService.getDriveApi();
-  if (driveApi == null)
+  if (driveApi == null) {
     throw Exception('Failed to authenticate with Google Drive');
+  }
 
   // 2. Get the Folder ID (This method already handles creation if missing)
   final folderId = await authService.folderId;

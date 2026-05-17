@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/models/drive_book.dart';
@@ -23,7 +21,7 @@ class DrivePage extends ConsumerWidget {
     // Watch the combined provider
     final driveBooksAsync = ref.watch(driveBooksProvider);
 
-    Future<void> _uploadFiles() async {
+    Future<void> uploadFiles() async {
       try {
         FilePickerResult? result = await FilePicker.platform.pickFiles(
           allowMultiple: true,
@@ -130,7 +128,7 @@ class DrivePage extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _uploadFiles,
+        onPressed: uploadFiles,
         child: const Icon(Icons.upload_file),
       ),
     );

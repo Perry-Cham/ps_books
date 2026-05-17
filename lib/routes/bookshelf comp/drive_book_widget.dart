@@ -11,7 +11,7 @@ import 'package:ps_books/state/google_auth.dart';
 class DriveBookWidget extends ConsumerWidget {
   final drive.File file;
 
-  const DriveBookWidget({Key? key, required this.file}) : super(key: key);
+  const DriveBookWidget({super.key, required this.file});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +93,7 @@ class DriveBookWidget extends ConsumerWidget {
             const SizedBox(height: 16),
             ValueListenableBuilder<double?>(
               valueListenable: progressController,
-              builder: (_, value, __) {
+              builder: (_, value, _) {
                 if (value == null) return const LinearProgressIndicator();
                 return LinearProgressIndicator(value: value);
               },
