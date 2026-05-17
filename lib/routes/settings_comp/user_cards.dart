@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class Google_Card extends StatelessWidget{
   final String name;
   final String email;
-  Google_Card({required this.name, required this.email});
+  const Google_Card({super.key, required this.name, required this.email});
   
   @override
   Widget build(BuildContext context) {

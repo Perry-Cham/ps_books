@@ -3,14 +3,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/downloader.dart';
 import '../state/download_state.dart';
 
-class DownloadSearch extends ConsumerWidget {
-  const DownloadSearch({super.key});
+class DownloadSearch extends ConsumerStatefulWidget {
+  const DownloadSearch({super.key, this.query});
+  final String? query;
+  @override
+  ConsumerState<DownloadSearch> createState() {
+    return DownloadSearchState();
+  }
+}
+
+class DownloadSearchState extends ConsumerState<DownloadSearch> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.query != null) {
+       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _searchBooks(ref, widget.query!);
+      });
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Download Page'),
+        title: Text('Discover'),
         actions: [
           IconButton(
             onPressed: () {
@@ -85,7 +102,7 @@ class _SearchBarState extends ConsumerState<SearchBar> {
             decoration: InputDecoration(
               suffixIcon: IconButton(
                 onPressed: () async {
-                  ref
+                  /*   ref
                       .read(DownloadStateProvider.notifier)
                       .updateState(loading: true);
                   List<DownloadBook> books = await SearchBooks(
@@ -97,7 +114,8 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                   print("State update section is here");
                   ref
                       .read(DownloadStateProvider.notifier)
-                      .updateState(books: books, loading: false);
+                      .updateState(books: books, loading: false); */
+                  await _searchBooks(ref, _searchController.text);
                 },
                 icon: Icon(Icons.search),
               ),
@@ -266,6 +284,8 @@ class DownloadsDisplay extends ConsumerWidget {
 }
 
 class LoadingResults extends StatelessWidget {
+  const LoadingResults({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -275,4 +295,16 @@ class LoadingResults extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<void> _searchBooks(WidgetRef ref, String text) async {
+  ref.read(DownloadStateProvider.notifier).updateState(loading: true);
+  List<DownloadBook> books = await SearchBooks(text);
+  print("The book objects are here");
+  print(books);
+
+  print("State update section is here");
+  ref
+      .read(DownloadStateProvider.notifier)
+      .updateState(books: books, loading: false);
 }

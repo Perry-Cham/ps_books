@@ -121,6 +121,7 @@ class AppDatabase extends _$AppDatabase {
   Future deleteBook(int id) {
     return (delete(books)..where((b) => b.id.equals(id))).go();
   }
+  
 
   //Update Page
   Future updatePage(int id, int page) {

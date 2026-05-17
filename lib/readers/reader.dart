@@ -1,9 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:microsoft_viewer/microsoft_viewer.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:ps_books/readers/epubReader.dart';
+import 'package:ps_books/readers/microsoft_reader.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../readers/pdfReader.dart';
@@ -11,8 +10,6 @@ import 'package:katbook_epub_reader/src/models/reading_position.dart';
 
 import '../helpers/pickBooks.dart';
 import '../helpers/utils.dart';
-
-
 
 class Reader extends ConsumerStatefulWidget {
   const Reader({
@@ -28,7 +25,6 @@ class Reader extends ConsumerStatefulWidget {
   final int id;
   final int? page;
   final position;
-  
 
   @override
   ConsumerState<Reader> createState() => ReaderState();
@@ -36,7 +32,7 @@ class Reader extends ConsumerStatefulWidget {
 
 class ReaderState extends ConsumerState<Reader> {
   final controller = PdfViewerController();
-  
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -91,22 +87,21 @@ class ReaderState extends ConsumerState<Reader> {
               onPositionChanged: saveEpubPosition,
               onProgressChanged: saveEpubProgress,
             );
-          } else if (widget.type == 'docx' || widget.type == 'pptx') {
-            return FutureBuilder(
-              future: File(widget.path).readAsBytes(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return MicrosoftViewer(snapshot.data!, false);
-                } else if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return Text("Loading...");
-                } else {
-                  return Text("An Error has occured");
-                }
-              },
-            );
           } else {
             return Center(child: Text('An error occured'));
+          }
+        },
+      );
+    } else if (widget.type == 'docx' || widget.type == 'pptx') {
+      return FutureBuilder(
+        future: File(widget.path).readAsBytes(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return MicrosoftReader(fileBytes:snapshot.data!);
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
+            return Text("Loading...");
+          } else {
+            return Text("An Error has occured");
           }
         },
       );

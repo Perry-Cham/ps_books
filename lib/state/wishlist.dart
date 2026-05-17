@@ -3,18 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class WishlistState {
   bool multi_select;
   int? filter;
-  List<int> selectedBookIds;
+  Set<int> selectedBookIds;
   WishlistState({
     this.multi_select = false,
     this.filter,
-    this.selectedBookIds = const [],
+    this.selectedBookIds = const {},
   });
 
-  WishlistState updateState({bool? multi_select_value}) {
+  WishlistState updateState({bool? multi_select_value, int? filter, Set<int>? selectedBookIds}) {
     return WishlistState(
       multi_select: multi_select_value ?? multi_select,
-      filter: filter,
-      selectedBookIds: selectedBookIds,
+      filter: filter ?? this.filter,
+      selectedBookIds: selectedBookIds ?? this.selectedBookIds,
     );
   }
 
@@ -26,13 +26,7 @@ class WishlistState {
     );
   }
 
-  WishlistState updateSelected(List<int> newSelected) {
-    return WishlistState(
-      multi_select: multi_select,
-      filter: filter,
-      selectedBookIds: newSelected,
-    );
-  }
+ 
 }
 
 class WishlistNotifier extends Notifier<WishlistState> {
@@ -48,19 +42,16 @@ class WishlistNotifier extends Notifier<WishlistState> {
   }
 
   void addSelected(int id) {
-    if (!state.selectedBookIds.contains(id)) {
-      state = state.updateSelected([...state.selectedBookIds, id]);
-    }
+    state = state.updateState(selectedBookIds: {...state.selectedBookIds, id});
   }
 
   void removeSelected(int id) {
-    state = state.updateSelected(
-      state.selectedBookIds.where((element) => element != id).toList(),
-    );
+    final updatedSelection = Set<int>.from(state.selectedBookIds)..remove(id);
+    state = state.updateState(selectedBookIds: updatedSelection);
   }
 
   void clearSelected() {
-    state = state.updateSelected([]);
+    state = state.updateState(selectedBookIds: {});
   }
 }
 

@@ -1,11 +1,11 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:googleapis/binaryauthorization/v1.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import '../readers/reader.dart';
 import '../helpers/pickBooks.dart';
-import '../helpers/utils.dart';
 import 'home comp/control_bars.dart';
 import 'package:ps_books/dbs/database.dart';
 
@@ -16,11 +16,22 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final selectionCount = ref.watch(
+      LibraryStateProvider.select((state) => state.selectedBookIds.length),
+    );
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
+    String title = "My Library";
+    if (isAndroid && selectionCount > 0) {
+      title = "$selectionCount selected";
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Library"),
-        iconTheme: const IconThemeData(color: Colors.black),
-        backgroundColor: Colors.cyan,
+        title: Text(title,
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Color(0xFF1E1729),
         actions: [
           IconButton(
             onPressed: () => print('testing'),
@@ -40,42 +51,84 @@ class Page extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(LibraryStateProvider);
-    return Padding(
-      padding: EdgeInsetsGeometry.all(10),
-      child: Column(
-        spacing: 15,
-        children: [
-          FilterBar(),
-          Expanded(
-            child: Stack(
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xFF1B1227),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(10),
+        child: Column(
+          spacing: 15,
+          children: [
+            FilterBar(),
+            Expanded(
+              child: Stack(
+                children: [
+                  BooksContainer(),
+                  if (state.selectedBookIds.isNotEmpty && !isAndroid)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 10.0,
+                      child: ControlBar(provider: LibraryStateProvider),
+                    ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                BooksContainer(),
-                if (state.selectedBookIds.isNotEmpty)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 10.0,
-                    child: ControlBar(provider: LibraryStateProvider),
+                ElevatedButton(
+                  onPressed: () async {
+                    showModalBottomSheet(
+                      context: context,
+                      isDismissible: false,
+                      enableDrag: false,
+                      backgroundColor: Color(0xFF1E1729),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      builder: (context) => Container(
+                        padding: EdgeInsets.all(30),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(color: Colors.deepPurple),
+                            SizedBox(height: 20),
+                            Text(
+                              "Importing your books",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+
+                    await Pick_Books().pickbooks();
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Row(
+                    spacing: 5,
+                    children: [
+                      Icon(Icons.add),
+                      Text('Import', style: TextStyle(color: Colors.black)),
+                    ],
                   ),
+                ),
               ],
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                onPressed: () => Pick_Books().pickbooks(),
-                child: Row(
-                  spacing: 5,
-                  children: [
-                    Icon(Icons.add),
-                    Text('Import', style: TextStyle(color: Colors.black)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -86,7 +139,7 @@ class BooksContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final libraryState = ref.watch(LibraryStateProvider);
+    final libraryState = ref.read(LibraryStateProvider.select((state) => state.filter));
     return StreamBuilder<List<Book>>(
       stream: database.watchAllBooks(),
       builder: (context, snapshot) {
@@ -99,8 +152,8 @@ class BooksContainer extends ConsumerWidget {
         }
 
         final data = snapshot.data ?? [];
-        final books = libraryState.filter != null
-            ? data.where((t) => t.collection == libraryState.filter).toList()
+        final books = libraryState != null
+            ? data.where((t) => t.collection == libraryState).toList()
             : [...data];
         if (books.isEmpty) {
           return const Center(child: Text('No books yet'));
@@ -109,7 +162,7 @@ class BooksContainer extends ConsumerWidget {
         return GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: _getCrossAxisCount(context),
-            mainAxisSpacing: 10,
+            mainAxisSpacing: 20,
             crossAxisSpacing: 10,
             childAspectRatio: 150 / 200,
           ),
@@ -183,49 +236,61 @@ class BookCardState extends ConsumerState<BookCard> {
           );
         }
       },
-      child: Stack(
+      child:Stack(
         children: [
-          Card(
-            shape: isSelected
-                ? RoundedRectangleBorder(
-                    borderRadius: BorderRadiusGeometry.all(Radius.circular(5)),
-                    side: BorderSide(
-                      color: Colors.deepPurple.shade600,
-                      width: 2,
-                    ),
-                  )
-                : null,
-            elevation: 5,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              child: Column(
-                children: [
-                  Expanded(child: widget.book.coverPath != null ? Image.file(widget.book.coverPath!): Image.asset('assets/no_book.jpg')),
-                  Padding(
-                    padding: EdgeInsetsGeometry.all(2),
-                    child: Column(
-                      children: [
-                        Text(
-                          widget.book.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          "${(widget.book.progress * 100).toStringAsFixed(2)}%",
-                        ),
-                      ],
-                    ),
+          SizedBox.expand(
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+                shape: isSelected
+                    ? RoundedRectangleBorder(
+                  borderRadius: BorderRadiusGeometry.all(Radius.circular(5)),
+                  side: BorderSide(
+                    color: Colors.deepPurple.shade600,
+                    width: 2,
                   ),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                    ],
-                  ),
-                ],
-              ),
+                )
+                    : null,
+                elevation: 5,
+                child: Stack(
+                  children: [
+                    if(widget.book.coverPath != null)
+                      Positioned(left:0, right:0, child:Image.file(File(widget.book.coverPath!)))
+                    else
+                      Image.asset('assets/no_book.jpg'),
+                    Positioned(
+                      bottom: 10,
+                      left: 10,
+                      right: 10,
+                      child: Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            color: Colors.black87
+                        ),
+                        child:  Padding(
+                          padding: EdgeInsetsGeometry.only(right: 5, left: 5, top: 8, bottom: 8),
+                          child: Column(
+                            spacing: 5,
+                            children: [
+                              Text(
+                                widget.book.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              Text(
+                                "${(widget.book.progress * 100).toStringAsFixed(2)}%",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
             ),
-          ),
+          )
+          ,
           if (display_checkbox || isSelected)
             Positioned(
               top: 0,
@@ -233,7 +298,7 @@ class BookCardState extends ConsumerState<BookCard> {
               child: Checkbox(
                 value: isSelected,
                 onChanged: (val) {
-             
+
                   if (val != null) {
                     if (val) {
                       ref

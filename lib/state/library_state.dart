@@ -3,36 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class LibraryState {
   bool multi_select;
   int? filter;
-  List<int> selectedBookIds;
+  Set<int> selectedBookIds;
   LibraryState({
     this.multi_select = false,
     this.filter,
-    this.selectedBookIds = const [],
+    this.selectedBookIds = const {},
   });
 
-  LibraryState updateState({bool? multi_select_value}) {
+  LibraryState updateState({bool? multi_select_value, int? filter, Set<int>? selectedBookIds}) {
     return LibraryState(
-      multi_select: multi_select_value ?? multi_select,
-      filter: filter,
-      selectedBookIds: selectedBookIds,
+      multi_select: multi_select_value ?? this.multi_select,
+      filter: filter ?? this.filter,
+      selectedBookIds: selectedBookIds ?? this.selectedBookIds,
     );
   }
 
-  LibraryState setFilter({int? f}) {
-    return LibraryState(
-      multi_select: multi_select,
-      filter: f,
-      selectedBookIds: selectedBookIds,
-    );
-  }
 
-  LibraryState updateSelected(List<int> newSelected) {
-    return LibraryState(
-      multi_select: multi_select,
-      filter: filter,
-      selectedBookIds: newSelected,
-    );
-  }
 }
 
 class LibraryNotifier extends Notifier<LibraryState> {
@@ -44,23 +30,20 @@ class LibraryNotifier extends Notifier<LibraryState> {
   }
 
   void setFilter(int? id) {
-    state = state.setFilter(f: id);
+    state = state.updateState(filter: id);
   }
 
   void addSelected(int id) {
-    if (!state.selectedBookIds.contains(id)) {
-      state = state.updateSelected([...state.selectedBookIds, id]);
-    }
+    state = state.updateState(selectedBookIds: {...state.selectedBookIds, id});
   }
 
   void removeSelected(int id) {
-    state = state.updateSelected(
-      state.selectedBookIds.where((element) => element != id).toList(),
-    );
+    final updatedSelection = Set<int>.from(state.selectedBookIds)..remove(id);
+    state = state.updateState(selectedBookIds: updatedSelection);
   }
 
   void clearSelected() {
-    state = state.updateSelected([]);
+    state = state.updateState(selectedBookIds: {});
   }
 }
 
