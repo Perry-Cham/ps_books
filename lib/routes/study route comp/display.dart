@@ -85,15 +85,14 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
       initialIndex: DateTime.now().weekday % 7,
       vsync: this,
     );
-    _controller.addListener(() {
-      setState(() {});
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Column(
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+
+    Widget content = Column(
       children: [
         TabBar(
           controller: _controller,
@@ -110,70 +109,181 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
             }).toList(),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            spacing: 10,
-            children: [
-              // Break Day Toggle Switch
-              StreamBuilder<bool>(
-                stream: _breakDayStream(widget.timetable[_controller.index].day.id),
-                builder: (context, snapshot) {
-                  final isBreakDay = snapshot.data ?? false;
-                  return Row(
-                    children: [
-                      Text('Break Day'),
-                      SizedBox(width: 8),
-                      Switch(
-                        value: isBreakDay,
-                        onChanged: (value) async {
-                          await TimetableToDb().toggleBreakDay(
-                            widget.timetable[_controller.index].day.id,
+        if (!isAndroid)
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              spacing: 10,
+              children: [
+                // Break Day Toggle Switch
+                StreamBuilder<bool>(
+                  stream: _breakDayStream(widget.timetable[_controller.index].day.id),
+                  builder: (context, snapshot) {
+                    final isBreakDay = snapshot.data ?? false;
+                    return Row(
+                      children: [
+                        Text('Break Day'),
+                        SizedBox(width: 8),
+                        Switch(
+                          value: isBreakDay,
+                          onChanged: (value) async {
+                            await TimetableToDb().toggleBreakDay(
+                              widget.timetable[_controller.index].day.id,
+                            );
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                ElevatedButton.icon(
+                  onPressed: widget.timetable[_controller.index].day.isBreakDay
+                      ? null
+                      : () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return _AddSessionForm(
+                                dayId: widget.timetable[_controller.index].day.id,
+                              );
+                            },
                           );
-                          setState(() {});
                         },
-                      ),
-                    ],
-                  );
-                },
-              ),
-              ElevatedButton.icon(
-                onPressed: widget.timetable[_controller.index].day.isBreakDay ? null : () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return _AddSessionForm(
-                        dayId: widget.timetable[_controller.index].day.id,
-                      );
-                    },
-                  );
-                },
-                icon: Icon(Icons.add),
-                label: Text("Add Session"),
-              ),
-              ElevatedButton.icon(
-                onPressed: () async {
-                await TimetableToDb().deleteTimetable();
-                },
-                icon: Icon(Icons.delete),
-                label: Text("Delete Timetable"),
-              ),
-            ],
+                  icon: Icon(Icons.add),
+                  label: Text("Add Session"),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await TimetableToDb().deleteTimetable();
+                  },
+                  icon: Icon(Icons.delete),
+                  label: Text("Delete Timetable"),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
+
+    if (isAndroid) {
+      return Scaffold(
+        appBar: AppBar(
+          actions: [
+            _TimetableAndroidMenu(
+              timetable: widget.timetable,
+              controller: _controller,
+              onStateChange: () => setState(() {}),
+            ),
+          ],
+        ),
+        body: content,
+      );
+    }
+
+    return content;
   }
 
   Stream<bool> _breakDayStream(int dayId) {
     return TimetableToDb().getTimeTable().map((timetables) {
       final day = timetables.firstWhere(
         (t) => t.day.id == dayId,
-        orElse: () => TimeTable(day: TimetableDay(id: 0, day: '', isBreakDay: false), session: []),
+        orElse: () => TimeTable(
+          day: TimetableDay(id: 0, day: '', isBreakDay: false),
+          session: [],
+        ),
       );
       return day.day.isBreakDay;
     });
+  }
+}
+
+class _TimetableAndroidMenu extends StatelessWidget {
+  const _TimetableAndroidMenu({
+    required this.timetable,
+    required this.controller,
+    required this.onStateChange,
+  });
+
+  final List<TimeTable> timetable;
+  final TabController controller;
+  final VoidCallback onStateChange;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentDayId = timetable[controller.index].day.id;
+    final isBreakDay = timetable[controller.index].day.isBreakDay;
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert),
+      onSelected: (value) async {
+        if (value == 'add') {
+          showDialog(
+            context: context,
+            builder: (context) => _AddSessionForm(dayId: currentDayId),
+          );
+        } else if (value == 'delete') {
+          await TimetableToDb().deleteTimetable();
+          onStateChange();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          enabled: false,
+          child: StreamBuilder<bool>(
+            stream: TimetableToDb().getTimeTable().map((timetables) {
+              final day = timetables.firstWhere(
+                (t) => t.day.id == currentDayId,
+                orElse: () => TimeTable(
+                  day: TimetableDay(id: 0, day: '', isBreakDay: false),
+                  session: [],
+                ),
+              );
+              return day.day.isBreakDay;
+            }),
+            builder: (context, snapshot) {
+              final breakDay = snapshot.data ?? isBreakDay;
+              return Row(
+                children: [
+                  const Text('Break Day'),
+                  const Spacer(),
+                  Switch(
+                    value: breakDay,
+                    onChanged: (value) async {
+                      await TimetableToDb().toggleBreakDay(currentDayId);
+                      onStateChange();
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'add',
+          enabled: !isBreakDay,
+          child: const Row(
+            children: [
+              Icon(Icons.add),
+              SizedBox(width: 8),
+              Text("Add Session"),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete),
+              SizedBox(width: 8),
+              Text("Delete Timetable"),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 

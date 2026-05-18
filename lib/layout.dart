@@ -111,7 +111,7 @@ class LayoutState extends State<Layout> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.search_outlined),
-              label: 'Goals',
+              label: 'Find',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_applications_outlined),
