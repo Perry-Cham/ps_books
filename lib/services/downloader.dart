@@ -16,17 +16,19 @@ class DownloadBook {
   final String href;
   final String size;
   List<String>? isbn;
-
+final String language;
   DownloadBook({
     required this.title,
     required this.year,
     required this.extension,
     required this.href,
     required this.size,
+    required this.language
   });
 
   static DownloadBook? fromMap(Map<String, dynamic> book) {
-    if (book['extension'] != "pdf" && book['extension'] != "pdf") {
+    print(book['href']);
+    if (book['extension'] != "pdf" && book['extension'] != "epub" && book['href'] == null) {
       return null;
     } else {
       return DownloadBook(
@@ -35,6 +37,7 @@ class DownloadBook {
         title: book['title'],
         href: book['href'],
         size: book['size'],
+        language: book['language']
       );
     }
   }
@@ -101,6 +104,7 @@ Map<String, dynamic>? convertToMap(Element el) {
     "size": data[6].text,
     "extension": data[7].text,
     "href": data[8].querySelector("[title='libgen']")?.attributes['href'],
+    "language":data[4].text
   };
 }
 
