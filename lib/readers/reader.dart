@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:ps_books/readers/epubReader.dart';
+import 'package:ps_books/readers/fb2_reader.dart';
 import 'package:ps_books/readers/microsoft_reader.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -97,7 +98,7 @@ class ReaderState extends ConsumerState<Reader> {
         future: File(widget.path).readAsBytes(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return MicrosoftReader(fileBytes:snapshot.data!);
+            return MicrosoftReader(fileBytes: snapshot.data!);
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return Text("Loading...");
           } else {
@@ -105,6 +106,8 @@ class ReaderState extends ConsumerState<Reader> {
           }
         },
       );
+    } else if (widget.type == 'fb2') {
+      return FB2Reader(filePath: widget.path);
     } else {
       return Center(child: Text('Unsupported file'));
     }
