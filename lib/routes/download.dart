@@ -55,9 +55,12 @@ class Page extends ConsumerWidget {
     final downloadState = ref.watch(DownloadStateProvider);
     return Column(
       children: [
+
         Center(child: SizedBox(width: 400, height: 100, child: SearchBar())),
         if (downloadState.loading != null && downloadState.loading!)
-          LoadingResults()
+    Expanded(
+    child: LoadingResults()
+    )
         else if (downloadState.searchResults != null &&
             downloadState.searchResults!.isNotEmpty)
           Expanded(child: BookGrid(books: downloadState.searchResults!))
@@ -102,20 +105,12 @@ class _SearchBarState extends ConsumerState<SearchBar> {
             decoration: InputDecoration(
               suffixIcon: IconButton(
                 onPressed: () async {
-                  /*   ref
-                      .read(DownloadStateProvider.notifier)
-                      .updateState(loading: true);
-                  List<DownloadBook> books = await SearchBooks(
-                    _searchController.text,
-                  );
-                  print("The book objects are here");
-                  print(books);
-
-                  print("State update section is here");
-                  ref
-                      .read(DownloadStateProvider.notifier)
-                      .updateState(books: books, loading: false); */
-                  await _searchBooks(ref, _searchController.text);
+                 try{
+                   await _searchBooks(ref, _searchController.text);
+                 }catch(e){
+                   print(e);
+                   ref.read(DownloadStateProvider.notifier).updateState(loading: false);
+                 }
                 },
                 icon: Icon(Icons.search),
               ),
@@ -152,22 +147,28 @@ class BookGrid extends ConsumerWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Column(
+                child: Stack(
                   children: [
-                    Expanded(
-                      child: Center(
-                        child: Text(book.title, textAlign: TextAlign.center),
-                      ),
+                    if(book.isbn != null)Image.network('https://covers.openlibrary.org/b/isbn/${book.isbn![0]}-M.jpg'),
+                    Column(
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Text(book.title, textAlign: TextAlign.center),
+                          ),
+                        ),
+                        Text('Year: ${book.year}'),
+                        Text('Extension: ${book.extension}'),
+                        Text('Language: ${book.language}'),
+                        Text('Size: ${book.size}'),
+                      ],
                     ),
-                    Text('Year: ${book.year}'),
-                    Text('Extension: ${book.extension}'),
-                    Text('Extension: ${book.size}'),
                   ],
-                ),
+                )
               ),
             ),
             Positioned(
-              bottom: 10,
+              top: 10,
               right: 10,
               child: IconButton.filled(
                 onPressed: () async {

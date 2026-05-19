@@ -23,12 +23,13 @@ final String language;
     required this.extension,
     required this.href,
     required this.size,
-    required this.language
+    required this.language,
+    required this.isbn
   });
 
   static DownloadBook? fromMap(Map<String, dynamic> book) {
-    print(book['href']);
-    if (book['extension'] != "pdf" && book['extension'] != "epub" && book['href'] == null) {
+  //  print(book['href']);
+    if ((book['extension'] != "pdf" && book['extension'] != "epub") || book['href'] == null) {
       return null;
     } else {
       return DownloadBook(
@@ -37,6 +38,7 @@ final String language;
         title: book['title'],
         href: book['href'],
         size: book['size'],
+        isbn:book['isbn'],
         language: book['language']
       );
     }
@@ -53,7 +55,7 @@ Future<dynamic> SearchBooks(String query) async {
       'req': query,
       'columns[]': ['t', 'a', 's', 'y', 'p', 'i'],
       'objects[]': ['f', 'e', 's', 'a', 'p', 'w'],
-      'topics[]': ['l', 'c', 'f', 'a', 'm', 'r', 's'],
+      'topics[]': ['l', 'c', 'f', 'r', 's'],
       'res': 100,
       'filesuns': 'all',
     },
@@ -89,8 +91,6 @@ Map<String, dynamic>? convertToMap(Element el) {
   List<String> candidates = [];
   for (var el in titles) {
     var j = el.text.trim();
-    //print(el.text);
-    print(j);
     if (j == '') {
       continue;
     } else {
@@ -98,8 +98,25 @@ Map<String, dynamic>? convertToMap(Element el) {
     }
   }
 
+//LOGIC TO GET ISBN
+// 1. Grab ALL text from the first column cell
+  final String cellText = data[0].text;
+
+  // 2. Define the ISBN Regex
+  // \b\d{13}\b     -> Matches standalone 13-digit numbers (ISBN-13)
+  // \b\d{9}[\dXx]\b -> Matches standalone 10-digit combinations ending in a digit or X (ISBN-10)
+  final isbnRegex = RegExp(r'\b\d{13}\b|\b\d{9}[\dXx]\b');
+
+  // 3. Extract all matches out of the garbage text
+  final Iterable<RegExpMatch> matches = isbnRegex.allMatches(cellText);
+  final List<String> foundIsbns = matches.map((m) => m.group(0)!).toList();
+
+
+  print(candidates[0]);
+  print(foundIsbns);
   return {
     "title": candidates[0],
+    "isbn": foundIsbns.isNotEmpty ? foundIsbns : null,
     "year": data[3].text,
     "size": data[6].text,
     "extension": data[7].text,
