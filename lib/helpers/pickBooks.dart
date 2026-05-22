@@ -1,8 +1,6 @@
-import 'package:dart_pdf_engine/dart_pdf_engine_viewer.dart';
-import 'package:image/image.dart';
-import 'package:pdfrx/pdfrx.dart' as pdf;
+import 'package:ps_books/helpers/book_processor.dart';
+import 'package:ps_books/models/book_data.dart';
 import 'package:drift/drift.dart';
-import 'package:epub_pro/epub_pro.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,13 +10,14 @@ import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
 
 final database = DBProvider().db;
+final _extensions = ['pdf', 'epub', 'fb2'];
 
 class Pick_Books {
   Future<Message> pickbooks() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
-        allowedExtensions: ['pdf', 'epub', 'pptx', 'docx'],
+        allowedExtensions: ['pdf', 'epub', 'fb2', 'pptx', 'docx'],
         type: FileType.custom,
       );
       if (result == null || result.files.isEmpty) {
@@ -31,95 +30,49 @@ class Pick_Books {
 
       final BooksDir = Directory("${directory.path}/Books");
       final CoversDir = Directory("${supportDir.path}/Covers");
-      await CoversDir.create();
+      await CoversDir.create(recursive: true);
+      await BooksDir.create(recursive: true);
 
       for (PlatformFile file in result.files) {
         final sourceFile = File(file.path!);
         final fileName = path.basename(file.name);
-        await BooksDir.create();
         final destinationPath = '${BooksDir.path}/$fileName';
-        //   final destinationFile = File(destinationPath);
         final fileBytes = await sourceFile.readAsBytes();
 
         await sourceFile.copy(destinationPath);
         paths.add(destinationPath);
         print("saved ${file.name} in $destinationPath");
 
-        String extension = file.name.split('.').last;
+        String extension = file.name.split('.').last.toLowerCase();
         try {
-          if (extension == 'pdf') {
-            print("start of pdf code");
-          //
-
-            final doc = PdfDocument.fromBytes(fileBytes);
-            final docForImage = await pdf.PdfDocument.openData(fileBytes);
-            String bookTitle =
-                doc.documentInfo.title ?? file.name.split('.')[0];
-            final page = docForImage.pages[0];
-            final pageImage = await page.render(
-              width: (page.width * 2).toInt(),
-              height: (page.height * 2).toInt(),
+          if (_extensions.contains(extension)) {
+            final bookData = await processBook(
+              fileBytes: fileBytes,
+              fileName: fileName,
+              extension: extension,
+              coversDir: CoversDir,
             );
 
-            final img = pageImage?.createImageNF();
-
-            final coverImage = img != null ? encodePng(img) : null;
-            String path = "${CoversDir.path}/$bookTitle";
-            if (coverImage != null) {
-              await File(path).writeAsBytes(coverImage);
-            }
-
-            if (doc.isLoaded) {
-              await database
-                  .into(database.books)
-                  .insert(
-                    BooksCompanion.insert(
-                      name: doc.documentInfo.title ?? file.name.split('.')[0],
-                      path: destinationPath,
-                      extension: extension,
-                      page: Value(1),
-                      coverPath: coverImage != null ? Value(path) : Value(null),
-                    ),
-                  );
-            }
-            doc.dispose();
-          } else if (extension == 'epub') {
-            EpubBook? doc;
-            try {
-              doc = await EpubReader.readBook(fileBytes);
-            } catch (e) {
-              print(e);
-            }
-            final bookTitle = doc?.title ?? file.name.split('.')[0];
-            final img = doc?.coverImage;
-            final image = img != null ? encodePng(img) : null;
-            final path = '${CoversDir.path}/$bookTitle';
-            if (image != null) {
-              await File(path).writeAsBytes(image);
-            }
-
-            await database
-                .into(database.books)
-                .insert(
+            await database.into(database.books).insert(
                   BooksCompanion.insert(
-                    name: bookTitle,
+                    name: bookData.title,
+                    author: Value(bookData.author),
                     path: destinationPath,
                     extension: extension,
-                    coverPath: image != null ? Value(path) : Value(null),
+                    page: extension == 'pdf' ? const Value(1) : const Value.absent(),
+                    coverPath: bookData.coverPath != null
+                        ? Value(bookData.coverPath)
+                        : const Value(null),
                   ),
                 );
           } else if (extension == 'docx' || extension == 'pptx') {
-            await database
-                .into(database.books)
-                .insert(
+            await database.into(database.books).insert(
                   BooksCompanion.insert(
                     name: file.name.split('.')[0],
                     path: destinationPath,
                     extension: extension,
                   ),
                 );
-          } else {
-            continue;
           }
         } catch (e, stack) {
           print(e);
@@ -137,6 +90,7 @@ class Pick_Books {
     }
   }
 }
+
 
 //Fucntion that inserts books into database
 void importBook() {}

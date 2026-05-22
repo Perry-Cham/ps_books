@@ -1,44 +1,54 @@
-// services/auth/mobile_auth_service.dart
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'abstract.dart';
 
+// Ensure this uses compile-time const mapping
+const String id = String.fromEnvironment('DRIVE_CLIENT_ID_MOBILE');
+
 class MobileAuthService implements AuthService {
-  static final _googleSignIn = GoogleSignIn.instance;
-  String? userName;
-  String? userEmail;
+  // Use the modern singleton pattern instance 
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+
+  GoogleSignInAccount? _currentUser;
   String? _folderId;
+
+  // Group your scopes together
+  final List<String> _scopes = [
+    drive.DriveApi.driveFileScope,
+    'email',
+    'profile',
+  ];
+
+  /// MUST be called and awaited once at app startup (e.g., in main.dart 
+  /// or when initializing your auth services dependencies).
+  Future<void> init() async {
+    await _googleSignIn.initialize(
+      clientId: id,
+    );
+  }
 
   @override
   Future<drive.DriveApi?> getDriveApi() async {
     try {
-      await _googleSignIn.initialize();
+      // 1. Try silent recovery/authentication first
+      _currentUser ??= await _googleSignIn.attemptLightweightAuthentication();
 
-      // try silent sign in first — avoids showing the picker
-      // every time the user opens the app
+      // Silent failed — use the modern system picker entry point
+      _currentUser ??= await _googleSignIn.authenticate();
 
-      GoogleSignInAccount? account = await _googleSignIn
-          .attemptLightweightAuthentication();
+      if (_currentUser == null) return null;
 
-      // silent failed — do interactive sign in
-      account ??= await _googleSignIn.authenticate();
+      // 2. AUTHORIZATION STEP: Request scope permissions explicitly
+      final authorization = await _currentUser!.authorizationClient.authorizeScopes(_scopes);
 
-      userName = account.displayName;
-      userEmail = account.email;
-
-      final authClient = await account.authorizationClient.authorizeScopes([
-        drive.DriveApi.driveFileScope,
-      ]);
-
-      // Note: In v7+, we use the authenticatedClient from the account
-      final client = authClient.authClient(
-        scopes: [drive.DriveApi.driveFileScope],
-      );
+      // 3. GET CLIENT: Use the updated extension naming mapping pattern
+      final client = authorization.authClient(scopes: _scopes);
+      if (client == null) return null;
 
       final driveD = drive.DriveApi(client);
 
-      //Get
+      // Get or create the directory
       _folderId = await getOrCreateAppFolder(driveD);
       return driveD;
     } catch (e) {
@@ -49,9 +59,9 @@ class MobileAuthService implements AuthService {
 
   @override
   Future<bool> get isSignedIn async {
-    // signInSilently returns null if not signed in
-    final account = await _googleSignIn.attemptLightweightAuthentication();
-    return account != null;
+    if (_currentUser != null) return true;
+    _currentUser = await _googleSignIn.attemptLightweightAuthentication();;
+    return _currentUser != null;
   }
 
   @override
@@ -61,19 +71,25 @@ class MobileAuthService implements AuthService {
     return _folderId;
   }
 
-  // TODO: make these actually return the email and displaynam
   @override
   Future<String?> get displayName async {
-    return "Unknown";
+      _currentUser ??= await _googleSignIn.attemptLightweightAuthentication();
+
+    return _currentUser?.displayName;
   }
 
   @override
   Future<String?> get email async {
-    return "Unknown";
+
+      _currentUser ??= await _googleSignIn.attemptLightweightAuthentication();
+
+    return _currentUser?.email;
   }
 
   @override
   Future<void> signOut() async {
     await _googleSignIn.signOut();
+    _currentUser = null;
+    _folderId = null;
   }
 }

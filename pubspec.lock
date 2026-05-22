@@ -945,10 +945,11 @@ packages:
   microsoft_viewer:
     dependency: "direct main"
     description:
-      name: microsoft_viewer
-      sha256: "91e47157d9264748fc877815b47645d2eaf14b43e60dbf3d1dc86570f3f09199"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "835027c8dadb620b10d6f9c3b270435e3aa8cc8d"
+      url: "https://github.com/Perry-Cham/microsoft_viewer_flutter.git"
+    source: git
     version: "0.0.8"
   mime:
     dependency: transitive

@@ -1,14 +1,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/services/downloader.dart';
 
+enum DownloadProvider { libgen, zlib, steb }
+
 class DownloadState {
   final List<DownloadBook>? searchResults;
   final bool? loading;
+  final DownloadProvider downloadProvider;
 
-  DownloadState({this.searchResults = const [], this.loading});
+  DownloadState({
+    this.searchResults = const [],
+    this.loading,
+    this.downloadProvider = DownloadProvider.libgen,
+  });
 
-  DownloadState updateState(List<DownloadBook>? books, bool? loading) {
-    return DownloadState(searchResults: books ?? searchResults, loading: loading ?? this.loading);
+  DownloadState updateState({
+    List<DownloadBook>? books,
+    bool? loading,
+    DownloadProvider? downloadProvider,
+  }) {
+    return DownloadState(
+      searchResults: books ?? searchResults,
+      loading: loading ?? this.loading,
+      downloadProvider: downloadProvider ?? this.downloadProvider,
+    );
   }
 }
 
@@ -16,8 +31,16 @@ class DownloadNotifier extends Notifier<DownloadState> {
   @override
   DownloadState build() => DownloadState();
 
-  void updateState({List<DownloadBook>? books, bool? loading}) {
-    state = state.updateState(books, loading);
+  void updateState({
+    List<DownloadBook>? books,
+    bool? loading,
+    DownloadProvider? downloadProvider,
+  }) {
+    state = state.updateState(
+      books: books,
+      loading: loading,
+      downloadProvider: downloadProvider,
+    );
   }
 }
 

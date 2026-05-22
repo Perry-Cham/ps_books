@@ -12,7 +12,6 @@ class FilterBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final libraryState = ref.watch(LibraryStateProvider);
     return StreamBuilder<List<Collection>>(
       stream: BookToDb().getCategories(),
       builder: (context, snapshot) {
@@ -20,8 +19,11 @@ class FilterBar extends ConsumerWidget {
         if (snapshot.hasData) {
           data = snapshot.data!.map((el) {
             return ElevatedButton(
-              onPressed: () =>
-                  ref.read(LibraryStateProvider.notifier).setFilter(el.id),
+              onPressed: (){
+                  ref.read(LibraryStateProvider.notifier).setFilter(el.id);
+                  print("The filter is");
+                  print(ref.read(LibraryStateProvider.notifier).state.filter);
+              },
               child: Text(el.name),
             );
           }).toList();
@@ -32,8 +34,11 @@ class FilterBar extends ConsumerWidget {
           children: data != null
               ? [
                   ElevatedButton(
-                    onPressed: () =>
-                        ref.read(LibraryStateProvider.notifier).setFilter(null),
+                    onPressed: (){
+                        ref.read(LibraryStateProvider.notifier).setFilter(null);
+                        print("The filter is");
+                  print(ref.read(LibraryStateProvider.notifier).state.filter);
+                    },
                     child: Text('All'),
                   ),
                   ...data,

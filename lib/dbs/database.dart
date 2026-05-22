@@ -7,6 +7,7 @@ part 'database.g.dart';
 class Books extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
+  TextColumn get author => text().nullable()();
   TextColumn get path => text()();
   //cfi for epubs
   TextColumn get cfi => text().nullable()();

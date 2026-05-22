@@ -6,7 +6,3 @@ Future<Map<String,dynamic>> fetch() async {
   Map<String,dynamic> data = jsonDecode(response.body);
   return data['items'][0];
 }
-
-class BookData{
-
-}
