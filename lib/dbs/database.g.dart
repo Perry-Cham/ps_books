@@ -285,6 +285,15 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _authorMeta = const VerificationMeta('author');
+  @override
+  late final GeneratedColumn<String> author = GeneratedColumn<String>(
+    'author',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
   late final GeneratedColumn<String> path = GeneratedColumn<String>(
@@ -379,6 +388,7 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   List<GeneratedColumn> get $columns => [
     id,
     name,
+    author,
     path,
     cfi,
     extension,
@@ -410,6 +420,12 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('author')) {
+      context.handle(
+        _authorMeta,
+        author.isAcceptableOrUnknown(data['author']!, _authorMeta),
+      );
     }
     if (data.containsKey('path')) {
       context.handle(
@@ -480,6 +496,10 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      author: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author'],
+      ),
       path: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}path'],
@@ -524,6 +544,7 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
 class Book extends DataClass implements Insertable<Book> {
   final int id;
   final String name;
+  final String? author;
   final String path;
   final String? cfi;
   final String extension;
@@ -535,6 +556,7 @@ class Book extends DataClass implements Insertable<Book> {
   const Book({
     required this.id,
     required this.name,
+    this.author,
     required this.path,
     this.cfi,
     required this.extension,
@@ -549,6 +571,9 @@ class Book extends DataClass implements Insertable<Book> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || author != null) {
+      map['author'] = Variable<String>(author);
+    }
     map['path'] = Variable<String>(path);
     if (!nullToAbsent || cfi != null) {
       map['cfi'] = Variable<String>(cfi);
@@ -572,6 +597,9 @@ class Book extends DataClass implements Insertable<Book> {
     return BooksCompanion(
       id: Value(id),
       name: Value(name),
+      author: author == null && nullToAbsent
+          ? const Value.absent()
+          : Value(author),
       path: Value(path),
       cfi: cfi == null && nullToAbsent ? const Value.absent() : Value(cfi),
       extension: Value(extension),
@@ -595,6 +623,7 @@ class Book extends DataClass implements Insertable<Book> {
     return Book(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      author: serializer.fromJson<String?>(json['author']),
       path: serializer.fromJson<String>(json['path']),
       cfi: serializer.fromJson<String?>(json['cfi']),
       extension: serializer.fromJson<String>(json['extension']),
@@ -611,6 +640,7 @@ class Book extends DataClass implements Insertable<Book> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'author': serializer.toJson<String?>(author),
       'path': serializer.toJson<String>(path),
       'cfi': serializer.toJson<String?>(cfi),
       'extension': serializer.toJson<String>(extension),
@@ -625,6 +655,7 @@ class Book extends DataClass implements Insertable<Book> {
   Book copyWith({
     int? id,
     String? name,
+    Value<String?> author = const Value.absent(),
     String? path,
     Value<String?> cfi = const Value.absent(),
     String? extension,
@@ -636,6 +667,7 @@ class Book extends DataClass implements Insertable<Book> {
   }) => Book(
     id: id ?? this.id,
     name: name ?? this.name,
+    author: author.present ? author.value : this.author,
     path: path ?? this.path,
     cfi: cfi.present ? cfi.value : this.cfi,
     extension: extension ?? this.extension,
@@ -649,6 +681,7 @@ class Book extends DataClass implements Insertable<Book> {
     return Book(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      author: data.author.present ? data.author.value : this.author,
       path: data.path.present ? data.path.value : this.path,
       cfi: data.cfi.present ? data.cfi.value : this.cfi,
       extension: data.extension.present ? data.extension.value : this.extension,
@@ -667,6 +700,7 @@ class Book extends DataClass implements Insertable<Book> {
     return (StringBuffer('Book(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('author: $author, ')
           ..write('path: $path, ')
           ..write('cfi: $cfi, ')
           ..write('extension: $extension, ')
@@ -683,6 +717,7 @@ class Book extends DataClass implements Insertable<Book> {
   int get hashCode => Object.hash(
     id,
     name,
+    author,
     path,
     cfi,
     extension,
@@ -698,6 +733,7 @@ class Book extends DataClass implements Insertable<Book> {
       (other is Book &&
           other.id == this.id &&
           other.name == this.name &&
+          other.author == this.author &&
           other.path == this.path &&
           other.cfi == this.cfi &&
           other.extension == this.extension &&
@@ -711,6 +747,7 @@ class Book extends DataClass implements Insertable<Book> {
 class BooksCompanion extends UpdateCompanion<Book> {
   final Value<int> id;
   final Value<String> name;
+  final Value<String?> author;
   final Value<String> path;
   final Value<String?> cfi;
   final Value<String> extension;
@@ -722,6 +759,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   const BooksCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.author = const Value.absent(),
     this.path = const Value.absent(),
     this.cfi = const Value.absent(),
     this.extension = const Value.absent(),
@@ -734,6 +772,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   BooksCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.author = const Value.absent(),
     required String path,
     this.cfi = const Value.absent(),
     required String extension,
@@ -748,6 +787,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   static Insertable<Book> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<String>? author,
     Expression<String>? path,
     Expression<String>? cfi,
     Expression<String>? extension,
@@ -760,6 +800,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (author != null) 'author': author,
       if (path != null) 'path': path,
       if (cfi != null) 'cfi': cfi,
       if (extension != null) 'extension': extension,
@@ -774,6 +815,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   BooksCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<String?>? author,
     Value<String>? path,
     Value<String?>? cfi,
     Value<String>? extension,
@@ -786,6 +828,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     return BooksCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      author: author ?? this.author,
       path: path ?? this.path,
       cfi: cfi ?? this.cfi,
       extension: extension ?? this.extension,
@@ -805,6 +848,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (author.present) {
+      map['author'] = Variable<String>(author.value);
     }
     if (path.present) {
       map['path'] = Variable<String>(path.value);
@@ -838,6 +884,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     return (StringBuffer('BooksCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('author: $author, ')
           ..write('path: $path, ')
           ..write('cfi: $cfi, ')
           ..write('extension: $extension, ')
@@ -2629,6 +2676,7 @@ typedef $$BooksTableCreateCompanionBuilder =
     BooksCompanion Function({
       Value<int> id,
       required String name,
+      Value<String?> author,
       required String path,
       Value<String?> cfi,
       required String extension,
@@ -2642,6 +2690,7 @@ typedef $$BooksTableUpdateCompanionBuilder =
     BooksCompanion Function({
       Value<int> id,
       Value<String> name,
+      Value<String?> author,
       Value<String> path,
       Value<String?> cfi,
       Value<String> extension,
@@ -2691,6 +2740,11 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get author => $composableBuilder(
+    column: $table.author,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2772,6 +2826,11 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get author => $composableBuilder(
+    column: $table.author,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get path => $composableBuilder(
     column: $table.path,
     builder: (column) => ColumnOrderings(column),
@@ -2845,6 +2904,9 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get author =>
+      $composableBuilder(column: $table.author, builder: (column) => column);
 
   GeneratedColumn<String> get path =>
       $composableBuilder(column: $table.path, builder: (column) => column);
@@ -2921,6 +2983,7 @@ class $$BooksTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String?> author = const Value.absent(),
                 Value<String> path = const Value.absent(),
                 Value<String?> cfi = const Value.absent(),
                 Value<String> extension = const Value.absent(),
@@ -2932,6 +2995,7 @@ class $$BooksTableTableManager
               }) => BooksCompanion(
                 id: id,
                 name: name,
+                author: author,
                 path: path,
                 cfi: cfi,
                 extension: extension,
@@ -2945,6 +3009,7 @@ class $$BooksTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                Value<String?> author = const Value.absent(),
                 required String path,
                 Value<String?> cfi = const Value.absent(),
                 required String extension,
@@ -2956,6 +3021,7 @@ class $$BooksTableTableManager
               }) => BooksCompanion.insert(
                 id: id,
                 name: name,
+                author: author,
                 path: path,
                 cfi: cfi,
                 extension: extension,

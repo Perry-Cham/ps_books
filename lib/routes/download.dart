@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/downloader.dart';
+import '../services/zlib.dart';
+import '../services/steb.dart';
 import '../state/download_state.dart';
 
 class DownloadSearch extends ConsumerStatefulWidget {
@@ -27,22 +29,22 @@ class DownloadSearchState extends ConsumerState<DownloadSearch> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Discover'),
+        title: const Text('Discover'),
         actions: [
           IconButton(
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (context) {
-                  return DownloadsDisplay();
+                  return const DownloadsDisplay();
                 },
               );
             },
-            icon: Icon(Icons.download_sharp),
+            icon: const Icon(Icons.download_sharp),
           ),
         ],
       ),
-      body: Page(),
+      body: const Page(),
     );
   }
 }
@@ -55,20 +57,56 @@ class Page extends ConsumerWidget {
     final downloadState = ref.watch(DownloadStateProvider);
     return Column(
       children: [
-
-        Center(child: SizedBox(width: 400, height: 100, child: SearchBar())),
+        Center(child: SizedBox(width: 400, height: 80, child: const SearchBar())),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8.0),
+          child: ProviderPills(),
+        ),
         if (downloadState.loading != null && downloadState.loading!)
-    Expanded(
-    child: LoadingResults()
-    )
+          const Expanded(child: LoadingResults())
         else if (downloadState.searchResults != null &&
             downloadState.searchResults!.isNotEmpty)
           Expanded(child: BookGrid(books: downloadState.searchResults!))
         else
-          Expanded(
+          const Expanded(
             child: Center(child: Text('Your search results will appear')),
           ),
       ],
+    );
+  }
+}
+
+class ProviderPills extends ConsumerWidget {
+  const ProviderPills({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedProvider = ref.watch(DownloadStateProvider).downloadProvider;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildPill(ref, 'Libgen', DownloadProvider.libgen, selectedProvider),
+        const SizedBox(width: 10),
+        _buildPill(ref, 'Z-Library', DownloadProvider.zlib, selectedProvider),
+        const SizedBox(width: 10),
+        _buildPill(ref, 'Standard Ebooks', DownloadProvider.steb, selectedProvider),
+      ],
+    );
+  }
+
+  Widget _buildPill(WidgetRef ref, String label, DownloadProvider provider, DownloadProvider selected) {
+    final isSelected = provider == selected;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        if (selected) {
+          ref.read(DownloadStateProvider.notifier).updateState(downloadProvider: provider);
+        }
+      },
+      selectedColor: Colors.deepPurple,
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),
     );
   }
 }
@@ -112,12 +150,12 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                    ref.read(DownloadStateProvider.notifier).updateState(loading: false);
                  }
                 },
-                icon: Icon(Icons.search),
+                icon: const Icon(Icons.search),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              label: Text("Search"),
+              label: const Text("Search"),
             ),
           ),
         ),
@@ -136,95 +174,164 @@ class BookGrid extends ConsumerWidget {
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: _getCrossAxisCount(context),
-        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
         childAspectRatio: 200 / 300,
       ),
       itemCount: books.length,
-      itemBuilder: (context, index) {
-        final book = books[index];
-        return Stack(
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Stack(
-                  children: [
-                    if(book.isbn != null)Image.network('https://covers.openlibrary.org/b/isbn/${book.isbn![0]}-M.jpg'),
-                    Column(
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: Text(book.title, textAlign: TextAlign.center),
-                          ),
+        itemBuilder: (context, index) {
+          final book = books[index];
+
+          // 1. Generate the safe Open Library URL if an ISBN exists
+          final String? coverUrl = (book.isbn != null && book.isbn!.isNotEmpty)
+              ? 'https://covers.openlibrary.org/b/isbn/${book.isbn![0]}-L.jpg?default=false'
+              : null;
+
+          return SizedBox.expand(
+            child: Card(
+              // Ensure rounded corners clip both the image and the gradient overlay cleanly
+              clipBehavior: Clip.antiAlias,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                children: [
+
+                  // LAYER 1: THE VISUAL BACKGROUND (IMAGE OR PLACEHOLDER)
+                  Positioned.fill(
+                    child: coverUrl != null
+                        ? Image.network(
+                      coverUrl,
+                      fit: BoxFit.cover,
+                      // Gracefully handles 404 errors or dead web connection pathways
+                      errorBuilder: (context, error, stackTrace) => const _CardFallbackBackground(),
+                    )
+                        : const _CardFallbackBackground(),
+                  ),
+
+                  // LAYER 2: THE GRADIENT SHADOW SHIELD (Protects Text Contrast)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.1), // Soft tint at the top
+                            Colors.black.withOpacity(0.5), // Medium transition
+                            Colors.black.withOpacity(0.95), // Deep dark mask at the bottom for text
+                          ],
+                          stops: const [0.0, 0.4, 0.85],
                         ),
-                        Text('Year: ${book.year}'),
-                        Text('Extension: ${book.extension}'),
-                        Text('Language: ${book.language}'),
-                        Text('Size: ${book.size}'),
-                      ],
+                      ),
                     ),
-                  ],
-                )
+                  ),
+
+                  // LAYER 3: THE CONTENT OVERLAY
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Pushes metadata downwards into the high-contrast sweet spot of the gradient
+                          const Spacer(),
+
+                          // Book Title Text
+                          Text(
+                            book.title,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Metadata Row Blocks
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              _buildMiniBadge(book.extension.toUpperCase(), Colors.deepPurple.shade700),
+                              if (book.year.trim().isNotEmpty)
+                                _buildMiniBadge(book.year, Colors.grey.shade800),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Additional Details Strings
+                          Text(
+                            'Language: ${book.language} • Size: ${book.size}',
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey.shade300,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // LAYER 4: INTERACTIVE ACTIONS (Floating Download Action)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton.filled(
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black.withOpacity(0.5),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        String? link = await downloadPageScraper(book.href);
+                        if (link != null) {
+                          try {
+                            String fileName = await getFileName(link);
+                            ref.read(downloadProgressProvider.notifier).setFileName(fileName);
+
+                            downloadBookWithProgress(link).listen(
+                                  (progress) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Download has started")),
+                                );
+                                ref.read(downloadProgressProvider.notifier).updateProgress(progress);
+                              },
+                              onDone: () {
+                                Future.delayed(const Duration(seconds: 2), () {
+                                  ref.read(downloadProgressProvider.notifier).resetProgress();
+                                });
+                              },
+                              onError: (error) {
+                                print('Download error: $error');
+                                ref.read(downloadProgressProvider.notifier).resetProgress();
+                              },
+                            );
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Downloading $fileName')),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Download failed: $e')),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.file_download_outlined, size: 20),
+                    ),
+                  ),
+                ],
               ),
             ),
-            Positioned(
-              top: 10,
-              right: 10,
-              child: IconButton.filled(
-                onPressed: () async {
-                  String? link = await downloadPageScraper(book.href);
-                  if (link != null) {
-                    // Get filename first
-                    try {
-                      String fileName = await getFileName(link);
-                      // Set the file name in the provider
-                      ref
-                          .read(downloadProgressProvider.notifier)
-                          .setFileName(fileName);
-
-                      // Listen to download progress stream
-                      downloadBookWithProgress(link).listen(
-                        (progress) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Download has started")),
-                          );
-                          // Update progress in the provider
-                          ref
-                              .read(downloadProgressProvider.notifier)
-                              .updateProgress(progress);
-                        },
-                        onDone: () {
-                          // Reset when download is complete
-                          Future.delayed(Duration(seconds: 2), () {
-                            ref
-                                .read(downloadProgressProvider.notifier)
-                                .resetProgress();
-                          });
-                        },
-                        onError: (error) {
-                          print('Download error: $error');
-                          ref
-                              .read(downloadProgressProvider.notifier)
-                              .resetProgress();
-                        },
-                      );
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Downloading $fileName')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Download failed: $e')),
-                      );
-                    }
-                  }
-                },
-                icon: Icon(Icons.file_download_outlined),
-              ),
-            ),
-          ],
-        );
-      },
+          );
+        }
     );
   }
 
@@ -249,6 +356,7 @@ class DownloadsDisplay extends ConsumerWidget {
       content: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
@@ -262,7 +370,7 @@ class DownloadsDisplay extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
@@ -270,7 +378,7 @@ class DownloadsDisplay extends ConsumerWidget {
                       minHeight: 4,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     '${(downloadProgress.progress * 100).toStringAsFixed(1)}%',
                   ),
@@ -290,8 +398,10 @@ class LoadingResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
         CircularProgressIndicator(),
+        SizedBox(height: 10),
         Text('Fetching The results For You'),
       ],
     );
@@ -299,8 +409,22 @@ class LoadingResults extends StatelessWidget {
 }
 
 Future<void> _searchBooks(WidgetRef ref, String text) async {
+  final provider = ref.read(DownloadStateProvider).downloadProvider;
   ref.read(DownloadStateProvider.notifier).updateState(loading: true);
-  List<DownloadBook> books = await SearchBooks(text);
+  
+  List<DownloadBook> books;
+  switch (provider) {
+    case DownloadProvider.libgen:
+      books = await SearchBooks(text);
+      break;
+    case DownloadProvider.zlib:
+      books = await searchZlib(text);
+      break;
+    case DownloadProvider.steb:
+      books = await searchSteb(text);
+      break;
+  }
+  
   print("The book objects are here");
   print(books);
 
@@ -308,4 +432,51 @@ Future<void> _searchBooks(WidgetRef ref, String text) async {
   ref
       .read(DownloadStateProvider.notifier)
       .updateState(books: books, loading: false);
+}
+
+/// Clean background design layout utilized when no image cover is present
+class _CardFallbackBackground extends StatelessWidget {
+  const _CardFallbackBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.blueGrey.shade900,
+            Colors.grey.shade900,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.book_outlined,
+          size: 48,
+          color: Colors.white.withOpacity(0.15),
+        ),
+      ),
+    );
+  }
+}
+
+/// Renders modern tag indicators around format and extension data fields
+Widget _buildMiniBadge(String label, Color backgroundColor) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(4),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
 }

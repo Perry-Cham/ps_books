@@ -4,6 +4,7 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:ps_books/readers/epubReader.dart';
 import 'package:ps_books/readers/fb2_reader.dart';
 import 'package:ps_books/readers/microsoft_reader.dart';
+import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../readers/pdfReader.dart';
@@ -31,6 +32,8 @@ class Reader extends ConsumerStatefulWidget {
   ConsumerState<Reader> createState() => ReaderState();
 }
 
+final _database = BookToDb();
+
 class ReaderState extends ConsumerState<Reader> {
   final controller = PdfViewerController();
 
@@ -44,17 +47,17 @@ class ReaderState extends ConsumerState<Reader> {
     int Page = controller.pageNumber ?? 1;
     int totalPages = controller.pageCount;
     double progress = Page / totalPages;
-    await database.updatePage(widget.id, Page);
-    await database.updateProgress(widget.id, progress);
+    await _database.updatePage(widget.id, Page);
+    await _database.updateProgress(widget.id, progress);
   }
 
   void saveEpubPosition(position) {
     String pos = jsonEncode(position);
-    database.updatePositionAndProgress(widget.id, pos);
+    _database.updatePositionAndProgress(widget.id, pos);
   }
 
   void saveEpubProgress(progress) {
-    database.updateProgress(widget.id, progress);
+    _database.updateProgress(widget.id, progress);
   }
 
   ReadingPosition? getPosition() {
@@ -121,6 +124,7 @@ class ReaderState extends ConsumerState<Reader> {
         if (widget.type == 'pdf') {
           await savePDFProgress();
         }
+        await _database.setCurrentlyReading(widget.id);
       },
       canPop: true,
       child: checkWidget(),

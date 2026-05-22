@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/routes/study%20route%20comp/timetable.dart';
 import 'package:ps_books/services/DB%20services/timetableToDB.dart';
+import 'package:ps_books/routes/study route comp/forms.dart';
 
 class TimetableDisplay extends StatelessWidget {
   const TimetableDisplay({super.key});
@@ -131,7 +132,6 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
                             await TimetableToDb().toggleBreakDay(
                               widget.timetable[_controller.index].day.id,
                             );
-                            setState(() {});
                           },
                         ),
                       ],
@@ -145,7 +145,7 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
                           showDialog(
                             context: context,
                             builder: (context) {
-                              return _AddSessionForm(
+                              return AddSessionForm(
                                 dayId: widget.timetable[_controller.index].day.id,
                               );
                             },
@@ -174,7 +174,6 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
             _TimetableAndroidMenu(
               timetable: widget.timetable,
               controller: _controller,
-              onStateChange: () => setState(() {}),
             ),
           ],
         ),
@@ -198,22 +197,26 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
     });
   }
 }
-
-class _TimetableAndroidMenu extends StatelessWidget {
-  const _TimetableAndroidMenu({
+class _TimetableAndroidMenu extends StatefulWidget{
+  _TimetableAndroidMenu({
     required this.timetable,
     required this.controller,
-    required this.onStateChange,
   });
 
   final List<TimeTable> timetable;
   final TabController controller;
-  final VoidCallback onStateChange;
 
   @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return _TimetableAndroidMenuState();
+  }
+}
+class _TimetableAndroidMenuState extends State<_TimetableAndroidMenu>{
+  @override
   Widget build(BuildContext context) {
-    final currentDayId = timetable[controller.index].day.id;
-    final isBreakDay = timetable[controller.index].day.isBreakDay;
+    final currentDayId = widget.timetable[widget.controller.index].day.id;
+    final isBreakDay = widget.timetable[widget.controller.index].day.isBreakDay;
 
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert),
@@ -221,11 +224,10 @@ class _TimetableAndroidMenu extends StatelessWidget {
         if (value == 'add') {
           showDialog(
             context: context,
-            builder: (context) => _AddSessionForm(dayId: currentDayId),
+            builder: (context) => AddSessionForm(dayId: currentDayId),
           );
         } else if (value == 'delete') {
           await TimetableToDb().deleteTimetable();
-          onStateChange();
         }
       },
       itemBuilder: (context) => [
@@ -252,7 +254,6 @@ class _TimetableAndroidMenu extends StatelessWidget {
                     value: breakDay,
                     onChanged: (value) async {
                       await TimetableToDb().toggleBreakDay(currentDayId);
-                      onStateChange();
                       Navigator.pop(context);
                     },
                   ),
@@ -384,7 +385,7 @@ class _SessionCard extends StatelessWidget {
                     showDialog(
                       context: context,
                       builder: (context) {
-                        return _EditSessionForm(
+                        return EditSessionForm(
                           sessionId: session.id,
                           session: session,
                         );
@@ -430,186 +431,6 @@ class _SubjectPill extends StatelessWidget {
           fontWeight: FontWeight.w500,
           color: Theme.of(context).colorScheme.onPrimaryContainer,
         ),
-      ),
-    );
-  }
-}
-
-// Forms
-class _AddSessionForm extends StatefulWidget {
-  const _AddSessionForm({required this.dayId});
-  final int dayId;
-
-  @override
-  State<_AddSessionForm> createState() => _SessionFormState();
-}
-
-class _SessionFormState extends State<_AddSessionForm> {
-  late final TextEditingController start_time;
-  late final TextEditingController end_time;
-  late final TextEditingController subjects;
-
-  @override
-  void initState() {
-    super.initState();
-    start_time = TextEditingController();
-    end_time = TextEditingController();
-    subjects = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    start_time.dispose();
-    end_time.dispose();
-    subjects.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text("Add Session"),
-      content: Column(
-        children: [
-          Text(
-            'Add Session',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-
-          // start time
-          TextFormField(
-            controller: start_time,
-            decoration: const InputDecoration(labelText: 'Start time'),
-          ),
-          const SizedBox(height: 8),
-
-          // end time
-          TextFormField(
-            controller: end_time,
-            decoration: const InputDecoration(labelText: 'End time'),
-          ),
-          const SizedBox(height: 8),
-
-          // subjects — comma separated same as your web version
-          TextFormField(
-            controller: subjects,
-            decoration: const InputDecoration(
-              labelText: 'Subjects',
-              hintText: 'Mathematics, Physics',
-            ),
-          ),
-          Row(
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  await TimetableToDb().addSession(
-                    dayId: widget.dayId,
-                    start: start_time.text,
-                    end: end_time.text,
-                    subjects: subjects.text,
-                  );
-                  Navigator.pop(context);
-                },
-                child: Text("Submit"),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Edit Session
-
-class _EditSessionForm extends StatefulWidget {
-  const _EditSessionForm({
-    required this.sessionId,
-    required this.session,
-  });
-
-  final int sessionId;
-  final TimetableSession session;
-
-  @override
-  State<_EditSessionForm> createState() => __EditSessionFormState();
-}
-
-class __EditSessionFormState extends State<_EditSessionForm> {
-  late final TextEditingController start_time;
-  late final TextEditingController end_time;
-  late final TextEditingController subjects;
-
-  @override
-  void initState() {
-    super.initState();
-    start_time = TextEditingController();
-    end_time = TextEditingController();
-    subjects = TextEditingController();
-
-    start_time.text = widget.session.start;
-    end_time.text = widget.session.end;
-    subjects.text = widget.session.subjects;
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    start_time.dispose();
-    end_time.dispose();
-    subjects.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text("Edit Session"),
-      content: Column(
-        children: [
-          const SizedBox(height: 8),
-
-          // start time
-          TextFormField(
-            controller: start_time,
-            decoration: const InputDecoration(labelText: 'Start time'),
-          ),
-          const SizedBox(height: 8),
-
-          // end time
-          TextFormField(
-            controller: end_time,
-            decoration: const InputDecoration(labelText: 'End time'),
-          ),
-          const SizedBox(height: 8),
-
-          // subjects — comma separated same as your web version
-          TextFormField(
-            controller: subjects,
-            decoration: const InputDecoration(
-              labelText: 'Subjects',
-              hintText: 'Mathematics, Physics',
-            ),
-          ),
-          Row(
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  await TimetableToDb().editSession(
-                    widget.sessionId,
-                    start: start_time.text,
-                    end: end_time.text,
-                    subjects: subjects.text,
-                  );
-                  Navigator.pop(context);
-                },
-                child: Text("Submit"),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

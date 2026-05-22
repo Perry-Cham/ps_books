@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/readers/reader.dart';
@@ -6,7 +8,6 @@ import 'package:ps_books/services/DB%20services/bookToDb.dart';
 final _db = BookToDb();
 
 class CurrentlyReading extends StatelessWidget {
-  const CurrentlyReading({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +17,11 @@ class CurrentlyReading extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(
             height: 120,
-            child: Center(child: CircularProgressIndicator()),
+            child: SizedBox.shrink()
           );
+        }
+        if(!snapshot.hasData){
+          return SizedBox.shrink();
         }
 
         final book = snapshot.data;
@@ -26,8 +30,13 @@ class CurrentlyReading extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
+                if(book.coverPath != null)
+                  Image.file(File(book.coverPath!),
+                    width: 60,
+                    height: 90,)
+                else
                 Image.asset(
-                  'assets/no-book.jpg',
+                  'assets/no_book.jpg',
                   width: 60,
                   height: 90,
                   fit: BoxFit.cover,

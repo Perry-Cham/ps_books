@@ -276,21 +276,11 @@ class Settings extends ConsumerWidget {
       });
 
       final docsDir = await getApplicationDocumentsDirectory();
+      final booksDir = Directory('$docsDir/booksDir');
       final tempDir = await getTemporaryDirectory();
 
-      Future<void> deleteContents(Directory dir) async {
-        if (!await dir.exists()) return;
-        await for (final entity in dir.list(recursive: false)) {
-          try {
-            await entity.delete(recursive: true);
-          } catch (e) {
-            print('Failed to delete ${entity.path}: $e');
-          }
-        }
-      }
-
-      await deleteContents(docsDir);
-      await deleteContents(tempDir);
+      await tempDir.delete(recursive: true);
+      await booksDir.delete(recursive: true);
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();

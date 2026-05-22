@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:html/dom.dart';
 import "package:html/parser.dart" as html;
 import 'package:path_provider/path_provider.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/helpers/book_processor.dart';
 
 final String url = "https://libgen.gl";
 final _db = BookToDb();
@@ -29,7 +31,8 @@ final String language;
 
   static DownloadBook? fromMap(Map<String, dynamic> book) {
   //  print(book['href']);
-    if ((book['extension'] != "pdf" && book['extension'] != "epub") || book['href'] == null) {
+    String ext = (book['extension'] ?? "").toString().toLowerCase();
+    if ((ext != "pdf" && ext != "epub" && ext != "fb2") || book['href'] == null) {
       return null;
     } else {
       return DownloadBook(
@@ -144,6 +147,10 @@ Stream<double> downloadBookWithProgress(String url) async* {
   final dio = Dio();
   final controller = StreamController<double>();
   final d = await getApplicationDocumentsDirectory();
+  final supportDir = await getApplicationSupportDirectory();
+  final CoversDir = Directory("${supportDir.path}/Covers");
+  await CoversDir.create(recursive: true);
+
   String filename = await getFileName(url);
   String savePath = "${d.path}/Books/$filename";
 
@@ -161,27 +168,30 @@ Stream<double> downloadBookWithProgress(String url) async* {
     );
   } finally {
     controller.close();
-    String extension = filename.split('.').last;
-    String title = filename.split('.')[0];
-    Map<String, dynamic> bookData = {
-      'name': title,
-      'extension': extension,
-      'path': savePath,
-    };
-    if (extension == 'pdf') {
-      print("start of pdf code");
+    String extension = filename.split('.').last.toLowerCase();
+    
+    if (['pdf', 'epub', 'fb2'].contains(extension)) {
+      final fileBytes = await File(savePath).readAsBytes();
+      final bookData = await processBook(
+        fileBytes: fileBytes,
+        fileName: filename,
+        extension: extension,
+        coversDir: CoversDir,
+      );
 
       await _db.addBook(
-        name: bookData['name'],
-        extension: bookData['extension'],
-        path: bookData['path'],
-        page: 1,
+        name: bookData.title,
+        author: bookData.author,
+        extension: extension,
+        path: savePath,
+        page: extension == 'pdf' ? 1 : null,
+        coverPath: bookData.coverPath,
       );
-    } else if (extension == 'epub') {
+    } else {
       await _db.addBook(
-        name: bookData['name'],
-        extension: bookData['extension'],
-        path: bookData['path'],
+        name: filename.split('.')[0],
+        extension: extension,
+        path: savePath,
       );
     }
   }

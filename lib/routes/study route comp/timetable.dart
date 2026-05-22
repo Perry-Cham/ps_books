@@ -118,7 +118,7 @@ class TimeTableFormState extends State<TimeTableForm> {
         ElevatedButton(
           onPressed: () async {
             await TimetableToDb().insertTimetable(Days);
-           // print(Days[0].sessions[0].subjects[0]);
+            // print(Days[0].sessions[0].subjects[0]);
             Navigator.pop(context);
           },
           child: Text("submit"),
@@ -151,6 +151,7 @@ class DayWidget extends StatelessWidget {
   onSessionUpdate;
 
   TextEditingController controller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -158,11 +159,14 @@ class DayWidget extends StatelessWidget {
       child: Column(
         children: [
           Text(data.day),
-          Switch(value: data.isBreak, onChanged:(value) => toggleBreak(value)),
+          Switch(value: data.isBreak, onChanged: (value) => toggleBreak(value)),
           Text("Number of sessions for the day"),
-          data.isBreak ? Text('The day is a Break Day no studying'): TextField(
-            onChanged: (value) => sessionNumberChange(index, int.parse(value)),
-          ),
+          data.isBreak
+              ? Text('The day is a Break Day no studying')
+              : TextField(
+                  onChanged: (value) =>
+                      sessionNumberChange(index, int.parse(value)),
+                ),
           ...List.generate(data.sessions.length, (index) {
             Session el = data.sessions[index];
             return SessionWidget(
@@ -184,52 +188,95 @@ class DayWidget extends StatelessWidget {
   }
 }
 
-class SessionWidget extends StatelessWidget {
+class SessionWidget extends StatefulWidget {
   const SessionWidget({
     super.key,
     required this.session,
     required this.index,
     required this.onSessionUpdate,
   });
+
   final Session session;
   final int index;
   final void Function({String? start, String? end, String? subjects})
   onSessionUpdate;
 
   @override
+  State<SessionWidget> createState() => _SessionWidgetState();
+}
+
+class _SessionWidgetState extends State<SessionWidget> {
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Text(
-          'Session ${index + 1}',
+          'Session ${widget.index + 1}',
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
 
-        // start time
-        TextFormField(
-          initialValue: session.start,
-          decoration: const InputDecoration(labelText: 'Start time'),
-          onChanged: (val) => onSessionUpdate(start: val),
+        
+        Row(
+          spacing: 8,
+          children: [
+            Text(
+              startTime != null ? startTime!.format(context) : "Select Time",
+            ),
+            IconButton.filled(
+              onPressed: () async {
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                );
+                if (time != null) {
+                  setState(() {
+                    startTime = time;
+                  });
+                  widget.onSessionUpdate(start: time.format(context));
+                }
+              },
+              icon: Icon(Icons.add),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-
-        // end time
-        TextFormField(
-          initialValue: session.end,
-          decoration: const InputDecoration(labelText: 'End time'),
-          onChanged: (val) => onSessionUpdate(end: val),
+        Row(
+          spacing: 8,
+          children: [
+            Text(
+              endTime != null ? endTime!.format(context) : "Select Time",
+            ),
+            IconButton.filled(
+              onPressed: () async {
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                );
+                if (time != null) {
+                  setState(() {
+                    endTime = time;
+                  });
+                  widget.onSessionUpdate(end: time.format(context));
+                }
+              },
+              icon: Icon(Icons.add),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
 
         // subjects — comma separated same as your web version
         TextFormField(
-          initialValue: session.subjects.join(', '),
+          initialValue: widget.session.subjects.join(', '),
           decoration: const InputDecoration(
             labelText: 'Subjects',
             hintText: 'Mathematics, Physics',
           ),
-          onChanged: (val) => onSessionUpdate(subjects: val),
+          onChanged: (val) => widget.onSessionUpdate(subjects: val),
         ),
       ],
     );
@@ -247,6 +294,7 @@ class Day {
 
 class Session {
   Session({this.start, this.end});
+
   String? start;
   String? end;
   List<String> subjects = [];
