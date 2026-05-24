@@ -77,17 +77,18 @@ Future<BookData> processBook({
 
           final coverpage = titleInfo.findElements('coverpage').firstOrNull;
           final imageElement = coverpage?.findElements('image').firstOrNull;
-          final coverId = imageElement?.getAttribute('xlink:href')?.replaceAll('#', '');
+          final coverId = imageElement?.getAttribute('l:href')?.replaceAll('#', '');
 
           if (coverId != null) {
             final binaries = document.findAllElements('binary');
             final binary = binaries.where((el) => el.getAttribute('id') == coverId).firstOrNull;
-            
-            if (binary != null) {
+            String extension;
+            if(binary != null){
+              extension = binary.getAttribute('content-type') == 'image/jpg' ? 'jpg' : 'png';
               final base64Image = binary.innerText.trim();
-              final bytes = base64Decode(base64Image.replaceAll(RegExp(r'\s+'), ''));
+              final bytes = base64Decode(base64Image);
               String sanitizedTitle = bookTitle.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-              coverPath = '${coversDir.path}/$sanitizedTitle.png';
+              coverPath = '${coversDir.path}/$sanitizedTitle.$extension';
               await File(coverPath).writeAsBytes(bytes);
             }
           }

@@ -145,40 +145,34 @@ Future<String?> downloadPageScraper(String link) async {
 
 Stream<double> downloadBookWithProgress(String url) async* {
   final dio = Dio();
-  final controller = StreamController<double>();
   final d = await getApplicationDocumentsDirectory();
   final supportDir = await getApplicationSupportDirectory();
-  final CoversDir = Directory("${supportDir.path}/Covers");
-  await CoversDir.create(recursive: true);
+  final coversDir = Directory("${supportDir.path}/Covers");
+  await coversDir.create();
 
-  String filename = await getFileName(url);
-  String savePath = "${d.path}/Books/$filename";
+  final String filename = await getFileName(url);
+  final String savePath = "${d.path}/Books/$filename";
 
-  try {
-    await dio.download(
-      url,
-      savePath,
-      onReceiveProgress: (received, total) {
-        if (total != -1) {
-          // Calculate percentage and push to stream
-          double progress = received / total;
-          controller.add(progress);
-        }
-      },
-    );
-  } finally {
-    controller.close();
-    String extension = filename.split('.').last.toLowerCase();
-    
+  final controller = StreamController<double>();
+
+  dio.download(
+    url,
+    savePath,
+    onReceiveProgress: (received, total) {
+      if (total != -1) {
+        controller.add(received / total);
+      }
+    },
+  ).then((_) async {
+    final String extension = filename.split('.').last.toLowerCase();
     if (['pdf', 'epub', 'fb2'].contains(extension)) {
       final fileBytes = await File(savePath).readAsBytes();
       final bookData = await processBook(
         fileBytes: fileBytes,
         fileName: filename,
         extension: extension,
-        coversDir: CoversDir,
+        coversDir: coversDir,
       );
-
       await _db.addBook(
         name: bookData.title,
         author: bookData.author,
@@ -194,9 +188,12 @@ Stream<double> downloadBookWithProgress(String url) async* {
         path: savePath,
       );
     }
-  }
+    controller.close();
+  }).catchError((e) {
+    controller.addError(e);
+    controller.close();
+  });
 
-  // yield* allows us to return the stream directly from the controller
   yield* controller.stream;
 }
 

@@ -13,17 +13,19 @@ class TimetableDisplay extends StatelessWidget {
     return StreamBuilder(
       stream: TimetableToDb().getTimeTable(),
       builder: (context, snapshot) {
+
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         }
+
         if (snapshot.hasError) {
           print(snapshot.error);
           return Center(
             child: Text("You haven't created any study TimeTables Yet"),
           );
         }
+
         //Rework this logic to add error handling
-        print("hello");
         final data = snapshot.data;
         if (data == null || data.isEmpty) {
           return Column(
@@ -65,6 +67,7 @@ class TimetableDisplay extends StatelessWidget {
 
 class Display extends StatefulWidget {
   const Display({super.key, required this.timetable});
+
   final List<TimeTable> timetable;
 
   @override
@@ -111,23 +114,25 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
           ),
         ),
         if (!isAndroid)
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              spacing: 10,
-              children: [
-                // Break Day Toggle Switch
-                StreamBuilder<bool>(
-                  stream: _breakDayStream(widget.timetable[_controller.index].day.id),
-                  builder: (context, snapshot) {
-                    final isBreakDay = snapshot.data ?? false;
-                    return Row(
+          ListenableBuilder(
+            listenable: _controller,
+            builder: (context, _) {
+              return Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: 10,
+                  children: [
+                    // Break Day Toggle Switch
+                    Row(
                       children: [
                         Text('Break Day'),
                         SizedBox(width: 8),
                         Switch(
-                          value: isBreakDay,
+                          value: widget
+                              .timetable[_controller.index]
+                              .day
+                              .isBreakDay,
                           onChanged: (value) async {
                             await TimetableToDb().toggleBreakDay(
                               widget.timetable[_controller.index].day.id,
@@ -135,34 +140,39 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
                           },
                         ),
                       ],
-                    );
-                  },
-                ),
-                ElevatedButton.icon(
-                  onPressed: widget.timetable[_controller.index].day.isBreakDay
-                      ? null
-                      : () {
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AddSessionForm(
-                                dayId: widget.timetable[_controller.index].day.id,
+                    ),
+
+                    ElevatedButton.icon(
+                      onPressed:
+                          widget.timetable[_controller.index].day.isBreakDay
+                          ? null
+                          : () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AddSessionForm(
+                                    dayId: widget
+                                        .timetable[_controller.index]
+                                        .day
+                                        .id,
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                  icon: Icon(Icons.add),
-                  label: Text("Add Session"),
+                      icon: Icon(Icons.add),
+                      label: Text("Add Session"),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await TimetableToDb().deleteTimetable();
+                      },
+                      icon: Icon(Icons.delete),
+                      label: Text("Delete Timetable"),
+                    ),
+                  ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    await TimetableToDb().deleteTimetable();
-                  },
-                  icon: Icon(Icons.delete),
-                  label: Text("Delete Timetable"),
-                ),
-              ],
-            ),
+              );
+            },
           ),
       ],
     );
@@ -171,9 +181,14 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
       return Scaffold(
         appBar: AppBar(
           actions: [
-            _TimetableAndroidMenu(
-              timetable: widget.timetable,
-              controller: _controller,
+            ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) {
+                return _TimetableAndroidMenu(
+                  timetable: widget.timetable,
+                  controller: _controller,
+                );
+              },
             ),
           ],
         ),
@@ -184,24 +199,10 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
     return content;
   }
 
-  Stream<bool> _breakDayStream(int dayId) {
-    return TimetableToDb().getTimeTable().map((timetables) {
-      final day = timetables.firstWhere(
-        (t) => t.day.id == dayId,
-        orElse: () => TimeTable(
-          day: TimetableDay(id: 0, day: '', isBreakDay: false),
-          session: [],
-        ),
-      );
-      return day.day.isBreakDay;
-    });
-  }
 }
-class _TimetableAndroidMenu extends StatefulWidget{
-  _TimetableAndroidMenu({
-    required this.timetable,
-    required this.controller,
-  });
+
+class _TimetableAndroidMenu extends StatefulWidget {
+  _TimetableAndroidMenu({required this.timetable, required this.controller});
 
   final List<TimeTable> timetable;
   final TabController controller;
@@ -212,7 +213,8 @@ class _TimetableAndroidMenu extends StatefulWidget{
     return _TimetableAndroidMenuState();
   }
 }
-class _TimetableAndroidMenuState extends State<_TimetableAndroidMenu>{
+
+class _TimetableAndroidMenuState extends State<_TimetableAndroidMenu> {
   @override
   Widget build(BuildContext context) {
     final currentDayId = widget.timetable[widget.controller.index].day.id;
@@ -301,10 +303,34 @@ class _DayPanel extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.beach_access, size: 64, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.beach_access,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             SizedBox(height: 16),
             Text(
               'Break day — no sessions scheduled',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (sessions.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.hourglass_empty_outlined,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No sessions added yet - Add a new one',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],

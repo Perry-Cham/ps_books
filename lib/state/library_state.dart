@@ -28,7 +28,13 @@ class LibraryNotifier extends Notifier<LibraryState> {
   void toggleMultiSelect() {
     state = state.updateState(multi_select_value: !state.multi_select);
   }
+  void setSelectTrue() {
+    state = state.updateState(multi_select_value: true);
+  }
 
+  void setSelectFalse() {
+    state = state.updateState(multi_select_value: false);
+  }
   void setFilter(int? id) {
     state = state.updateState(filter: id);
   }
@@ -39,6 +45,10 @@ class LibraryNotifier extends Notifier<LibraryState> {
 
   void removeSelected(int id) {
     final updatedSelection = Set<int>.from(state.selectedBookIds)..remove(id);
+    if(updatedSelection.isEmpty){
+      state = state.updateState(selectedBookIds: updatedSelection, multi_select_value: false);
+      return;
+    }
     state = state.updateState(selectedBookIds: updatedSelection);
   }
 
