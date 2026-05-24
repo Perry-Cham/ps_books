@@ -201,7 +201,7 @@ class BookCardState extends ConsumerState<BookCard> {
         });
       },
       onLongPress: () {
-        ref.read(LibraryStateProvider.notifier).toggleMultiSelect();
+        ref.read(LibraryStateProvider.notifier).setSelectTrue();
         ref.read(LibraryStateProvider.notifier).addSelected(widget.book.id);
       },
       onTap: () {
@@ -212,9 +212,6 @@ class BookCardState extends ConsumerState<BookCard> {
             ref
                 .read(LibraryStateProvider.notifier)
                 .removeSelected(widget.book.id);
-            if (selectedBookIds.isEmpty) {
-              ref.read(LibraryStateProvider.notifier).toggleMultiSelect();
-            }
           }
         } else {
           Navigator.push(
@@ -255,7 +252,7 @@ class BookCardState extends ConsumerState<BookCard> {
                       child: Image.file(File(widget.book.coverPath!), fit: BoxFit.cover,),
                     )
                   else
-                    Image.asset('assets/no_book.jpg'),
+                    Positioned.fill(child: Image.asset('assets/no_book.jpg', fit: BoxFit.cover,)),
                   Positioned(
                     bottom: 10,
                     left: 10,

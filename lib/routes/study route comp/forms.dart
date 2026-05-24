@@ -13,15 +13,13 @@ class AddSessionForm extends StatefulWidget{
 }
 
 class AddSessionFormState extends State<AddSessionForm> {
-  late final TextEditingController start_time;
-  late final TextEditingController end_time;
   late final TextEditingController subjects;
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
 
   @override
   void initState() {
     super.initState();
-    start_time = TextEditingController();
-    end_time = TextEditingController();
     subjects = TextEditingController();
   }
 
@@ -29,8 +27,6 @@ class AddSessionFormState extends State<AddSessionForm> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-    start_time.dispose();
-    end_time.dispose();
     subjects.dispose();
   }
 
@@ -40,23 +36,55 @@ class AddSessionFormState extends State<AddSessionForm> {
       title: Text("Add Session"),
       content: Column(
         children: [
-          Text(
-            'Add Session',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-          ),
           const SizedBox(height: 8),
 
           // start time
-          TextFormField(
-            controller: start_time,
-            decoration: const InputDecoration(labelText: 'Start time'),
+          Row(
+            spacing: 8,
+            children: [
+              Text(
+                startTime != null ? startTime!.format(context) : "Select Time",
+              ),
+              IconButton.filled(
+                onPressed: () async {
+                  final time = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (time != null) {
+                    setState(() {
+                      startTime = time;
+                    });
+                  }
+                },
+                icon: Icon(Icons.add),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
 
           // end time
-          TextFormField(
-            controller: end_time,
-            decoration: const InputDecoration(labelText: 'End time'),
+          Row(
+            spacing: 10,
+            children: [
+              Text(
+                endTime != null ? endTime!.format(context) : "Select Time",
+              ),
+              IconButton.filled(
+                onPressed: () async {
+                  final time = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (time != null) {
+                    setState(() {
+                      endTime = time;
+                    });
+                  }
+                },
+                icon: Icon(Icons.add),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
 
@@ -74,8 +102,8 @@ class AddSessionFormState extends State<AddSessionForm> {
                 onPressed: () async {
                   await TimetableToDb().addSession(
                     dayId: widget.dayId,
-                    start: start_time.text,
-                    end: end_time.text,
+                    start: startTime!.format(context),
+                    end: endTime!.format(context),
                     subjects: subjects.text,
                   );
                   Navigator.pop(context);

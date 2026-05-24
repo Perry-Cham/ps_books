@@ -7,7 +7,9 @@ import '../state/download_state.dart';
 
 class DownloadSearch extends ConsumerStatefulWidget {
   const DownloadSearch({super.key, this.query});
+
   final String? query;
+
   @override
   ConsumerState<DownloadSearch> createState() {
     return DownloadSearchState();
@@ -19,7 +21,7 @@ class DownloadSearchState extends ConsumerState<DownloadSearch> {
   void initState() {
     super.initState();
     if (widget.query != null) {
-       WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         _searchBooks(ref, widget.query!);
       });
     }
@@ -57,7 +59,9 @@ class Page extends ConsumerWidget {
     final downloadState = ref.watch(DownloadStateProvider);
     return Column(
       children: [
-        Center(child: SizedBox(width: 400, height: 80, child: const SearchBar())),
+        Center(
+          child: SizedBox(width: 400, height: 80, child: const SearchBar()),
+        ),
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 8.0),
           child: ProviderPills(),
@@ -90,19 +94,31 @@ class ProviderPills extends ConsumerWidget {
         const SizedBox(width: 10),
         _buildPill(ref, 'Z-Library', DownloadProvider.zlib, selectedProvider),
         const SizedBox(width: 10),
-        _buildPill(ref, 'Standard Ebooks', DownloadProvider.steb, selectedProvider),
+        _buildPill(
+          ref,
+          'Standard Ebooks',
+          DownloadProvider.steb,
+          selectedProvider,
+        ),
       ],
     );
   }
 
-  Widget _buildPill(WidgetRef ref, String label, DownloadProvider provider, DownloadProvider selected) {
+  Widget _buildPill(
+    WidgetRef ref,
+    String label,
+    DownloadProvider provider,
+    DownloadProvider selected,
+  ) {
     final isSelected = provider == selected;
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (bool selected) {
         if (selected) {
-          ref.read(DownloadStateProvider.notifier).updateState(downloadProvider: provider);
+          ref
+              .read(DownloadStateProvider.notifier)
+              .updateState(downloadProvider: provider);
         }
       },
       selectedColor: Colors.deepPurple,
@@ -143,12 +159,14 @@ class _SearchBarState extends ConsumerState<SearchBar> {
             decoration: InputDecoration(
               suffixIcon: IconButton(
                 onPressed: () async {
-                 try{
-                   await _searchBooks(ref, _searchController.text);
-                 }catch(e){
-                   print(e);
-                   ref.read(DownloadStateProvider.notifier).updateState(loading: false);
-                 }
+                  try {
+                    await _searchBooks(ref, _searchController.text);
+                  } catch (e) {
+                    print(e);
+                    ref
+                        .read(DownloadStateProvider.notifier)
+                        .updateState(loading: false);
+                  }
                 },
                 icon: const Icon(Icons.search),
               ),
@@ -171,6 +189,14 @@ class BookGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+
+    ref.listen(downloadProgressProvider, (next, prev) {
+      if (next != null && next.completedMessage != "") {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.completedMessage)));
+      }
+    });
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: _getCrossAxisCount(context),
@@ -178,160 +204,158 @@ class BookGrid extends ConsumerWidget {
         childAspectRatio: 200 / 300,
       ),
       itemCount: books.length,
-        itemBuilder: (context, index) {
-          final book = books[index];
+      itemBuilder: (context, index) {
+        final book = books[index];
 
-          // 1. Generate the safe Open Library URL if an ISBN exists
-          final String? coverUrl = (book.isbn != null && book.isbn!.isNotEmpty)
-              ? 'https://covers.openlibrary.org/b/isbn/${book.isbn![0]}-L.jpg?default=false'
-              : null;
+        // 1. Generate the safe Open Library URL if an ISBN exists
+        final String? coverUrl = (book.isbn != null && book.isbn!.isNotEmpty)
+            ? 'https://covers.openlibrary.org/b/isbn/${book.isbn![0]}-L.jpg?default=false'
+            : null;
 
-          return SizedBox.expand(
-            child: Card(
-              // Ensure rounded corners clip both the image and the gradient overlay cleanly
-              clipBehavior: Clip.antiAlias,
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Stack(
-                children: [
-
-                  // LAYER 1: THE VISUAL BACKGROUND (IMAGE OR PLACEHOLDER)
-                  Positioned.fill(
-                    child: coverUrl != null
-                        ? Image.network(
-                      coverUrl,
-                      fit: BoxFit.cover,
-                      // Gracefully handles 404 errors or dead web connection pathways
-                      errorBuilder: (context, error, stackTrace) => const _CardFallbackBackground(),
-                    )
-                        : const _CardFallbackBackground(),
-                  ),
-
-                  // LAYER 2: THE GRADIENT SHADOW SHIELD (Protects Text Contrast)
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withOpacity(0.1), // Soft tint at the top
-                            Colors.black.withOpacity(0.5), // Medium transition
-                            Colors.black.withOpacity(0.95), // Deep dark mask at the bottom for text
-                          ],
-                          stops: const [0.0, 0.4, 0.85],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // LAYER 3: THE CONTENT OVERLAY
-                  Positioned.fill(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Pushes metadata downwards into the high-contrast sweet spot of the gradient
-                          const Spacer(),
-
-                          // Book Title Text
-                          Text(
-                            book.title,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Metadata Row Blocks
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 6,
-                            runSpacing: 4,
-                            children: [
-                              _buildMiniBadge(book.extension.toUpperCase(), Colors.deepPurple.shade700),
-                              if (book.year.trim().isNotEmpty)
-                                _buildMiniBadge(book.year, Colors.grey.shade800),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-
-                          // Additional Details Strings
-                          Text(
-                            'Language: ${book.language} • Size: ${book.size}',
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.grey.shade300,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // LAYER 4: INTERACTIVE ACTIONS (Floating Download Action)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: IconButton.filled(
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black.withOpacity(0.5),
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        String? link = await downloadPageScraper(book.href);
-                        if (link != null) {
-                          try {
-                            String fileName = await getFileName(link);
-                            ref.read(downloadProgressProvider.notifier).setFileName(fileName);
-
-                            downloadBookWithProgress(link).listen(
-                                  (progress) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Download has started")),
-                                );
-                                ref.read(downloadProgressProvider.notifier).updateProgress(progress);
-                              },
-                              onDone: () {
-                                Future.delayed(const Duration(seconds: 2), () {
-                                  ref.read(downloadProgressProvider.notifier).resetProgress();
-                                });
-                              },
-                              onError: (error) {
-                                print('Download error: $error');
-                                ref.read(downloadProgressProvider.notifier).resetProgress();
-                              },
-                            );
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Downloading $fileName')),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Download failed: $e')),
-                            );
-                          }
-                        }
-                      },
-                      icon: const Icon(Icons.file_download_outlined, size: 20),
-                    ),
-                  ),
-                ],
-              ),
+        return SizedBox.expand(
+          child: Card(
+            // Ensure rounded corners clip both the image and the gradient overlay cleanly
+            clipBehavior: Clip.antiAlias,
+            elevation: 3,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          );
-        }
+            child: Stack(
+              children: [
+                // LAYER 1: THE VISUAL BACKGROUND (IMAGE OR PLACEHOLDER)
+                Positioned.fill(
+                  child: coverUrl != null
+                      ? Image.network(
+                          coverUrl,
+                          fit: BoxFit.cover,
+                          // Gracefully handles 404 errors or dead web connection pathways
+                          errorBuilder: (context, error, stackTrace) =>
+                              const _CardFallbackBackground(),
+                        )
+                      : const _CardFallbackBackground(),
+                ),
+
+                // LAYER 2: THE GRADIENT SHADOW SHIELD (Protects Text Contrast)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.1),
+                          // Soft tint at the top
+                          Colors.black.withOpacity(0.5),
+                          // Medium transition
+                          Colors.black.withOpacity(0.95),
+                          // Deep dark mask at the bottom for text
+                        ],
+                        stops: const [0.0, 0.4, 0.85],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // LAYER 3: THE CONTENT OVERLAY
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Pushes metadata downwards into the high-contrast sweet spot of the gradient
+                        const Spacer(),
+
+                        // Book Title Text
+                        Text(
+                          book.title,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Metadata Row Blocks
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            _buildMiniBadge(
+                              book.extension.toUpperCase(),
+                              Colors.deepPurple.shade700,
+                            ),
+                            if (book.year.trim().isNotEmpty)
+                              _buildMiniBadge(book.year, Colors.grey.shade800),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        // Additional Details Strings
+                        Text(
+                          'Language: ${book.language} • Size: ${book.size}',
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey.shade300,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // LAYER 4: INTERACTIVE ACTIONS (Floating Download Action)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton.filled(
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black.withOpacity(0.5),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () async {
+                      String? link = await downloadPageScraper(book.href);
+                      if (link != null) {
+                        try {
+                          String fileName = await getFileName(link);
+                          ref
+                              .read(downloadProgressProvider.notifier)
+                              .setFileName(fileName);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Download has started"),
+                            ),
+                          );
+                          ref
+                              .read(downloadProgressProvider.notifier)
+                              .startDownload(link, fileName);
+
+                        } catch (e, h) {
+                          print(e);
+                          print(h);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Download failed: $e')),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.file_download_outlined, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -411,7 +435,7 @@ class LoadingResults extends StatelessWidget {
 Future<void> _searchBooks(WidgetRef ref, String text) async {
   final provider = ref.read(DownloadStateProvider).downloadProvider;
   ref.read(DownloadStateProvider.notifier).updateState(loading: true);
-  
+
   List<DownloadBook> books;
   switch (provider) {
     case DownloadProvider.libgen:
@@ -424,7 +448,7 @@ Future<void> _searchBooks(WidgetRef ref, String text) async {
       books = await searchSteb(text);
       break;
   }
-  
+
   print("The book objects are here");
   print(books);
 
@@ -445,10 +469,7 @@ class _CardFallbackBackground extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.blueGrey.shade900,
-            Colors.grey.shade900,
-          ],
+          colors: [Colors.blueGrey.shade900, Colors.grey.shade900],
         ),
       ),
       child: Center(

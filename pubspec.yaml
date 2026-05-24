@@ -75,6 +75,7 @@ dependencies:
   image: ^4.8.0
   flutter_launcher_icons: ^0.14.4
   xml: ^6.6.1
+  circular_countdown_timer: ^0.2.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

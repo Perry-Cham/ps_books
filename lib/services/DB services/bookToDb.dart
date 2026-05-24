@@ -15,28 +15,26 @@ class BookToDb {
   Future<Book> getBookById(int id) {
     return (_db.select(_db.books)..where((t) => t.id.equals(id))).getSingle();
   }
-  //get a book with currently reading set to true
-Stream<Book?> getCurrentlyReading() {
-  return (_db.select(_db.books)..where((t) => t.lastRead.equals(true))).watch().map(
-    (list) => list.isNotEmpty ? list.first : null,
-  );
-}
 
-//set a books currently reading attribute
+  //get a book with currently reading set to true
+  Stream<Book?> getCurrentlyReading() {
+    return (_db.select(_db.books)..where((t) => t.lastRead.equals(true)))
+        .watch()
+        .map((list) => list.isNotEmpty ? list.first : null);
+  }
+
+  //set a books currently reading attribute
   Future<void> setCurrentlyReading(int id) async {
     final book = await getBookById(id);
-    if(book.lastRead) return;
+    if (book.lastRead) return;
 
-    _db.transaction(()async {
-      await (_db.update(_db.books)..where((t) => t.lastRead.equals(true))).write(BooksCompanion(
-          lastRead: Value(false)
-      ));
-      await (_db.update(_db.books)..where((t) => t.id.equals(id))).write(BooksCompanion(
-          lastRead: Value(true)
-      ));
+    _db.transaction(() async {
+      await (_db.update(_db.books)..where((t) => t.lastRead.equals(true)))
+          .write(BooksCompanion(lastRead: Value(false)));
+      await (_db.update(_db.books)..where((t) => t.id.equals(id))).write(
+        BooksCompanion(lastRead: Value(true)),
+      );
     });
-
-
   }
 
   //Insert Single Book
@@ -109,6 +107,12 @@ Stream<Book?> getCurrentlyReading() {
   Future<int> setBookCollection(int bookId, int collectionId) async {
     return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(collection: Value(collectionId)));
+  }
+
+  // Remove Collection on a single book
+  Future<int> removeCollection(int bookId) async {
+    return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
+        .write(BooksCompanion(collection: Value(null)));
   }
 
   // Set Collections for all saved books
