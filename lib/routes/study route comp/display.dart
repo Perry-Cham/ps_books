@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/dbs/database.dart';
+import 'package:ps_books/routes/study%20route%20comp/pomodoro.dart';
 import 'package:ps_books/routes/study%20route%20comp/timetable.dart';
 import 'package:ps_books/services/DB%20services/timetableToDB.dart';
 import 'package:ps_books/routes/study route comp/forms.dart';
@@ -161,6 +162,16 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
                             },
                       icon: Icon(Icons.add),
                       label: Text("Add Session"),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => Pomodoro()),
+                        );
+                      },
+                      icon: Icon(Icons.timer),
+                      label: Text("Study Timer"),
                     ),
                     ElevatedButton.icon(
                       onPressed: () async {
