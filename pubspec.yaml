@@ -76,6 +76,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   xml: ^6.6.1
   circular_countdown_timer: ^0.2.4
+  kindle_unpack: ^0.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -91,7 +92,8 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
+dependency_overrides:
+  archive: ^4.0.7
 # The following section is specific to Flutter packages.
 flutter:
 
