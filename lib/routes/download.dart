@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/downloader.dart';
-import '../services/zlib.dart';
-import '../services/steb.dart';
+import '../services/download/downloader.dart';
+import '../services/download/zlib.dart';
+import '../services/download/steb.dart';
 import '../state/download_state.dart';
 
 class DownloadSearch extends ConsumerStatefulWidget {

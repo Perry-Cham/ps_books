@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ps_books/services/downloader.dart';
+import 'package:ps_books/services/download/downloader.dart';
 
 enum DownloadProvider { libgen, zlib, steb }
 
