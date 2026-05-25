@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ps_books/services/notifications.dart';
 
 enum PomodoroPhase { work, breakTime }
 
@@ -59,22 +60,35 @@ class PomodoroState {
 
 class PomodoroNotifier extends Notifier<PomodoroState> {
   Timer? _timer;
+  final Notifications _notifications = Notifications();
 
   // Configurations
-  static const int workDuration = 25 * 60; // 25 minutes in seconds
-  static const int breakDuration = 5 * 60; // 5 minutes in seconds
+  static const int defaultWorkDuration = 25 * 60; // 25 minutes in seconds
+  static const int defaultBreakDuration = 5 * 60; // 5 minutes in seconds
 
   @override
   PomodoroState build() {
     // Automatically close any active timers when this provider is destroyed
-    ref.onDispose(() => _timer?.cancel());
-    return PomodoroState.initial(workDuration);
+    ref.onDispose(() {
+      _timer?.cancel();
+      _notifications.cancelOngoing();
+    });
+    _notifications.init();
+    return PomodoroState.initial(defaultWorkDuration);
   }
 
   void init(int workDuration, int breakDuration, int cycles){
     if (state.isRunning) return;
 
-    state = state.copyWith(workDuration:workDuration * 60, breakDuration: breakDuration * 60, cycles:cycles);
+    state = state.copyWith(
+        workDuration: workDuration * 60,
+        secondsRemaining: workDuration * 60,
+        breakDuration: breakDuration * 60,
+        cycles: cycles,
+        currentCycle: 1,
+        phase: PomodoroPhase.work,
+        isRunning: false
+    );
   }
 
   void start() {
@@ -82,11 +96,13 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
 
     state = state.copyWith(isRunning: true);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+    _notifications.updateOngoing(state);
   }
 
   void pause() {
     _timer?.cancel();
     state = state.copyWith(isRunning: false);
+    _notifications.updateOngoing(state);
   }
 
   void resume() {
@@ -95,12 +111,16 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
 
   void reset() {
     _timer?.cancel();
-    state = PomodoroState.initial(workDuration);
+    _notifications.cancelOngoing();
+    state = PomodoroState.initial(state.workDuration);
   }
 
   void _tick() {
-    if (state.secondsRemaining > 1) {
+    if (state.secondsRemaining > 0) {
       state = state.copyWith(secondsRemaining: state.secondsRemaining - 1);
+      if (state.secondsRemaining % 10 == 0) { // Update notification every 10 seconds
+         _notifications.updateOngoing(state);
+      }
     } else {
       _handlePhaseTransition();
     }
@@ -108,26 +128,39 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
 
   void _handlePhaseTransition() {
     _timer?.cancel();
+    final previousPhase = state.phase;
 
     if (state.phase == PomodoroPhase.work) {
       // Transitioning from Work to Break
       state = state.copyWith(
         phase: PomodoroPhase.breakTime,
-        secondsRemaining: breakDuration,
+        secondsRemaining: state.breakDuration,
         isRunning: false,
       );
+      _notifications.showPhaseTransition(previous: previousPhase, next: PomodoroPhase.breakTime);
     } else {
       // Transitioning from Break to Next Work Cycle
+      if (state.currentCycle >= state.cycles) {
+        // All cycles completed
+        state = state.copyWith(
+          isRunning: false,
+          secondsRemaining: 0,
+        );
+        _notifications.cancelOngoing();
+        _notifications.showSessionComplete();
+        return;
+      }
+
       state = state.copyWith(
         phase: PomodoroPhase.work,
-        secondsRemaining: workDuration,
+        secondsRemaining: state.workDuration,
         currentCycle: state.currentCycle + 1,
         isRunning: false,
       );
+      _notifications.showPhaseTransition(previous: previousPhase, next: PomodoroPhase.work);
     }
-
-    // Optional: Auto-start the next phase immediately if desired:
-    // start();
+    
+    _notifications.updateOngoing(state);
   }
 }
 

@@ -46,7 +46,21 @@ class CurrentlyReading extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(book.name),
+                      Text(
+                        book.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (book.author != null)
+                        Text(
+                          book.author!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                        ),
                       const SizedBox(height: 6),
                       LinearProgressIndicator(value: book.progress),
                       const SizedBox(height: 8),

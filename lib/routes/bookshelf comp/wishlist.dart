@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -173,40 +175,59 @@ class FilterBar extends ConsumerWidget {
 
         final collections = snapshot.data ?? [];
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 5),
-                child: FilterChip(
-                  label: Text('All'),
-                  selected: wishlist.filter == null,
-                  onSelected: (selected) {
-                    if (selected) {
-                      ref.read(WishlistStateProvider.notifier).setFilter(null);
-                    }
-                  },
+        return Row(
+          children: [
+            ActionChip(
+              label: Text('All'),
+              backgroundColor: wishlist.filter == null ? Colors.blue : null,
+              labelStyle: TextStyle(
+                color: wishlist.filter == null ? Colors.white : null,
+              ),
+              onPressed: () {
+                ref.read(WishlistStateProvider.notifier).setFilter(null);
+              },
+            ),
+            SizedBox(width: 10),
+            PopupMenuButton<int?>(
+              initialValue: wishlist.filter,
+              onSelected: (int? value) {
+                ref.read(WishlistStateProvider.notifier).setFilter(value);
+              },
+              constraints: const BoxConstraints(maxHeight: 300),
+              itemBuilder: (BuildContext context) {
+                return collections.map((collection) {
+                  return PopupMenuItem<int>(
+                    value: collection.id,
+                    child: Text(collection.name),
+                  );
+                }).toList();
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white24),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      wishlist.filter == null || collections.isEmpty
+                          ? 'Filter by Collection'
+                          : collections
+                              .firstWhere(
+                                (c) => c.id == wishlist.filter,
+                                orElse: () => collections.first,
+                              )
+                              .name,
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    Icon(Icons.arrow_drop_down, color: Colors.white70),
+                  ],
                 ),
               ),
-              ...collections.map((collection) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5),
-                  child: FilterChip(
-                    label: Text(collection.name),
-                    selected: wishlist.filter == collection.id,
-                    onSelected: (selected) {
-                      if (selected) {
-                        ref
-                            .read(WishlistStateProvider.notifier)
-                            .setFilter(collection.id);
-                      }
-                    },
-                  ),
-                );
-              }),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
@@ -256,7 +277,7 @@ class SavedBooksTable extends ConsumerWidget {
               ));
             }
 
-            if (defaultTargetPlatform == TargetPlatform.android) {
+            if (Platform.isAndroid) {
               return ListView.builder(
                 itemCount: savedBooks.length,
                 itemBuilder: (context, index) {

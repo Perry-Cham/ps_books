@@ -90,9 +90,10 @@ class Notifications {
   // the persistent notification shown while the timer is running
   Future<void> updateOngoing(PomodoroState snapshot) async {
     final remaining = _formatDuration(Duration(seconds: snapshot.secondsRemaining));
+    final phaseName = snapshot.phase == PomodoroPhase.work ? 'Work' : 'Break';
     final title = snapshot.isRunning
-        ? '${snapshot.phase} — $remaining remaining'
-        : '${snapshot.phase} — Paused ($remaining)';
+        ? '$phaseName — $remaining remaining'
+        : '$phaseName — Paused ($remaining)';
 
     final body =
         'Cycle ${snapshot.currentCycle} of ${snapshot.cycles}';
