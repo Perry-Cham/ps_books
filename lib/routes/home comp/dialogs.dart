@@ -10,6 +10,7 @@ final bookService = BookToDb();
 
 class DeleteCollectionDialog extends StatefulWidget {
   const DeleteCollectionDialog({super.key, this.wishlist = false});
+
   final bool wishlist;
 
   @override
@@ -17,7 +18,7 @@ class DeleteCollectionDialog extends StatefulWidget {
 }
 
 class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
-  int? _selectedCollectionId;
+  List<int> _selectedCollections = [];
   bool loading = false;
 
   @override
@@ -25,7 +26,9 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
     return AlertDialog(
       title: const Text('Delete Collection'),
       content: StreamBuilder<List<Collection>>(
-        stream: widget.wishlist ? BookToDb().getSavedCategories() : BookToDb().getCategories(),
+        stream: widget.wishlist
+            ? BookToDb().getSavedCategories()
+            : BookToDb().getCategories(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SizedBox(
@@ -42,31 +45,29 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
           if (collections.isEmpty) {
             return const Text('No collections available.');
           }
-        
+
           return ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 300),
-            child: RadioGroup<int>(
-              groupValue: _selectedCollectionId, // Current selected value
-              onChanged: (int? newValue) {
-                setState(() {
-                  _selectedCollectionId = newValue;
-                });
-              },
-              child: Column(
-                // Any layout widget
-                children: collections.map((t) {
-                  return Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Radio(value: t.id),
-                        Text(t.name),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
+            child: Column(
+              spacing: 10,
+              children: collections.map((t) {
+                return CheckboxListTile(
+                  title: Text(t.name),
+                  value: _selectedCollections.contains(t.id),
+                  onChanged: (val) {
+                    if (val != null && val) {
+                      setState(() {
+                        _selectedCollections.add(t.id);
+                      });
+                    } else {
+                      setState(() {
+                        _selectedCollections.remove(t.id);
+                      });
+                    }
+                  },
+                );
+              }).toList(),
+            )
           );
         },
       ),
@@ -76,14 +77,15 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _selectedCollectionId == null
+          onPressed: _selectedCollections.isEmpty
               ? null
               : () async {
                   setState(() {
                     loading = true;
                   });
-                  final selectedId = _selectedCollectionId!;
-                  await bookService.deleteCollection(selectedId);
+                  for (var selectedId in _selectedCollections) {
+                    await bookService.deleteCollection(selectedId);
+                  }
 
                   if (mounted) {
                     Navigator.pop(context);
@@ -110,7 +112,12 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
 }
 
 class AddToCollectionDialog extends ConsumerStatefulWidget {
-  const AddToCollectionDialog({super.key, required this.provider, this.wishlist = false});
+  const AddToCollectionDialog({
+    super.key,
+    required this.provider,
+    this.wishlist = false,
+  });
+
   final NotifierProvider provider;
   final bool wishlist;
 
@@ -157,7 +164,10 @@ class _AddToCollectionDialogState extends ConsumerState<AddToCollectionDialog> {
       if (collection != null) {
         collectionId = collection.id;
       } else {
-        collectionId = await BookToDb().addCollection(category);
+        collectionId = await BookToDb().addCollection(
+          category,
+          isSavedCollection: widget.wishlist,
+        );
       }
 
       for (var id in selectedBookIds) {
@@ -252,5 +262,3 @@ class _AddToCollectionDialogState extends ConsumerState<AddToCollectionDialog> {
     );
   }
 }
-
-

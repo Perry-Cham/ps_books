@@ -24,6 +24,7 @@ class PDF extends ConsumerStatefulWidget {
 
 class _PDFState extends ConsumerState<PDF> {
   List<PdfOutlineNode> outline = [];
+  bool showPageNumber = false;
   double? initialZoom;
 
   @override

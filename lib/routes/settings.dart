@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/dbs/database.dart';
+import 'package:ps_books/helpers/pickBooks.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -91,6 +92,8 @@ class Settings extends ConsumerWidget {
                       ],
                     ),
 
+
+
                     // --- Accounts Section ---
                     _SettingsSection(
                       title: "Accounts",
@@ -148,6 +151,36 @@ class Settings extends ConsumerWidget {
                             ),
                             onPressed: () => _handleDeleteAppData(context, ref),
                             child: const Text("Delete"),
+                          ),
+                        ),
+                        _SettingsTile(
+                          icon: Icons.import_export_outlined,
+                          iconColor: Colors.purpleAccent,
+                          title: "Export Books",
+                          titleColor: Colors.redAccent,
+                          subtitle: "Exports all books to a chosen folder",
+                          trailing: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.purpleAccent.withOpacity(0.2),
+                              foregroundColor: Colors.purpleAccent,
+                              elevation: 0,
+                              side: const BorderSide(color: Colors.purpleAccent),
+                            ),
+                            onPressed: () async  {
+                              try{
+                                final success = await Pick_Books().exportBooks();
+                                if(success){
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your books have been exported to your chosen directory.")));
+                                }else{
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("There was an error exporting your books.")));
+                                }
+                              }catch(e,h){
+                                print(e);
+                                print(h);
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("There was an error exporting your books.")));
+                              }
+                            },
+                            child: const Text("Export"),
                           ),
                         ),
                       ],

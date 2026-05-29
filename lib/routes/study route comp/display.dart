@@ -14,7 +14,6 @@ class TimetableDisplay extends StatelessWidget {
     return StreamBuilder(
       stream: TimetableToDb().getTimeTable(),
       builder: (context, snapshot) {
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         }
@@ -29,19 +28,30 @@ class TimetableDisplay extends StatelessWidget {
         //Rework this logic to add error handling
         final data = snapshot.data;
         if (data == null || data.isEmpty) {
-          return Column(
+          return Stack(
             children: [
-              Expanded(
-                child: Center(
+
+                Center(
                   child: Text("You haven't created any study TimeTables Yet"),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: ElevatedButton.icon(
+
+              Positioned(
+                bottom: 10,
+                right:10,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton.filled(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => Pomodoro()),
+                        );
+                      },
+                      icon: Icon(Icons.timer),
+                    ),
+
+                    IconButton.filled(
                       onPressed: () {
                         showDialog(
                           context: context,
@@ -51,10 +61,10 @@ class TimetableDisplay extends StatelessWidget {
                         );
                       },
                       icon: Icon(Icons.add),
-                      label: Text('Create a new timetable'),
+
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           );
@@ -209,7 +219,6 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
 
     return content;
   }
-
 }
 
 class _TimetableAndroidMenu extends StatefulWidget {

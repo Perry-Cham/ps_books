@@ -53,7 +53,7 @@ Future<dynamic> SearchBooks(String query) async {
   print(query);
   final dio = Dio();
   final response = await dio.get(
-    'https://libgen.gl/index.php',
+    'https://libgen.li/index.php',
     queryParameters: {
       'req': query,
       'columns[]': ['t', 'a', 's', 'y', 'p', 'i'],

@@ -5,6 +5,7 @@ import 'package:ps_books/readers/epubReader.dart';
 import 'package:ps_books/readers/fb2_reader.dart';
 import 'package:ps_books/readers/microsoft_reader.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/state/reader_state.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../readers/pdfReader.dart';
@@ -125,6 +126,7 @@ class ReaderState extends ConsumerState<Reader> {
           await savePDFProgress();
         }
         await _database.setCurrentlyReading(widget.id);
+        ref.read(ReaderStateProvider.notifier).setIsReadingFalse();
       },
       canPop: true,
       child: checkWidget(),

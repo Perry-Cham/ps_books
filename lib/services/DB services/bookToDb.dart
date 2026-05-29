@@ -142,7 +142,12 @@ class BookToDb {
   }
 
   //Add Single Collection
-  Future<int> addCollection(String name) async {
+  Future<int> addCollection(String name, {bool isSavedCollection = false}) async {
+    if(isSavedCollection){
+      return await (_db
+          .into(_db.collections)
+          .insert(CollectionsCompanion(name: Value(name), isSavedCollection: Value(isSavedCollection))));
+    }
     return await (_db
         .into(_db.collections)
         .insert(CollectionsCompanion(name: Value(name))));
