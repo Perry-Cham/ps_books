@@ -112,7 +112,7 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
   void reset() {
     _timer?.cancel();
     _notifications.cancelOngoing();
-    state = PomodoroState.initial(state.workDuration);
+    state = PomodoroState.initial(state.workDuration * 60);
   }
 
   void _tick() {
@@ -166,6 +166,6 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
 
 // Expose the global provider
 final pomodoroProvider =
-    NotifierProvider.autoDispose<PomodoroNotifier, PomodoroState>(
+    NotifierProvider<PomodoroNotifier, PomodoroState>(
       PomodoroNotifier.new,
     );

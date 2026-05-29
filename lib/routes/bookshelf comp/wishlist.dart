@@ -27,7 +27,7 @@ class WishlistPage extends ConsumerWidget {
       child: Column(
         spacing: 15,
         children: [
-          FilterBar(),
+          _FilterBar(),
           Expanded(
             child: Stack(
               children: [
@@ -160,8 +160,8 @@ class WishlistPage extends ConsumerWidget {
   }
 }
 
-class FilterBar extends ConsumerWidget {
-  const FilterBar({super.key});
+class _FilterBar extends ConsumerWidget {
+  const _FilterBar({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wishlist = ref.watch(WishlistStateProvider);

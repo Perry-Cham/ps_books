@@ -89,32 +89,36 @@ class Pick_Books {
       return Message(message: "An Error occured", state: "Error");
     }
   }
+  Future<bool> exportBooks() async {
+    final docsPath = await getApplicationDocumentsDirectory();
+    final docsDir = Directory("${docsPath.path}/Books");
+    final books = await docsDir.list().toList();
+
+    // 2. Launch the native "Select Directory" picker
+    // This works natively on Windows, Linux, macOS, and Android
+    String? selectedDirectoryUri = await FilePicker.platform.getDirectoryPath();
+if(books.isEmpty){
+  return false;
 }
+    if (selectedDirectoryUri == null) {
+    // User cancelled the picker dialog
+    return false;
+    }
+try{
+    for(var book in books){
+      final bookFile = File(book.path);
+      await bookFile.copy("$selectedDirectoryUri/${bookFile.path.split(Platform.pathSeparator).last}");
+    }
 
-
-//Fucntion that inserts books into database
-void importBook() {}
-
-class Search extends StatelessWidget {
-  const Search({super.key, required this.title});
-  final String title;
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Text(title),
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Search Books... ',
-            prefixIcon: Icon(Icons.search),
-            filled: true,
-          ),
-        ),
-      ],
-    );
+    print("Book successfully exported!");
+    return true;
+    } catch (e) {
+    print("Failed to export book: $e");
+    return false;
+    }
   }
 }
+
 
 class Message {
   const Message({required this.message, required this.state});

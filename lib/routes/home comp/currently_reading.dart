@@ -8,19 +8,15 @@ import 'package:ps_books/services/DB%20services/bookToDb.dart';
 final _db = BookToDb();
 
 class CurrentlyReading extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Book?>(
       stream: _db.getCurrentlyReading(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return SizedBox(
-            height: 120,
-            child: SizedBox.shrink()
-          );
+          return SizedBox(height: 120, child: SizedBox.shrink());
         }
-        if(!snapshot.hasData){
+        if (!snapshot.hasData) {
           return SizedBox.shrink();
         }
 
@@ -30,24 +26,32 @@ class CurrentlyReading extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                if(book.coverPath != null)
-                  Image.file(File(book.coverPath!),
-                    width: 60,
-                    height: 90,)
-                else
-                Image.asset(
-                  'assets/no_book.jpg',
-                  width: 60,
-                  height: 90,
-                  fit: BoxFit.cover,
+                Stack(
+                  children: [
+                    SizedBox(
+                      width: 90,
+                      height: 120,
+                      child: (book.coverPath != null)
+                          ? Image.file(
+                            File(book.coverPath!),
+                            fit: BoxFit.cover,
+                          )
+                          : Image.asset(
+                            'assets/no_book.jpg',
+                            fit: BoxFit.cover,
+                          ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
+
+                const SizedBox(width: 15),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        book.name,
+                        (book.name != "") ? book.name : "Unknown",
+                        maxLines: 2,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -57,14 +61,16 @@ class CurrentlyReading extends StatelessWidget {
                         Text(
                           book.author!,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontSize: 14,
                           ),
                         ),
                       const SizedBox(height: 6),
                       LinearProgressIndicator(value: book.progress),
                       const SizedBox(height: 8),
-                      ElevatedButton.icon(
+                      IconButton.filled(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -80,7 +86,6 @@ class CurrentlyReading extends StatelessWidget {
                           );
                         },
                         icon: const Icon(Icons.play_arrow),
-                        label: const Text('Resume'),
                       ),
                     ],
                   ),

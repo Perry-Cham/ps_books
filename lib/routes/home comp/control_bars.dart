@@ -29,26 +29,29 @@ class FilterBar extends ConsumerWidget {
           }).toList();
         }
 
-        return Row(
-          spacing: 10,
-          children: data != null
-              ? [
-                  ElevatedButton(
-                    onPressed: (){
-                        ref.read(LibraryStateProvider.notifier).setFilter(null);
-                        print("The filter is");
-                  print(ref.read(LibraryStateProvider.notifier).state.filter);
-                    },
-                    child: Text('All'),
-                  ),
-                  ...data,
-                ]
-              : [
-                  ElevatedButton(
-                    onPressed: () => print("hello"),
-                    child: Text('All'),
-                  ),
-                ],
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 10,
+            children: data != null
+                ? [
+                    ElevatedButton(
+                      onPressed: (){
+                          ref.read(LibraryStateProvider.notifier).setFilter(null);
+                          print("The filter is");
+                    print(ref.read(LibraryStateProvider.notifier).state.filter);
+                      },
+                      child: Text('All'),
+                    ),
+                    ...data,
+                  ]
+                : [
+                    ElevatedButton(
+                      onPressed: () => print("hello"),
+                      child: Text('All'),
+                    ),
+                  ],
+          ),
         );
       },
     );

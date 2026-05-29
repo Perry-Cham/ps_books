@@ -5,15 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/routes/home%20comp/currently_reading.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
+import 'package:ps_books/state/reader_state.dart';
 import '../readers/reader.dart';
 import '../helpers/pickBooks.dart';
 import 'home comp/control_bars.dart';
 import 'package:ps_books/dbs/database.dart';
 
 BookToDb bookService = BookToDb();
-
-class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
+class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget{
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,23 +25,30 @@ class HomePage extends ConsumerWidget {
     if (isAndroid && selectionCount > 0) {
       title = "$selectionCount selected";
     }
+    return AppBar(
+      title: Text(
+        title,
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      ),
+      iconTheme: const IconThemeData(color: Colors.white),
+      backgroundColor: Color(0xFF1E1729),
+      actions: [
+        PopUpControls(provider: LibraryStateProvider),
+      ],
+    );
+  }
+  @override get preferredSize => Size.fromHeight(kToolbarHeight);
+}
+
+class HomePage extends ConsumerWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+  /**/
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          title,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Color(0xFF1E1729),
-        actions: [
-          IconButton(
-            onPressed: () => print('testing'),
-            icon: Icon(Icons.search),
-          ),
-          PopUpControls(provider: LibraryStateProvider),
-        ],
-      ),
+      appBar: HomeAppBar(),
       body: Page(),
        floatingActionButton: IconButton.filled(
         onPressed: () async {
@@ -91,35 +97,40 @@ class Page extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.read(
+    final state = ref.watch(
       LibraryStateProvider.select((state) => state.selectedBookIds),
     );
     final isAndroid = defaultTargetPlatform == TargetPlatform.android;
 
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          spacing: 15,
-          children: [
-            CurrentlyReading(),
-            FilterBar(),
-            Expanded(
-              child: Stack(
-                children: [
-                  BooksContainer(),
-                  if (state.isNotEmpty && !isAndroid)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 10.0,
-                      child: ControlBar(provider: LibraryStateProvider),
-                    ),
-                ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+             SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10.0, bottom: 15.0),
+                  child: CurrentlyReading(),
+                ),
               ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 15.0),
+                  child: FilterBar(),
+                ),
+              ),
+              const BooksContainer(),
+            ],
+          ),
+          if (state.isNotEmpty && !isAndroid)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 10.0,
+              child: ControlBar(provider: LibraryStateProvider),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -135,11 +146,15 @@ class BooksContainer extends ConsumerWidget {
       stream: database.watchAllBooks(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return SliverToBoxAdapter(
+            child: Center(child: Text('Error: ${snapshot.error}')),
+          );
         }
 
         final data = snapshot.data ?? [];
@@ -147,15 +162,17 @@ class BooksContainer extends ConsumerWidget {
             ? data.where((t) => t.collection == filter).toList()
             : [...data];
         if (books.isEmpty) {
-          return const Center(child: Text('No books yet'));
+          return const SliverToBoxAdapter(
+            child: Center(child: Text('No books yet')),
+          );
         }
 
-        return GridView.builder(
+        return SliverGrid.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: _getCrossAxisCount(context),
             mainAxisSpacing: 20,
             crossAxisSpacing: 10,
-            childAspectRatio: 150 / 200,
+            childAspectRatio: 200 / 300,
           ),
           itemCount: books.length,
           itemBuilder: (context, index) {
@@ -180,6 +197,7 @@ class BookCard extends ConsumerStatefulWidget {
 class BookCardState extends ConsumerState<BookCard> {
   bool display_checkbox = false;
   bool checkbox_clicked = false;
+
   @override
   Widget build(BuildContext context) {
     final selectedBookIds = ref.read(
@@ -193,7 +211,7 @@ class BookCardState extends ConsumerState<BookCard> {
         (state) => state.selectedBookIds.contains(widget.book.id),
       ),
     );
-    // TODO: implement build
+
     return InkWell(
       onHover: (val) {
         setState(() {
@@ -214,6 +232,7 @@ class BookCardState extends ConsumerState<BookCard> {
                 .removeSelected(widget.book.id);
           }
         } else {
+          ref.read(ReaderStateProvider.notifier).setIsReadingTrue();
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -233,57 +252,77 @@ class BookCardState extends ConsumerState<BookCard> {
           SizedBox.expand(
             child: Card(
               clipBehavior: Clip.antiAlias,
-              shape: isSelected
-                  ? RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.all(
-                        Radius.circular(5),
-                      ),
-                      side: BorderSide(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: isSelected
+                    ? BorderSide(
                         color: Colors.deepPurple.shade600,
-                        width: 2,
-                      ),
-                    )
-                  : null,
-              elevation: 5,
+                        width: 3,
+                      )
+                    : const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.04)),
+              ),
               child: Stack(
                 children: [
-                  if (widget.book.coverPath != null)
-                    Positioned.fill(
-                      child: Image.file(File(widget.book.coverPath!), fit: BoxFit.cover,),
-                    )
-                  else
-                    Positioned.fill(child: Image.asset('assets/no_book.jpg', fit: BoxFit.cover,)),
-                  Positioned(
-                    bottom: 10,
-                    left: 10,
-                    right: 10,
-                    child: Container(
+                  // LAYER 1: VISUAL BACKGROUND (COVER IMAGE OR FALLBACK)
+                  Positioned.fill(
+                    child: widget.book.coverPath != null
+                        ? Image.file(
+                            File(widget.book.coverPath!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const _CardFallbackBackground(),
+                          )
+                        : const _CardFallbackBackground(),
+                  ),
+
+                  // LAYER 2: THE GRADIENT SHADOW SHIELD
+                  Positioned.fill(
+                    child: DecoratedBox(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                        color: Colors.black87,
-                      ),
-                      child: Padding(
-                        padding: EdgeInsetsGeometry.only(
-                          right: 5,
-                          left: 5,
-                          top: 8,
-                          bottom: 8,
-                        ),
-                        child: Column(
-                          spacing: 5,
-                          children: [
-                            Text(
-                              widget.book.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            Text(
-                              "${(widget.book.progress * 100).toStringAsFixed(2)}%",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.1),
+                            Colors.black.withOpacity(0.5),
+                            Colors.black.withOpacity(0.95),
                           ],
+                          stops: const [0.0, 0.4, 0.85],
                         ),
+                      ),
+                    ),
+                  ),
+
+                  // LAYER 3: CONTENT OVERLAY (TITLE & PROGRESS BADGE)
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Spacer(),
+
+                          // Book Title Text
+                          Text(
+                            widget.book.name,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Reading Progress Badge
+                          _buildMiniBadge(
+                            "${(widget.book.progress * 100).toStringAsFixed(1)}% Read",
+                            Colors.deepPurple.shade700,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -293,8 +332,8 @@ class BookCardState extends ConsumerState<BookCard> {
           ),
           if (display_checkbox || isSelected)
             Positioned(
-              top: 0,
-              left: 0,
+              top: 8,
+              left: 8,
               child: Checkbox(
                 value: isSelected,
                 onChanged: (val) {
@@ -325,4 +364,46 @@ int _getCrossAxisCount(BuildContext context) {
   if (width > 600) return 3;
   if (width > 400) return 2;
   return 2;
+}
+
+class _CardFallbackBackground extends StatelessWidget {
+  const _CardFallbackBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blueGrey.shade900, Colors.grey.shade900],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.book_outlined,
+          size: 48,
+          color: Colors.white.withOpacity(0.15),
+        ),
+      ),
+    );
+  }
+}
+
+Widget _buildMiniBadge(String label, Color backgroundColor) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(4),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
 }

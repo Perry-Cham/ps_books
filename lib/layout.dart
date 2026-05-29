@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:io';
+
+import 'package:ps_books/state/reader_state.dart';
 
 //This ile determines the layout for the whole page it defines naviagtion rails and an expanded component where the rest of the widget lives
 
@@ -83,43 +86,60 @@ class LayoutState extends State<Layout> {
         ),
       );
     } else {
-      final locationUrl = GoRouterState.of(context).uri.path;
-      final index = destinations.indexOf(locationUrl);
+
       return Scaffold(
         body: widget.widget,
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Color(0xFF1E1729), // Matches your NavigationRail
-          selectedItemColor: Color(0xFFA78BFA), // Color of the active icon/label
-          unselectedItemColor: Colors.grey.shade200,
-          currentIndex: index,
-          onTap: (value) {
-            context.go(destinations[value]);
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.library_books_outlined),
-              label: 'Library',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bookmark_add_outlined),
-              label: 'Bookshelf',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.flag_outlined),
-              label: 'Study',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              label: 'Find',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings_applications_outlined),
-              label: 'Settings',
-            ),
-          ],
-        ),
+        bottomNavigationBar: CustomBottomNav(destinations: destinations)
       );
     }
+  }
+}
+
+
+class CustomBottomNav extends ConsumerWidget{
+  List<String> destinations;
+
+  CustomBottomNav({super.key, required this.destinations});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isReading = ref.watch(ReaderStateProvider.select((state) => state.isReading));
+
+    final locationUrl = GoRouterState.of(context).uri.path;
+    final index = destinations.indexOf(locationUrl);
+    if(isReading){
+      return SizedBox.shrink();
+    }
+   return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Color(0xFF1E1729), // Matches your NavigationRail
+      selectedItemColor: Color(0xFFA78BFA), // Color of the active icon/label
+      unselectedItemColor: Colors.grey.shade200,
+      currentIndex: index,
+      onTap: (value) {
+        context.go(destinations[value]);
+      },
+      items: [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.library_books_outlined),
+          label: 'Library',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bookmark_add_outlined),
+          label: 'Bookshelf',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.flag_outlined),
+          label: 'Study',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.search_outlined),
+          label: 'Find',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings_applications_outlined),
+          label: 'Settings',
+        ),
+      ],
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:dart_pdf_engine/dart_pdf_engine_viewer.dart';
 import 'package:image/image.dart';
+import 'package:path/path.dart';
 import 'package:pdfrx/pdfrx.dart' as pdf;
 import 'package:epub_pro/epub_pro.dart';
 import 'package:xml/xml.dart';
@@ -24,8 +25,10 @@ Future<BookData> processBook({
       try {
         final doc = PdfDocument.fromBytes(fileBytes);
         final docForImage = await pdf.PdfDocument.openData(fileBytes);
-        bookTitle = doc.documentInfo.title ?? bookTitle;
-        author = doc.documentInfo.author;
+        if(doc.documentInfo.title != null){
+          bookTitle = doc.documentInfo.title!;
+        }
+        author = doc.documentInfo.author ?? doc.documentInfo.creator ?? "Unknown";
 
         final page = docForImage.pages[0];
         final pageImage = await page.render();
