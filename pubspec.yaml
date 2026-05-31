@@ -75,8 +75,12 @@ dependencies:
   image: ^4.8.0
   flutter_launcher_icons: ^0.14.4
   xml: ^6.6.1
-  circular_countdown_timer: ^0.2.4
-  kindle_unpack: ^0.1.1
+ # kindle_unpack: ^0.1.1
+  kindle_unpack:
+    path: ../kindle_unpack-0.1.1
+  flutter_charset_detector: any
+  charset_converter: any
+  scrollable_positioned_list: ^0.3.8
 dev_dependencies:
   flutter_test:
     sdk: flutter

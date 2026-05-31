@@ -189,7 +189,6 @@ class BookGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     ref.listen(downloadProgressProvider, (next, prev) {
       if (next != null && next.completedMessage != "") {
         ScaffoldMessenger.of(
@@ -338,7 +337,6 @@ class BookGrid extends ConsumerWidget {
                           ref
                               .read(downloadProgressProvider.notifier)
                               .startDownload(link, fileName);
-
                         } catch (e, h) {
                           print(e);
                           print(h);
@@ -383,32 +381,58 @@ class DownloadsDisplay extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 350,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    downloadProgress.fileName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: downloadProgress.progress,
-                      minHeight: 4,
+            if (downloadProgress.isDownloading)
+              SizedBox(
+                width: 350,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      downloadProgress.fileName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${(downloadProgress.progress * 100).toStringAsFixed(1)}%',
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: downloadProgress.progress,
+                        minHeight: 4,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${(downloadProgress.progress * 100).toStringAsFixed(1)}%',
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        ref.read(downloadProgressProvider.notifier).cancel();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "The download has been cancelled successfully",
+                            ),
+                          ),
+                        );
+                      },
+                      label: Text("Cancel"),
+                      icon: Icon(Icons.cancel_outlined),
+                    ),
+                  ],
+                ),
+              )
+            else
+              SizedBox(
+                height: 300,
+                width: 300,
+                child: Column(
+                  children: [
+                    Icon(Icons.equalizer_outlined),
+                    Text("No Downloads Yet"),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

@@ -8,6 +8,8 @@ import 'package:pdfrx/pdfrx.dart' as pdf;
 import 'package:epub_pro/epub_pro.dart';
 import 'package:xml/xml.dart';
 import 'package:ps_books/models/book_data.dart';
+import 'package:kindle_unpack/kindle_unpack.dart';
+import './utils.dart';
 
 Future<BookData> processBook({
   required Uint8List fileBytes,
@@ -25,10 +27,11 @@ Future<BookData> processBook({
       try {
         final doc = PdfDocument.fromBytes(fileBytes);
         final docForImage = await pdf.PdfDocument.openData(fileBytes);
-        if(doc.documentInfo.title != null){
+        if (doc.documentInfo.title != null) {
           bookTitle = doc.documentInfo.title!;
         }
-        author = doc.documentInfo.author ?? doc.documentInfo.creator ?? "Unknown";
+        author =
+            doc.documentInfo.author ?? doc.documentInfo.creator ?? "Unknown";
 
         final page = docForImage.pages[0];
         final pageImage = await page.render();
@@ -37,7 +40,10 @@ Future<BookData> processBook({
         final coverImage = img != null ? encodePng(img) : null;
         if (coverImage != null) {
           // Sanitize title for filename
-          String sanitizedTitle = bookTitle.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+          String sanitizedTitle = bookTitle.replaceAll(
+            RegExp(r'[<>:"/\\|?*]'),
+            '_',
+          );
           coverPath = "${coversDir.path}/$sanitizedTitle.png";
           await File(coverPath).writeAsBytes(coverImage);
         }
@@ -58,39 +64,63 @@ Future<BookData> processBook({
         final img = doc.coverImage;
         final image = img != null ? encodePng(img) : null;
         if (image != null) {
-          String sanitizedTitle = bookTitle.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+          String sanitizedTitle = bookTitle.replaceAll(
+            RegExp(r'[<>:"/\\|?*]'),
+            '_',
+          );
           coverPath = '${coversDir.path}/$sanitizedTitle.png';
           await File(coverPath).writeAsBytes(image);
         }
       }
     } else if (extension == 'fb2') {
       try {
-        final xmlString = utf8.decode(fileBytes, allowMalformed: true);
+        final xmlString = await UniversalBookDecoder.decodeBytesToUtf8(fileBytes);
         final document = XmlDocument.parse(xmlString);
 
         final titleInfo = document.findAllElements('title-info').firstOrNull;
         if (titleInfo != null) {
-          bookTitle = titleInfo.findElements('book-title').firstOrNull?.innerText ?? bookTitle;
+          bookTitle =
+              titleInfo.findElements('book-title').firstOrNull?.innerText ??
+              bookTitle;
           final authorElement = titleInfo.findElements('author').firstOrNull;
           if (authorElement != null) {
-            final firstName = authorElement.findElements('first-name').firstOrNull?.innerText ?? '';
-            final lastName = authorElement.findElements('last-name').firstOrNull?.innerText ?? '';
+            final firstName =
+                authorElement
+                    .findElements('first-name')
+                    .firstOrNull
+                    ?.innerText ??
+                '';
+            final lastName =
+                authorElement
+                    .findElements('last-name')
+                    .firstOrNull
+                    ?.innerText ??
+                '';
             author = '$firstName $lastName'.trim();
           }
 
           final coverpage = titleInfo.findElements('coverpage').firstOrNull;
           final imageElement = coverpage?.findElements('image').firstOrNull;
-          final coverId = imageElement?.getAttribute('l:href')?.replaceAll('#', '');
+          final coverId = imageElement
+              ?.getAttribute('l:href')
+              ?.replaceAll('#', '');
 
           if (coverId != null) {
             final binaries = document.findAllElements('binary');
-            final binary = binaries.where((el) => el.getAttribute('id') == coverId).firstOrNull;
+            final binary = binaries
+                .where((el) => el.getAttribute('id') == coverId)
+                .firstOrNull;
             String extension;
-            if(binary != null){
-              extension = binary.getAttribute('content-type') == 'image/jpg' ? 'jpg' : 'png';
+            if (binary != null) {
+              extension = binary.getAttribute('content-type') == 'image/jpg'
+                  ? 'jpg'
+                  : 'png';
               final base64Image = binary.innerText.trim();
               final bytes = base64Decode(base64Image);
-              String sanitizedTitle = bookTitle.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+              String sanitizedTitle = bookTitle.replaceAll(
+                RegExp(r'[<>:"/\\|?*]'),
+                '_',
+              );
               coverPath = '${coversDir.path}/$sanitizedTitle.$extension';
               await File(coverPath).writeAsBytes(bytes);
             }
@@ -98,6 +128,19 @@ Future<BookData> processBook({
         }
       } catch (e) {
         print("Error processing FB2: $e");
+      }
+    } else if (extension == 'mobi') {
+      final book = KindleBook.fromBytes(fileBytes);
+      bookTitle = book.title;
+      author = book.exth?.authors.first;
+      final img = book.images.cover?.data;
+      if (img != null) {
+        String sanitizedTitle = bookTitle.replaceAll(
+          RegExp(r'[<>:"/\\|?*]'),
+          '_',
+        );
+        coverPath = '${coversDir.path}/$sanitizedTitle.png';
+        await File(coverPath).writeAsBytes(img);
       }
     }
   } catch (e, stack) {

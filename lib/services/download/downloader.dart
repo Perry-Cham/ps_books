@@ -7,6 +7,8 @@ import "package:html/parser.dart" as html;
 import 'package:path_provider/path_provider.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/helpers/book_processor.dart';
+import 'package:kindle_unpack/kindle_unpack.dart';
+import 'package:path/path.dart' as p;
 
 final String url = "https://libgen.gl";
 final _db = BookToDb();
@@ -32,7 +34,7 @@ final String language;
   static DownloadBook? fromMap(Map<String, dynamic> book) {
   //  print(book['href']);
     String ext = (book['extension'] ?? "").toString().toLowerCase();
-    if ((ext != "pdf" && ext != "epub" && ext != "fb2") || book['href'] == null) {
+    if ((ext != "pdf" && ext != "epub" && ext != "fb2" && ext != "mobi") || book['href'] == null) {
       return null;
     } else {
       return DownloadBook(
@@ -143,7 +145,48 @@ Future<String?> downloadPageScraper(String link) async {
   }
 }
 
-Stream<double> downloadBookWithProgress(String url) async* {
+Future<void> _handleMobiDownload({
+  required String savePath,
+  required String filename,
+  required Directory coversDir,
+}) async {
+  try {
+    final fileBytes = await File(savePath).readAsBytes();
+    final book = KindleBook.fromBytes(fileBytes);
+    final bookData = await processBook(
+      fileBytes: fileBytes,
+      fileName: filename,
+      extension: 'mobi',
+      coversDir: coversDir,
+    );
+
+    final booksDirPath = p.dirname(savePath);
+    final convertedEpubPath = p.join(booksDirPath, "${bookData.title}.epub");
+
+    await File(convertedEpubPath).writeAsBytes(book.toEpub());
+
+    await _db.addBook(
+      name: bookData.title,
+      author: bookData.author,
+      extension: 'epub',
+      path: convertedEpubPath,
+      coverPath: bookData.coverPath,
+    );
+
+    // Clean up original MOBI file
+    await File(savePath).delete();
+  } catch (e) {
+    print("Error converting MOBI to EPUB: $e");
+    // Fallback: Add as MOBI if conversion fails
+    await _db.addBook(
+      name: filename.split('.')[0],
+      extension: 'mobi',
+      path: savePath,
+    );
+  }
+}
+
+Stream<double> downloadBookWithProgress(String url, CancelToken cancelToken) async* {
   final dio = Dio();
   final d = await getApplicationDocumentsDirectory();
   final supportDir = await getApplicationSupportDirectory();
@@ -158,6 +201,7 @@ Stream<double> downloadBookWithProgress(String url) async* {
   dio.download(
     url,
     savePath,
+    cancelToken: cancelToken,
     onReceiveProgress: (received, total) {
       if (total != -1) {
         controller.add(received / total);
@@ -180,6 +224,12 @@ Stream<double> downloadBookWithProgress(String url) async* {
         path: savePath,
         page: extension == 'pdf' ? 1 : null,
         coverPath: bookData.coverPath,
+      );
+    } else if (extension == 'mobi') {
+      await _handleMobiDownload(
+        savePath: savePath,
+        filename: filename,
+        coversDir: coversDir,
       );
     } else {
       await _db.addBook(

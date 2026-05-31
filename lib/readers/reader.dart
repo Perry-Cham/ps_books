@@ -61,6 +61,12 @@ class ReaderState extends ConsumerState<Reader> {
     _database.updateProgress(widget.id, progress);
   }
 
+  void onfb2progresschanged(int position, double progress) {
+    String pos = jsonEncode(position);
+    _database.updatePositionAndProgress(widget.id, pos);
+    _database.updateProgress(widget.id, progress);
+  }
+
   ReadingPosition? getPosition() {
     if (widget.position == null) return null;
     var json = jsonDecode(widget.position);
@@ -70,6 +76,15 @@ class ReaderState extends ConsumerState<Reader> {
       totalParagraphs: json['totalParagraphs'],
     );
     return pos;
+  }
+
+  int? getFB2Position() {
+    if (widget.position == null) return null;
+    try {
+      return jsonDecode(widget.position) as int?;
+    } catch (e) {
+      return null;
+    }
   }
 
   Widget checkWidget() {
@@ -111,8 +126,13 @@ class ReaderState extends ConsumerState<Reader> {
         },
       );
     } else if (widget.type == 'fb2') {
-      return FB2Reader(filePath: widget.path);
+      return FB2Reader(
+        filePath: widget.path,
+        onPositionChanged: onfb2progresschanged,
+        initialPosition: getFB2Position(),
+      );
     } else {
+      print(widget.type);
       return Center(child: Text('Unsupported file'));
     }
   }
