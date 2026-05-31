@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' as debug;
 import 'package:pdfrx/pdfrx.dart' as pdf;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +13,7 @@ import 'routes/study.dart';
 import 'package:ps_books/routes/download.dart';
 import 'package:ps_books/routes/settings.dart';
 import 'package:ps_books/routes/bookshelf.dart';
+import 'package:ps_books/routes/login.dart';
 import 'package:ps_books/state/prefs.dart';
 import './layout.dart';
 
@@ -21,19 +21,23 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await pdf.pdfrxFlutterInitialize();
   final prefs = await SharedPreferences.getInstance();
- // debug.debugPaintSizeEnabled = true;
 
   if (Platform.isAndroid) {
     await Workmanager().initialize(registerStudyNotifications);
-    await Workmanager().registerPeriodicTask(
-      "timetable-sync-task", // Unique name
-      "sync-timetable", // Internal task key
-      frequency: const Duration(hours: 24), // Run once a day
-      constraints: Constraints(
-        networkType: NetworkType.notRequired, // Run even offline
-        requiresBatteryNotLow: false,
-      ),
-    );
+    final bool enableAlarms = prefs.getBool('timetable_alarms') ?? false;
+    if (enableAlarms) {
+      await Workmanager().registerPeriodicTask(
+        "timetable-sync-task", // Unique name
+        "sync-timetable", // Internal task key
+        frequency: const Duration(hours: 24), // Run once a day
+        constraints: Constraints(
+          networkType: NetworkType.notRequired, // Run even offline
+          requiresBatteryNotLow: false,
+        ),
+      );
+    } else {
+      await Workmanager().cancelByUniqueName("timetable-sync-task");
+    }
   }
 
   runApp(
@@ -66,6 +70,7 @@ class MyApp extends StatelessWidget {
               return DownloadSearch(query: query);},
           ),
           GoRoute(path: '/settings', builder: (context, state) => Settings()),
+          GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
         ],
       ),
     ],

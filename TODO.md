@@ -2,11 +2,15 @@
 ### Bug Fixes
 
 - Improve zlib and standard ebooks scrapers,
-- Upgrade fb2 to listview builder instead of single child scroll view 
-- Add collection based filtering for wishlist books
-
+- Add text search to the pdf reader
+- Fix desktop bug that requires constant logging in when interacting with google drive
+- Wire up the timetable alarms button on settings so that timetable alarms are only implemeneted if the user chooses
+- Investigate the oauth2_client library to find out why the token isn't being stored
+- refactor the fb2 reader to use a smaller width on desktop
+- 
 ### Features To Implement
-- Complete fb2 reader using katbook ebook reader as inspiration
-- Implement mobi reader using dart_mobi_reader as the base then implement custom renderer using katbook epub reader as inspiration
+- Implement timer notification controls in main.dart
 - Light Mode support with a toggle in settings if I feel so inspired
-- Add A study clock on the study page that takes in study start time 
+- Implement timetable and targets syncing with the p's books backend
+
+

@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  charset_converter
   desktop_webview_window
   flutter_secure_storage_linux
   url_launcher_linux

@@ -1,5 +1,6 @@
 import 'package:ps_books/helpers/book_processor.dart';
 import 'package:ps_books/models/book_data.dart';
+import 'package:kindle_unpack/kindle_unpack.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,7 +18,7 @@ class Pick_Books {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
-        allowedExtensions: ['pdf', 'epub', 'fb2', 'pptx', 'docx'],
+        allowedExtensions: ['pdf', 'epub', 'fb2', 'mobi', 'pptx', 'docx'],
         type: FileType.custom,
       );
       if (result == null || result.files.isEmpty) {
@@ -53,26 +54,61 @@ class Pick_Books {
               coversDir: CoversDir,
             );
 
-            await database.into(database.books).insert(
+            await database
+                .into(database.books)
+                .insert(
                   BooksCompanion.insert(
                     name: bookData.title,
                     author: Value(bookData.author),
                     path: destinationPath,
                     extension: extension,
-                    page: extension == 'pdf' ? const Value(1) : const Value.absent(),
+                    page: extension == 'pdf'
+                        ? const Value(1)
+                        : const Value.absent(),
                     coverPath: bookData.coverPath != null
                         ? Value(bookData.coverPath)
                         : const Value(null),
                   ),
                 );
           } else if (extension == 'docx' || extension == 'pptx') {
-            await database.into(database.books).insert(
+            await database
+                .into(database.books)
+                .insert(
                   BooksCompanion.insert(
                     name: file.name.split('.')[0],
                     path: destinationPath,
                     extension: extension,
                   ),
                 );
+          } else if (extension == 'mobi') {
+            final book = KindleBook.fromBytes(fileBytes);
+            final bookData = await processBook(
+              fileBytes: fileBytes,
+              fileName: fileName,
+              extension: extension,
+              coversDir: CoversDir,
+            );
+            final convertedEpubPath = "${BooksDir.path}/${bookData.title}.epub";
+             await File(convertedEpubPath).writeAsBytes(book.toEpub());
+
+            await database
+                .into(database.books)
+                .insert(
+                  BooksCompanion.insert(
+                    name: bookData.title,
+                    author: Value(bookData.author),
+                    path: convertedEpubPath,
+                    extension: 'epub',
+                    page: extension == 'pdf'
+                        ? const Value(1)
+                        : const Value.absent(),
+                    coverPath: bookData.coverPath != null
+                        ? Value(bookData.coverPath)
+                        : const Value(null),
+                  ),
+                );
+            final mobiFile = File(destinationPath);
+            await mobiFile.delete();
           }
         } catch (e, stack) {
           print(e);
@@ -89,6 +125,7 @@ class Pick_Books {
       return Message(message: "An Error occured", state: "Error");
     }
   }
+
   Future<bool> exportBooks() async {
     final docsPath = await getApplicationDocumentsDirectory();
     final docsDir = Directory("${docsPath.path}/Books");
@@ -97,32 +134,35 @@ class Pick_Books {
     // 2. Launch the native "Select Directory" picker
     // This works natively on Windows, Linux, macOS, and Android
     String? selectedDirectoryUri = await FilePicker.platform.getDirectoryPath();
-if(books.isEmpty){
-  return false;
-}
+    if (books.isEmpty) {
+      return false;
+    }
     if (selectedDirectoryUri == null) {
-    // User cancelled the picker dialog
-    return false;
+      // User cancelled the picker dialog
+      return false;
     }
-try{
-    for(var book in books){
-      final bookFile = File(book.path);
-      await bookFile.copy("$selectedDirectoryUri/${bookFile.path.split(Platform.pathSeparator).last}");
-    }
+    try {
+      for (var book in books) {
+        final bookFile = File(book.path);
+        await bookFile.copy(
+          "$selectedDirectoryUri/${bookFile.path.split(Platform.pathSeparator).last}",
+        );
+      }
 
-    print("Book successfully exported!");
-    return true;
+      print("Book successfully exported!");
+      return true;
     } catch (e) {
-    print("Failed to export book: $e");
-    return false;
+      print("Failed to export book: $e");
+      return false;
     }
   }
 }
 
-
 class Message {
   const Message({required this.message, required this.state});
+
   final String message;
+
   //This must be either success or error
   final String state;
 }

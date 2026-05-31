@@ -118,9 +118,7 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
   void _tick() {
     if (state.secondsRemaining > 0) {
       state = state.copyWith(secondsRemaining: state.secondsRemaining - 1);
-      if (state.secondsRemaining % 10 == 0) { // Update notification every 10 seconds
-         _notifications.updateOngoing(state);
-      }
+      _notifications.updateOngoing(state);
     } else {
       _handlePhaseTransition();
     }

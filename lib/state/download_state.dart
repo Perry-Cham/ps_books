@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/services/download/downloader.dart';
 
@@ -55,25 +56,29 @@ class DownloadProgressState {
   final String fileName;
   final bool isDownloading;
   final String completedMessage;
+  final CancelToken? cancelToken;
 
   DownloadProgressState({
     this.progress = 0.0,
     this.fileName = '',
     this.completedMessage = '',
     this.isDownloading = false,
+    this.cancelToken,
   });
 
   DownloadProgressState copyWith({
     double? progress,
     String? fileName,
     bool? isDownloading,
-    String? completedMessage
+    String? completedMessage,
+    CancelToken? cancelToken
   }) {
     return DownloadProgressState(
       progress: progress ?? this.progress,
       fileName: fileName ?? this.fileName,
       isDownloading: isDownloading ?? this.isDownloading,
-      completedMessage: completedMessage ?? this.completedMessage
+      completedMessage: completedMessage ?? this.completedMessage,
+        cancelToken: cancelToken ?? this.cancelToken
     );
   }
 }
@@ -103,8 +108,11 @@ class DownloadProgressNotifier extends Notifier<DownloadProgressState> {
     _downloadSubscription?.cancel();
 
     setFileName(fileName);
+ // set Cancel token
+    state = state.copyWith(cancelToken: CancelToken(), isDownloading: true);
 
-    _downloadSubscription = downloadBookWithProgress(url).listen(
+    //Actual Download
+    _downloadSubscription = downloadBookWithProgress(url, state.cancelToken!).listen(
           (progress) {
         updateProgress(progress);
       },
@@ -128,6 +136,10 @@ class DownloadProgressNotifier extends Notifier<DownloadProgressState> {
 
   void dispose() {
     _downloadSubscription?.cancel();
+  }
+  void cancel(){
+    state.cancelToken?.cancel();
+    resetProgress();
   }
 }
 

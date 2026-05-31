@@ -5,8 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/helpers/pickBooks.dart';
+import 'package:ps_books/state/global_settings.dart';
+import 'package:ps_books/state/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:go_router/go_router.dart';
 
 import '../state/google_auth.dart';
 import 'package:ps_books/routes/settings_comp/user_cards.dart';
@@ -22,178 +25,216 @@ class Settings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final gUser = ref.watch(GoogleUserProvider);
+    final settings = ref.watch(settingsProvider);
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: const Text(
-          "Settings",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.transparent, // Blends with Scaffold
-        elevation: 0,
-        foregroundColor: Colors.white,
-      ),
-      body: gUser.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: primaryAccent),
-        ),
-        error: (error, stackTrace) => Center(
-          child: Text('Error: $error', style: const TextStyle(color: Colors.red)),
-        ),
-        data: (d) {
-          return Center(
-            child: ConstrainedBox(
-              // Allows it to look good on wide screens (tablets/desktop) without stretching
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (d.isSignedIn ?? false) ...[
-                      Google_Card(
-                        name: d.name ?? 'User',
-                        email: d.email ?? 'N/A',
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // --- Syncing Section ---
-                    _SettingsSection(
-                      title: "Syncing",
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.sync,
-                          title: "Syncing",
-                          trailing: Switch(
-                            activeColor: primaryAccent,
-                            value: false,
-                            onChanged: (v) => print('syncing enabled'),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // --- Study Features Section ---
-                    _SettingsSection(
-                      title: "Study Features",
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.alarm,
-                          title: "Enable Timetable alarms",
-                          trailing: Switch(
-                            activeColor: primaryAccent,
-                            value: false,
-                            onChanged: (v) => print('alarms enabled'),
-                          ),
-                        ),
-                      ],
-                    ),
-
-
-
-                    // --- Accounts Section ---
-                    _SettingsSection(
-                      title: "Accounts",
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.cloud_sync,
-                          title: "Sync Data With P's Books",
-                          trailing: ElevatedButton(
-                            style: _primaryButtonStyle(),
-                            onPressed: () {},
-                            child: const Text("Login"),
-                          ),
-                        ),
-                        const Divider(color: Colors.white12, height: 1),
-                        _SettingsTile(
-                          icon: Icons.g_mobiledata,
-                          title: "Sync With Google",
-                          trailing: !d.isSignedIn
-                              ? ElevatedButton(
-                            style: _primaryButtonStyle(),
-                            onPressed: () => _handleGoogleSignIn(context, ref),
-                            child: const Text("Login"),
-                          )
-                              : ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white12,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                            ),
-                            onPressed: () => _handleGoogleSignOut(context, ref),
-                            child: const Text("Sign Out"),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // --- Danger Section ---
-                    _SettingsSection(
-                      title: "Danger Zone",
-                      titleColor: Colors.redAccent,
-                      borderColor: Colors.red.withOpacity(0.3),
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.delete_forever,
-                          iconColor: Colors.redAccent,
-                          title: "Delete App Data",
-                          titleColor: Colors.redAccent,
-                          subtitle: "Clears all local books and preferences",
-                          trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.redAccent.withOpacity(0.2),
-                              foregroundColor: Colors.redAccent,
-                              elevation: 0,
-                              side: const BorderSide(color: Colors.redAccent),
-                            ),
-                            onPressed: () => _handleDeleteAppData(context, ref),
-                            child: const Text("Delete"),
-                          ),
-                        ),
-                        _SettingsTile(
-                          icon: Icons.import_export_outlined,
-                          iconColor: Colors.purpleAccent,
-                          title: "Export Books",
-                          titleColor: Colors.redAccent,
-                          subtitle: "Exports all books to a chosen folder",
-                          trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.purpleAccent.withOpacity(0.2),
-                              foregroundColor: Colors.purpleAccent,
-                              elevation: 0,
-                              side: const BorderSide(color: Colors.purpleAccent),
-                            ),
-                            onPressed: () async  {
-                              try{
-                                final success = await Pick_Books().exportBooks();
-                                if(success){
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your books have been exported to your chosen directory.")));
-                                }else{
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("There was an error exporting your books.")));
-                                }
-                              }catch(e,h){
-                                print(e);
-                                print(h);
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("There was an error exporting your books.")));
-                              }
-                            },
-                            child: const Text("Export"),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40), // Bottom padding
-                  ],
-                ),
+    return settings.when(loading: () =>
+    const MaterialApp(
+        home: Scaffold(body: Center(child: CircularProgressIndicator()))),
+        error: (err, stack) =>
+            MaterialApp(home: Scaffold(
+                body: Center(child: Text('Error loading preferences: $err')))),
+        data: (settings) {
+          return Scaffold(
+            backgroundColor: bgColor,
+            appBar: AppBar(
+              title: const Text(
+                "Settings",
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
+              backgroundColor: Colors.transparent, // Blends with Scaffold
+              elevation: 0,
+              foregroundColor: Colors.white,
+            ),
+            body: gUser.when(
+              loading: () =>
+              const Center(
+                child: CircularProgressIndicator(color: primaryAccent),
+              ),
+              error: (error, stackTrace) =>
+                  Center(
+                    child: Text('Error: $error',
+                        style: const TextStyle(color: Colors.red)),
+                  ),
+              data: (d) {
+                return Center(
+                  child: ConstrainedBox(
+                    // Allows it to look good on wide screens (tablets/desktop) without stretching
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (d.isSignedIn ?? false) ...[
+                            Google_Card(
+                              name: d.name ?? 'User',
+                              email: d.email ?? 'N/A',
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+
+                          // --- Syncing Section ---
+                          _SettingsSection(
+                            title: "Syncing",
+                            children: [
+                              _SettingsTile(
+                                icon: Icons.sync,
+                                title: "Syncing",
+                                trailing: Switch(
+                                  activeColor: primaryAccent,
+                                  value: false,
+                                  onChanged: (v) => print('syncing enabled'),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // --- Study Features Section ---
+                          _SettingsSection(
+                            title: "Study Features",
+                            children: [
+                              _SettingsTile(
+                                icon: Icons.alarm,
+                                title: "Enable Timetable alarms",
+                                trailing: Switch(
+                                  activeColor: primaryAccent,
+                                  value: settings.enableTimetableAlarms,
+                                  onChanged: (v) {
+                                    ref
+                                        .read(settingsProvider.notifier)
+                                        .updateAlarms(v);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+
+
+                          // --- Accounts Section ---
+                          _SettingsSection(
+                            title: "Accounts",
+                            children: [
+                              _SettingsTile(
+                                icon: Icons.cloud_sync,
+                                title: "Sync Data With P's Books",
+                                trailing: ElevatedButton(
+                                  style: _primaryButtonStyle(),
+                                  onPressed: () {
+                                    context.push('/login');
+                                  },
+                                  child: const Text("Login"),
+                                ),
+                              ),
+                              const Divider(color: Colors.white12, height: 1),
+                              _SettingsTile(
+                                icon: Icons.g_mobiledata,
+                                title: "Sync With Google",
+                                trailing: !d.isSignedIn
+                                    ? ElevatedButton(
+                                  style: _primaryButtonStyle(),
+                                  onPressed: () =>
+                                      _handleGoogleSignIn(context, ref),
+                                  child: const Text("Login"),
+                                )
+                                    : ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white12,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                  ),
+                                  onPressed: () =>
+                                      _handleGoogleSignOut(context, ref),
+                                  child: const Text("Sign Out"),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // --- Danger Section ---
+                          _SettingsSection(
+                            title: "Danger Zone",
+                            titleColor: Colors.redAccent,
+                            borderColor: Colors.red.withOpacity(0.3),
+                            children: [
+                              _SettingsTile(
+                                icon: Icons.delete_forever,
+                                iconColor: Colors.redAccent,
+                                title: "Delete App Data",
+                                titleColor: Colors.redAccent,
+                                subtitle: "Clears all local books and preferences",
+                                trailing: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.redAccent
+                                        .withOpacity(0.2),
+                                    foregroundColor: Colors.redAccent,
+                                    elevation: 0,
+                                    side: const BorderSide(
+                                        color: Colors.redAccent),
+                                  ),
+                                  onPressed: () =>
+                                      _handleDeleteAppData(context, ref),
+                                  child: const Text("Delete"),
+                                ),
+                              ),
+                              _SettingsTile(
+                                icon: Icons.import_export_outlined,
+                                iconColor: Colors.purpleAccent,
+                                title: "Export Books",
+                                titleColor: Colors.redAccent,
+                                subtitle: "Exports all books to a chosen folder",
+                                trailing: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.purpleAccent
+                                        .withOpacity(0.2),
+                                    foregroundColor: Colors.purpleAccent,
+                                    elevation: 0,
+                                    side: const BorderSide(
+                                        color: Colors.purpleAccent),
+                                  ),
+                                  onPressed: () async {
+                                    try {
+                                      final success = await Pick_Books()
+                                          .exportBooks();
+                                      if (success) {
+                                        ScaffoldMessenger
+                                            .of(context)
+                                            .showSnackBar(SnackBar(
+                                            content: Text(
+                                                "Your books have been exported to your chosen directory.")));
+                                      } else {
+                                        ScaffoldMessenger
+                                            .of(context)
+                                            .showSnackBar(SnackBar(
+                                            content: Text(
+                                                "There was an error exporting your books.")));
+                                      }
+                                    } catch (e, h) {
+                                      print(e);
+                                      print(h);
+                                      ScaffoldMessenger
+                                          .of(context)
+                                          .showSnackBar(SnackBar(content: Text(
+                                          "There was an error exporting your books.")));
+                                    }
+                                  },
+                                  child: const Text("Export"),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 40), // Bottom padding
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           );
-        },
-      ),
-    );
+        });
+  }
   }
 
   // --- Button Style Helper ---
@@ -338,7 +379,7 @@ class Settings extends ConsumerWidget {
       }
     }
   }
-}
+
 
 // ============================================================================
 // UI HELPER WIDGETS
