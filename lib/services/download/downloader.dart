@@ -34,7 +34,9 @@ final String language;
   static DownloadBook? fromMap(Map<String, dynamic> book) {
   //  print(book['href']);
     String ext = (book['extension'] ?? "").toString().toLowerCase();
-    if ((ext != "pdf" && ext != "epub" && ext != "fb2" && ext != "mobi") || book['href'] == null) {
+    if ((ext != "pdf" && ext != "epub" && ext != "fb2" && ext != "mobi" &&
+            ext != "cbz" && ext != "cbt" && ext != "cbw") ||
+        book['href'] == null) {
       return null;
     } else {
       return DownloadBook(
@@ -209,7 +211,7 @@ Stream<double> downloadBookWithProgress(String url, CancelToken cancelToken) asy
     },
   ).then((_) async {
     final String extension = filename.split('.').last.toLowerCase();
-    if (['pdf', 'epub', 'fb2'].contains(extension)) {
+    if (['pdf', 'epub', 'fb2', 'cbz', 'cbt', 'cbw'].contains(extension)) {
       final fileBytes = await File(savePath).readAsBytes();
       final bookData = await processBook(
         fileBytes: fileBytes,
@@ -222,7 +224,12 @@ Stream<double> downloadBookWithProgress(String url, CancelToken cancelToken) asy
         author: bookData.author,
         extension: extension,
         path: savePath,
-        page: extension == 'pdf' ? 1 : null,
+        page: (extension == 'pdf' ||
+                extension == 'cbz' ||
+                extension == 'cbt' ||
+                extension == 'cbw')
+            ? 1
+            : null,
         coverPath: bookData.coverPath,
       );
     } else if (extension == 'mobi') {

@@ -3,10 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/dbs/initdb.dart';
-import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/helpers/pickBooks.dart';
 import 'package:ps_books/state/global_settings.dart';
-import 'package:ps_books/state/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -34,8 +32,10 @@ class Settings extends ConsumerWidget {
             MaterialApp(home: Scaffold(
                 body: Center(child: Text('Error loading preferences: $err')))),
         data: (settings) {
+          final theme = Theme.of(context);
+          final isDark = theme.brightness == Brightness.dark;
+
           return Scaffold(
-            backgroundColor: bgColor,
             appBar: AppBar(
               title: const Text(
                 "Settings",
@@ -43,7 +43,6 @@ class Settings extends ConsumerWidget {
               ),
               backgroundColor: Colors.transparent, // Blends with Scaffold
               elevation: 0,
-              foregroundColor: Colors.white,
             ),
             body: gUser.when(
               loading: () =>
@@ -67,13 +66,37 @@ class Settings extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (d.isSignedIn ?? false) ...[
+                          if (d.isSignedIn) ...[
                             Google_Card(
                               name: d.name ?? 'User',
                               email: d.email ?? 'N/A',
                             ),
                             const SizedBox(height: 24),
                           ],
+
+                          // --- Appearance Section ---
+                          _SettingsSection(
+                            title: "Appearance",
+                            children: [
+                              _SettingsTile(
+                                icon: settings.appTheme == AppTheme.dark
+                                    ? Icons.dark_mode
+                                    : Icons.light_mode,
+                                title: "Dark Mode",
+                                trailing: Switch(
+                                  activeColor: primaryAccent,
+                                  value: settings.appTheme == AppTheme.dark,
+                                  onChanged: (v) {
+                                    ref
+                                        .read(settingsProvider.notifier)
+                                        .updateTheme(v
+                                            ? AppTheme.dark
+                                            : AppTheme.light);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
 
                           // --- Syncing Section ---
                           _SettingsSection(
@@ -127,7 +150,7 @@ class Settings extends ConsumerWidget {
                                   child: const Text("Login"),
                                 ),
                               ),
-                              const Divider(color: Colors.white12, height: 1),
+                              const Divider(height: 1),
                               _SettingsTile(
                                 icon: Icons.g_mobiledata,
                                 title: "Sync With Google",
@@ -140,8 +163,8 @@ class Settings extends ConsumerWidget {
                                 )
                                     : ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white12,
-                                    foregroundColor: Colors.white,
+                                    backgroundColor: isDark ? Colors.white12 : Colors.black12,
+                                    foregroundColor: isDark ? Colors.white : Colors.black,
                                     elevation: 0,
                                   ),
                                   onPressed: () =>
@@ -182,7 +205,6 @@ class Settings extends ConsumerWidget {
                                 icon: Icons.import_export_outlined,
                                 iconColor: Colors.purpleAccent,
                                 title: "Export Books",
-                                titleColor: Colors.redAccent,
                                 subtitle: "Exports all books to a chosen folder",
                                 trailing: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
@@ -297,16 +319,14 @@ class Settings extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: cardColor,
-        title: const Text('Delete all app data?', style: TextStyle(color: Colors.white)),
+        title: const Text('Delete all app data?'),
         content: const Text(
           'This will delete local books, preferences, and sign you out. This cannot be undone.',
-          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -389,18 +409,19 @@ class Settings extends ConsumerWidget {
 class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
-  final Color titleColor;
+  final Color? titleColor;
   final Color? borderColor;
 
   const _SettingsSection({
     required this.title,
     required this.children,
-    this.titleColor = Colors.white,
+    this.titleColor,
     this.borderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Column(
@@ -411,7 +432,7 @@ class _SettingsSection extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                color: titleColor,
+                color: titleColor ?? theme.textTheme.titleMedium?.color,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
                 letterSpacing: 0.5,
@@ -420,12 +441,10 @@ class _SettingsSection extends StatelessWidget {
           ),
           Container(
             decoration: BoxDecoration(
-              color: cardColor,
               borderRadius: BorderRadius.circular(16),
-              border: borderColor != null ? Border.all(color: borderColor!) : null,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 )
@@ -448,34 +467,35 @@ class _SettingsTile extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget trailing;
-  final Color iconColor;
-  final Color titleColor;
+  final Color? iconColor;
+  final Color? titleColor;
 
   const _SettingsTile({
     required this.icon,
     required this.title,
     required this.trailing,
     this.subtitle,
-    this.iconColor = Colors.white70,
-    this.titleColor = Colors.white,
+    this.iconColor,
+    this.titleColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: theme.scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: iconColor, size: 22),
+        child: Icon(icon, color: iconColor ?? theme.iconTheme.color?.withOpacity(0.7), size: 22),
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: titleColor,
+          color: titleColor ?? theme.textTheme.bodyLarge?.color,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
@@ -483,7 +503,7 @@ class _SettingsTile extends StatelessWidget {
       subtitle: subtitle != null
           ? Text(
         subtitle!,
-        style: const TextStyle(color: Colors.white54, fontSize: 13),
+        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13),
       )
           : null,
       trailing: trailing,

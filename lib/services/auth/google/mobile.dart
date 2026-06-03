@@ -5,6 +5,7 @@ import 'abstract.dart';
 
 // Ensure this uses compile-time const mapping
 const String id = String.fromEnvironment('DRIVE_CLIENT_ID_MOBILE');
+const String serverId = String.fromEnvironment("DRIVE_CLIENT_SERVER_ID");
 
 class MobileAuthService implements AuthService {
   // Use the modern singleton pattern instance 
@@ -44,7 +45,6 @@ class MobileAuthService implements AuthService {
 
       // 3. GET CLIENT: Use the updated extension naming mapping pattern
       final client = authorization.authClient(scopes: _scopes);
-      if (client == null) return null;
 
       final driveD = drive.DriveApi(client);
 

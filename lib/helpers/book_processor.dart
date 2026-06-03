@@ -9,6 +9,7 @@ import 'package:epub_pro/epub_pro.dart';
 import 'package:xml/xml.dart';
 import 'package:ps_books/models/book_data.dart';
 import 'package:kindle_unpack/kindle_unpack.dart';
+import 'package:archive/archive.dart';
 import './utils.dart';
 
 Future<BookData> processBook({
@@ -141,6 +142,35 @@ Future<BookData> processBook({
         );
         coverPath = '${coversDir.path}/$sanitizedTitle.png';
         await File(coverPath).writeAsBytes(img);
+      }
+    } else if (extension == 'cbz' || extension == 'cbt') {
+      try {
+        Archive? archive;
+        if (extension == 'cbz') {
+          archive = ZipDecoder().decodeBytes(fileBytes);
+        } else if (extension == 'cbt') {
+          archive = TarDecoder().decodeBytes(fileBytes);
+        }
+
+        if (archive != null) {
+          final imageFile = archive.files.firstWhere(
+            (file) =>
+                file.isFile &&
+                (file.name.toLowerCase().endsWith('.jpg') ||
+                    file.name.toLowerCase().endsWith('.png') ||
+                    file.name.toLowerCase().endsWith('.jpeg')),
+          );
+
+          final imageContent = imageFile.content as Uint8List;
+          String sanitizedTitle = bookTitle.replaceAll(
+            RegExp(r'[<>:"/\\|?*]'),
+            '_',
+          );
+          coverPath = '${coversDir.path}/$sanitizedTitle.png';
+          await File(coverPath).writeAsBytes(imageContent);
+        }
+      } catch (e) {
+        print("Error processing comic book cover: $e");
       }
     }
   } catch (e, stack) {

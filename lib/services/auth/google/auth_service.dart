@@ -5,9 +5,9 @@ import 'mobile.dart';
 import 'desktop.dart';
 
 AuthService createAuthService() {
-  if (Platform.isAndroid || Platform.isIOS) {
+  /*if (Platform.isAndroid || Platform.isIOS) {
     return MobileAuthService();
-  }
+  }*/
   return DesktopAuthService();
 }
 
