@@ -11,14 +11,24 @@ import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
 
 final database = DBProvider().db;
-final _extensions = ['pdf', 'epub', 'fb2'];
+final _extensions = ['pdf', 'epub', 'fb2', 'cbz', 'cbt', 'cbw'];
 
 class Pick_Books {
   Future<Message> pickbooks() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
-        allowedExtensions: ['pdf', 'epub', 'fb2', 'mobi', 'pptx', 'docx'],
+        allowedExtensions: [
+          'pdf',
+          'epub',
+          'fb2',
+          'mobi',
+          'pptx',
+          'docx',
+          'cbz',
+          'cbt',
+          'cbw',
+        ],
         type: FileType.custom,
       );
       if (result == null || result.files.isEmpty) {
@@ -62,7 +72,10 @@ class Pick_Books {
                     author: Value(bookData.author),
                     path: destinationPath,
                     extension: extension,
-                    page: extension == 'pdf'
+                    page: (extension == 'pdf' ||
+                            extension == 'cbz' ||
+                            extension == 'cbt' ||
+                            extension == 'cbw')
                         ? const Value(1)
                         : const Value.absent(),
                     coverPath: bookData.coverPath != null

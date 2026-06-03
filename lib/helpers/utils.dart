@@ -44,14 +44,14 @@ class UniversalBookDecoder {
       // 3. Fallback conversion for legacy charsets (like windows-1251 or windows-1252)
       // charset_converter calls native platform channels to read the byte array mapping
       String decodedString = await CharsetConverter.decode(
-        detectedEncodingName,
+       detectedEncodingName,
         fileBytes,
       );
 
       return decodedString;
-    } catch (e) {
+    } catch (e, h) {
       print("⚠️ Auto-detection/conversion failed: $e. Falling back to standard UTF-8 parsing with dropped errors.");
-
+      print(h);
       // Safe fallback strategy if everything fails
       return utf8.decode(fileBytes, allowMalformed: true);
     }

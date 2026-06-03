@@ -9,6 +9,7 @@ import 'package:ps_books/state/reader_state.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../readers/pdfReader.dart';
+import '../readers/comic_reader.dart';
 import 'package:katbook_epub_reader/src/models/reading_position.dart';
 
 import '../helpers/pickBooks.dart';
@@ -130,6 +131,24 @@ class ReaderState extends ConsumerState<Reader> {
         filePath: widget.path,
         onPositionChanged: onfb2progresschanged,
         initialPosition: getFB2Position(),
+      );
+    } else if (widget.type == 'cbz' ||
+        widget.type == 'cbt' ||
+        widget.type == 'cbw') {
+      return FutureBuilder(
+        future: File(widget.path).readAsBytes(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ComicReaderPage(
+              fileBytes: snapshot.data!,
+              filename: widget.path.split(Platform.pathSeparator).last,
+            );
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
+            return const Center(child: Text("An Error has occured"));
+          }
+        },
       );
     } else {
       print(widget.type);

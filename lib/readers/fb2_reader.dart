@@ -46,6 +46,7 @@ class FB2Reader extends StatefulWidget {
   final void Function(int index, double progress)? onPositionChanged;
   final int? initialPosition;
 
+
   @override
   State<FB2Reader> createState() => _FB2ReaderState();
 }
@@ -398,6 +399,7 @@ class _FB2ReaderState extends State<FB2Reader> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bool isDesktop = MediaQuery.of(context).size.width > 600;
     final readerTheme = isDarkMode
         ? ThemeData.dark().copyWith(
             scaffoldBackgroundColor: const Color(0xFF1B1227),
@@ -482,21 +484,40 @@ class _FB2ReaderState extends State<FB2Reader> {
         ),
         body: renderable.isEmpty
             ? const Center(child: CircularProgressIndicator())
-            : ScrollablePositionedList.builder(
-                itemScrollController: _itemScrollController,
-                itemPositionsListener: _itemPositionsListener,
-                initialScrollIndex: widget.initialPosition ?? 0,
-                itemCount: renderable.length,
-                padding:
-                    EdgeInsets.symmetric(horizontal: padding, vertical: 25.0),
-                physics: const ClampingScrollPhysics(),
-                minCacheExtent: 1500,
-                addAutomaticKeepAlives: true,
-                addRepaintBoundaries: true,
-                itemBuilder: (context, index) {
-                  return renderable[index];
-                },
+            : isDesktop ? Center(
+              child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                child: ScrollablePositionedList.builder(
+                    itemScrollController: _itemScrollController,
+                    itemPositionsListener: _itemPositionsListener,
+                    initialScrollIndex: widget.initialPosition ?? 0,
+                    itemCount: renderable.length,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: padding, vertical: 25.0),
+                    physics: const ClampingScrollPhysics(),
+                    minCacheExtent: 1500,
+                    addAutomaticKeepAlives: true,
+                    addRepaintBoundaries: true,
+                    itemBuilder: (context, index) {
+                      return renderable[index];
+                    },
+                  ),
               ),
+            ) : ScrollablePositionedList.builder(
+          itemScrollController: _itemScrollController,
+          itemPositionsListener: _itemPositionsListener,
+          initialScrollIndex: widget.initialPosition ?? 0,
+          itemCount: renderable.length,
+          padding:
+          EdgeInsets.symmetric(horizontal: padding, vertical: 25.0),
+          physics: const ClampingScrollPhysics(),
+          minCacheExtent: 1500,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
+          itemBuilder: (context, index) {
+            return renderable[index];
+          },
+        ),
       ),
     );
   }

@@ -81,6 +81,11 @@ dependencies:
   flutter_charset_detector: any
   charset_converter: any
   scrollable_positioned_list: ^0.3.8
+ # comic_reader: ^0.4.0
+  comic_reader:
+    path: ../comic_reader-0.4.0
+  webview_all: ^1.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -98,6 +103,7 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 dependency_overrides:
   archive: ^4.0.7
+  file_picker: ^10.3.10
 # The following section is specific to Flutter packages.
 flutter:
 

@@ -161,8 +161,9 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                 onPressed: () async {
                   try {
                     await _searchBooks(ref, _searchController.text);
-                  } catch (e) {
+                  } catch (e,h) {
                     print(e);
+                    print(h);
                     ref
                         .read(DownloadStateProvider.notifier)
                         .updateState(loading: false);

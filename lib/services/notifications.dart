@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/services/DB services/timetableToDB.dart';
@@ -8,6 +10,9 @@ import 'package:timezone/timezone.dart';
 import 'package:workmanager/workmanager.dart';
 
 final _db = TimetableToDb();
+
+// Global reference pointer provider to hold the active main UI Riverpod container mapping
+ProviderContainer? globalProviderContainer;
 
 @pragma('vm:entry-point')
 void registerStudyNotifications() async {
@@ -28,6 +33,29 @@ void registerStudyNotifications() async {
   });
 }
 
+// FIX: This callback MUST be a top-level or static function to execute reliably from background/minimized states
+@pragma('vm:entry-point')
+void onNotificationTap(NotificationResponse response) {
+  if (globalProviderContainer == null) {
+    print("⚠️ App container reference not initialized yet.");
+    return;
+  }
+
+  final notifier = globalProviderContainer!.read(pomodoroProvider.notifier);
+
+  switch (response.actionId) {
+    case 'pause':
+      notifier.pause();
+      break;
+    case 'resume':
+      notifier.resume();
+      break;
+    case 'skip':
+    // Implement your skip logic here if needed
+      break;
+  }
+}
+
 class Notifications {
   final flutterNotifs = FlutterLocalNotificationsPlugin();
   static const _channelId = "888";
@@ -35,59 +63,50 @@ class Notifications {
   static const _alertId = 777;
 
   Future<void> init() async {
-    // 1. Android-specific settings
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Linux notifs
     const linux = LinuxInitializationSettings(
       defaultActionName: 'Open',
     );
 
-    // 2. Combine settings
     const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid, linux: linux);
+    InitializationSettings(android: initializationSettingsAndroid, linux: linux);
 
-    // 3. Initialize the plugin
-    await flutterNotifs.initialize(settings: initializationSettings);
+    await flutterNotifs.initialize(
+      settings: initializationSettings,
+      // FIX: Reference the global callback handler entry point cleanly
+      onDidReceiveNotificationResponse: onNotificationTap,
+      onDidReceiveBackgroundNotificationResponse: onNotificationTap,
+    );
   }
 
   final channel = AndroidNotificationChannel(
-    "888",
+    _channelId,
     'Study Timer',
     description: 'Shows study session progress',
-    importance: Importance.low, // low so it does not make sound on every tick
+    importance: Importance.low,
   );
 
   Future<void> scheduleNotification(TimetableSession session) async {
     await flutterNotifs.zonedSchedule(
-      id: session.id, // Unique ID for each notification
+      id: session.id,
       title: 'Timetable Alert',
-      body: 'Your study session for  ${session.start} starts now!',
-      scheduledDate: _convertToTZDateTime(
-        session.start,
-      ), // Function to turn "10:00" into a timestamp
-      notificationDetails: NotificationDetails(
+      body: 'Your study session for ${session.start} starts now!',
+      scheduledDate: _convertToTZDateTime(session.start),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'timetable_channel',
           'Timetable Notifications',
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
-          // This allows it to fire even when the phone is in power-saving mode
-          //   scheduledNotificationRepeatFrequency: ScheduledNotificationRepeatFrequency.daily,
         ),
       ),
-      androidScheduleMode:
-          AndroidScheduleMode.exactAllowWhileIdle, // CRITICAL for "off" state
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
-
- //Study Notifications
-
-
-  // the persistent notification shown while the timer is running
   Future<void> updateOngoing(PomodoroState snapshot) async {
     final remaining = _formatDuration(Duration(seconds: snapshot.secondsRemaining));
     final phaseName = snapshot.phase == PomodoroPhase.work ? 'Work' : 'Break';
@@ -95,8 +114,7 @@ class Notifications {
         ? '$phaseName — $remaining remaining'
         : '$phaseName — Paused ($remaining)';
 
-    final body =
-        'Cycle ${snapshot.currentCycle} of ${snapshot.cycles}';
+    final body = 'Cycle ${snapshot.currentCycle} of ${snapshot.cycles}';
 
     final androidDetails = AndroidNotificationDetails(
       _channelId,
@@ -104,8 +122,8 @@ class Notifications {
       channelDescription: 'Study session progress',
       importance: Importance.low,
       priority: Priority.low,
-      ongoing: true,           // cannot be dismissed by swipe
-      onlyAlertOnce: true,     // does not make sound on every update
+      ongoing: true,
+      onlyAlertOnce: true,
       showProgress: true,
       actions: [
         AndroidNotificationAction(
@@ -132,7 +150,6 @@ class Notifications {
     );
   }
 
-  // alert shown when the phase changes — this one makes sound
   Future<void> showPhaseTransition({
     required PomodoroPhase previous,
     required PomodoroPhase next,
@@ -141,15 +158,13 @@ class Notifications {
     final body = switch (next) {
       PomodoroPhase.work => 'Your break is over — time to focus',
       PomodoroPhase.breakTime => 'Good work! Take a short break',
-    /*TimerPhase.longBreak => 'Excellent session! Take a long break',*/
     };
 
-     const androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       _channelId,
       'Study Timer',
       importance: Importance.high,
       priority: Priority.high,
-      // this one does make sound — it is an alert not a status update
     );
 
     const linuxDetails = LinuxNotificationDetails(
@@ -158,9 +173,9 @@ class Notifications {
 
     await flutterNotifs.show(
       id: _alertId,
-      title:title,
+      title: title,
       body: body,
-     notificationDetails:  const NotificationDetails(android: androidDetails, linux: linuxDetails),
+      notificationDetails: const NotificationDetails(android: androidDetails, linux: linuxDetails),
     );
   }
 
@@ -173,10 +188,10 @@ class Notifications {
     );
 
     await flutterNotifs.show(
-     id: _alertId,
+      id: _alertId,
       title: 'Session complete',
-     body:  'You completed all your study cycles. Great work!',
-     notificationDetails:  const NotificationDetails(android: androidDetails),
+      body: 'You completed all your study cycles. Great work!',
+      notificationDetails: const NotificationDetails(android: androidDetails),
     );
   }
 
@@ -189,7 +204,7 @@ class Notifications {
     final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$m:$s';
   }
-}
+} // Fixed bracket alignment error here
 
 TZDateTime _convertToTZDateTime(String t) {
   final timeString = t.split(':');
@@ -199,14 +214,12 @@ TZDateTime _convertToTZDateTime(String t) {
   );
   final loc = local;
   final now = TZDateTime.now(loc);
-  final scheduled = TZDateTime(
-    local,
+  return TZDateTime(
+    loc,
     now.year,
     now.month,
     now.day,
     time.hour,
     time.minute,
   );
-
-  return scheduled;
 }

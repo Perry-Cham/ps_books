@@ -11,11 +11,13 @@ import 'package:ps_books/services/notifications.dart';
 import 'routes/home.dart';
 import 'routes/study.dart';
 import 'package:ps_books/routes/download.dart';
-import 'package:ps_books/routes/settings.dart';
+import 'package:ps_books/routes/settings.dart' as settings_route;
 import 'package:ps_books/routes/bookshelf.dart';
 import 'package:ps_books/routes/login.dart';
 import 'package:ps_books/state/prefs.dart';
 import './layout.dart';
+
+import 'package:ps_books/state/global_settings.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,121 +45,139 @@ void main() async {
   runApp(
     ProviderScope(
       overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  MyApp({super.key});
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
 
-  //routes
-  final GoRouter _router = GoRouter(
-    initialLocation: '/',
-    routes: [
-      ShellRoute(
-        builder: (context, state, child) {
-          return Layout(widget: child);
-        },
-        routes: [
-          GoRoute(path: '/', builder: (context, state) => HomePage()),
-          GoRoute(path: '/bookshelf', builder: (context, state) => Bookshelf()),
-          GoRoute(path: '/goals', builder: (context, state) => StudyPage()),
-          GoRoute(
-            path: '/download',
-            builder: (context, state){
-              final query = state.uri.queryParameters['search'];
-              return DownloadSearch(query: query);},
-          ),
-          GoRoute(path: '/settings', builder: (context, state) => Settings()),
-          GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
-        ],
-      ),
-    ],
-  );
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(settingsProvider);
+
+    //routes
+    final GoRouter _router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        ShellRoute(
+          builder: (context, state, child) {
+            return Layout(widget: child);
+          },
+          routes: [
+            GoRoute(path: '/', builder: (context, state) => HomePage()),
+            GoRoute(path: '/bookshelf', builder: (context, state) => Bookshelf()),
+            GoRoute(path: '/goals', builder: (context, state) => StudyPage()),
+            GoRoute(
+              path: '/download',
+              builder: (context, state) {
+                final query = state.uri.queryParameters['search'];
+                return DownloadSearch(query: query);
+              },
+            ),
+            GoRoute(path: '/settings', builder: (context, state) => settings_route.Settings()),
+            GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+          ],
+        ),
+      ],
+    );
+
     return MaterialApp.router(
       title: "P's Books",
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-
-        // ==================== CORE COLORS ====================
-        scaffoldBackgroundColor: const Color(0xFF1B1227), // Base Canvas
-
-
-        // ==================== TEXT THEME (Default White-ish) ====================
-
-
-        // ==================== APPBAR ====================
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E1729),        // Surface 100
-          foregroundColor: Color(0xFFE2E0E5),
-          elevation: 0,
-          centerTitle: false,
-          titleTextStyle: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.025,
-            color: Color(0xFFE2E0E5),
-          ),
-          iconTheme: IconThemeData(color: Color(0xFFE2E0E5)),
-          actionsIconTheme: IconThemeData(color: Color(0xFFE2E0E5)),
-        ),
-
-        // ==================== OTHER COMPONENTS ====================
-        cardTheme: CardThemeData(
-          color: const Color(0xFF1E1729), // Surface 100
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.04)),
-          ),
-        ),
-
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xFF7C3AED),
-          foregroundColor: Colors.white,
-        ),
-
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey,
-            foregroundColor: Colors.white,
-          ),
-        ),
-
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: const Color(0xFF110D17).withOpacity(0.9),
-          selectedItemColor: const Color(0xFFA78BFA),
-          unselectedItemColor: const Color(0xFF737373),
-          elevation: 0,
-        ),
-
-        dividerTheme: const DividerThemeData(
-          color: Color.fromRGBO(255, 255, 255, 0.04),
-          thickness: 1,
-        ),
-
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-         fillColor: Colors.grey.shade600, // Surface 200
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.06)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.06)),
-          ),
-        ),
+      themeMode: settingsAsync.when(
+        data: (settings) => settings.appTheme == AppTheme.dark ? ThemeMode.dark : ThemeMode.light,
+        loading: () => ThemeMode.dark,
+        error: (_, __) => ThemeMode.dark,
       ),
+      theme: _buildTheme(Brightness.light),
+      darkTheme: _buildTheme(Brightness.dark),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
       routerConfig: _router,
+    );
+  }
+
+  ThemeData _buildTheme(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+
+      // ==================== CORE COLORS ====================
+      scaffoldBackgroundColor: isDark ? const Color(0xFF1B1227) : const Color(0xFFF8F7FA),
+
+      // ==================== APPBAR ====================
+      appBarTheme: AppBarTheme(
+        backgroundColor: isDark ? const Color(0xFF1E1729) : const Color(0xFFFFFFFF),
+        foregroundColor: isDark ? const Color(0xFFE2E0E5) : const Color(0xFF1B1227),
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.025,
+          color: isDark ? const Color(0xFFE2E0E5) : const Color(0xFF1B1227),
+        ),
+        iconTheme: IconThemeData(color: isDark ? const Color(0xFFE2E0E5) : const Color(0xFF1B1227)),
+        actionsIconTheme: IconThemeData(color: isDark ? const Color(0xFFE2E0E5) : const Color(0xFF1B1227)),
+      ),
+
+      // ==================== OTHER COMPONENTS ====================
+      cardTheme: CardThemeData(
+        color: isDark ? const Color(0xFF1E1729) : const Color(0xFFFFFFFF),
+        elevation: isDark ? 0 : 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isDark ? const Color.fromRGBO(255, 255, 255, 0.04) : const Color.fromRGBO(0, 0, 0, 0.04),
+          ),
+        ),
+      ),
+
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: Color(0xFF7C3AED),
+        foregroundColor: Colors.white,
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+          foregroundColor: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: isDark ? const Color(0xFF110D17).withOpacity(0.9) : Colors.white.withOpacity(0.9),
+        selectedItemColor: const Color(0xFF7C3AED),
+        unselectedItemColor: isDark ? const Color(0xFF737373) : const Color(0xFF94A3B8),
+        elevation: 0,
+      ),
+
+      dividerTheme: DividerThemeData(
+        color: isDark ? const Color.fromRGBO(255, 255, 255, 0.04) : const Color.fromRGBO(0, 0, 0, 0.04),
+        thickness: 1,
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDark ? const Color.fromRGBO(255, 255, 255, 0.06) : const Color.fromRGBO(0, 0, 0, 0.06),
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDark ? const Color.fromRGBO(255, 255, 255, 0.06) : const Color.fromRGBO(0, 0, 0, 0.06),
+          ),
+        ),
+      ),
     );
   }
 }

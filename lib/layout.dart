@@ -29,6 +29,8 @@ class LayoutState extends State<Layout> {
   Widget build(BuildContext context) {
     final locationUrl = GoRouterState.of(context).uri.path;
     final index = destinations.indexOf(locationUrl);
+    final theme = Theme.of(context);
+
     if (!Platform.isAndroid) {
       return Scaffold(
         body: Row(
@@ -46,13 +48,13 @@ class LayoutState extends State<Layout> {
                   });
                 },
                 child: extended
-                    ? Row(
+                    ? const Row(
                         spacing: 20,
                         children: [Icon(Icons.book), Text("P's Books")],
                       )
-                    : Icon(Icons.book),
+                    : const Icon(Icons.book),
               ),
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: theme.appBarTheme.backgroundColor,
               destinations: const [
                 NavigationRailDestination(
                   icon: Icon(Icons.library_books_outlined),
@@ -102,23 +104,26 @@ class CustomBottomNav extends ConsumerWidget{
   CustomBottomNav({super.key, required this.destinations});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isReading = ref.watch(ReaderStateProvider.select((state) => state.isReading));
+    final isReading =
+        ref.watch(ReaderStateProvider.select((state) => state.isReading));
 
     final locationUrl = GoRouterState.of(context).uri.path;
     final index = destinations.indexOf(locationUrl);
-    if(isReading){
-      return SizedBox.shrink();
+    final theme = Theme.of(context);
+
+    if (isReading) {
+      return const SizedBox.shrink();
     }
-   return BottomNavigationBar(
+    return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      backgroundColor: Color(0xFF1E1729), // Matches your NavigationRail
-      selectedItemColor: Color(0xFFA78BFA), // Color of the active icon/label
-      unselectedItemColor: Colors.grey.shade200,
+      backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
+      selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor,
+      unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor,
       currentIndex: index,
       onTap: (value) {
         context.go(destinations[value]);
       },
-      items: [
+      items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.library_books_outlined),
           label: 'Library',
