@@ -10,9 +10,9 @@ import 'package:timezone/timezone.dart';
 import 'package:workmanager/workmanager.dart';
 
 final _db = TimetableToDb();
-
+late final globalProviderContainer;
 // Global reference pointer provider to hold the active main UI Riverpod container mapping
-ProviderContainer? globalProviderContainer;
+
 
 @pragma('vm:entry-point')
 void registerStudyNotifications() async {
@@ -42,7 +42,7 @@ void onNotificationTap(NotificationResponse response) {
   }
 
   final notifier = globalProviderContainer!.read(pomodoroProvider.notifier);
-
+print(response.actionId);
   switch (response.actionId) {
     case 'pause':
       notifier.pause();
@@ -138,7 +138,7 @@ class Notifications {
       urgency: LinuxNotificationUrgency.low,
       actions: [
         LinuxNotificationAction(key: 'pause', label: 'Pause'),
-        LinuxNotificationAction(key: 'skip', label: 'Skip'),
+        LinuxNotificationAction(key: 'resume', label: 'Resume'),
       ],
     );
 

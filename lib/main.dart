@@ -19,10 +19,13 @@ import './layout.dart';
 
 import 'package:ps_books/state/global_settings.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await pdf.pdfrxFlutterInitialize();
   final prefs = await SharedPreferences.getInstance();
+  final container = ProviderContainer();
+  globalProviderContainer = container;
 
   if (Platform.isAndroid) {
     await Workmanager().initialize(registerStudyNotifications);
@@ -43,8 +46,8 @@ void main() async {
   }
 
   runApp(
-    ProviderScope(
-      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+    UncontrolledProviderScope(
+      container: container,
       child: const MyApp(),
     ),
   );
@@ -52,6 +55,7 @@ void main() async {
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
+
 
   // This widget is the root of your application.
   @override

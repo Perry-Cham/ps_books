@@ -2,9 +2,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ReaderState {
   final bool isReading;
+  final bool showPomodoroTimer;
   ReaderState({
     this.isReading = false,
+    this.showPomodoroTimer = true,
 });
+
+  ReaderState copyWith({
+    bool? isReading,
+    bool? showPomodoroTimer,
+}){
+    return ReaderState(
+        isReading: isReading ?? this.isReading,
+        showPomodoroTimer: showPomodoroTimer ?? this.showPomodoroTimer,
+      );
+  }
 }
 
 class ReaderStateNotifier extends Notifier<ReaderState>{
@@ -12,11 +24,18 @@ class ReaderStateNotifier extends Notifier<ReaderState>{
   ReaderState build() => ReaderState();
 
   void setIsReadingTrue(){
-    state = ReaderState(isReading: true);
+    state = state.copyWith(isReading: true);
   }
   void setIsReadingFalse(){
-    state = ReaderState(isReading: false);
+    state = state.copyWith(isReading: false);
+  }
+
+  void setShowPomodoroTrue(){
+    state = state.copyWith(showPomodoroTimer: true);
+  }
+  void setShowPomodoroFalse(){
+    state = state.copyWith(showPomodoroTimer: false);
   }
 }
 
-final ReaderStateProvider = NotifierProvider<ReaderStateNotifier, ReaderState>(ReaderStateNotifier.new);
+final readerStateProvider = NotifierProvider<ReaderStateNotifier, ReaderState>(ReaderStateNotifier.new);

@@ -11,6 +11,9 @@ import 'dart:convert';
 import '../readers/pdfReader.dart';
 import '../readers/comic_reader.dart';
 import 'package:katbook_epub_reader/src/models/reading_position.dart';
+import 'dart:ui'; // Required for FontFeature.tabularFigures
+import 'package:flutter/foundation.dart'; // Required for defaultTargetPlatform
+import 'package:ps_books/state/pomodoro_timer.dart'; // Imports your Pomodoro state mechanisms
 
 import '../helpers/pickBooks.dart';
 import '../helpers/utils.dart';
@@ -24,6 +27,7 @@ class Reader extends ConsumerStatefulWidget {
     this.page,
     this.position,
   });
+
   final String path;
   final String type;
   final int id;
@@ -38,6 +42,7 @@ final _database = BookToDb();
 
 class ReaderState extends ConsumerState<Reader> {
   final controller = PdfViewerController();
+  final showDesktopPomodoroProvider = true;
 
   @override
   void dispose() {
@@ -58,7 +63,7 @@ class ReaderState extends ConsumerState<Reader> {
     _database.updatePositionAndProgress(widget.id, pos);
   }
 
-  void saveEpubProgress(progress) {
+  void saveEpubProgress(double progress) {
     _database.updateProgress(widget.id, progress);
   }
 
@@ -165,10 +170,160 @@ class ReaderState extends ConsumerState<Reader> {
           await savePDFProgress();
         }
         await _database.setCurrentlyReading(widget.id);
-        ref.read(ReaderStateProvider.notifier).setIsReadingFalse();
+        ref.read(readerStateProvider.notifier).setIsReadingFalse();
       },
       canPop: true,
-      child: checkWidget(),
+      child: Stack(
+        children: [
+          Positioned.fill(child: checkWidget()),
+          const Positioned(
+            bottom: 20,
+            left: 20,
+            child: FloatingDesktopClockOverlay(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// An isolated ConsumerWidget handling the non-invasive Pomodoro timer panel.
+/// Listens exclusively to updates from pomodoroProvider and ReaderStateProvider
+/// to shield your underlying book engines from unnecessary rendering passes.
+class FloatingDesktopClockOverlay extends ConsumerWidget {
+  const FloatingDesktopClockOverlay({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Target Condition Check: Only render on non-mobile devices (Desktop/Web configurations)
+    final isMobile =
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+    if (isMobile) return const SizedBox.shrink();
+
+    // 2. Target Condition Check: Safe layout dismiss rule when Reader shifts into full Immersive Mode
+    final showTimer = ref.watch(
+      readerStateProvider.select((s) => s.showPomodoroTimer),
+    );
+    if (showTimer) return const SizedBox.shrink();
+
+    // 4. Track layout changes on Pomodoro State metrics
+    final pomodoroState = ref.watch(pomodoroProvider);
+    final timerNotifier = ref.read(pomodoroProvider.notifier);
+
+    // Render nothing if there is no running timer configuration initialized
+    if (pomodoroState.cycles == 0) return const SizedBox.shrink();
+
+    final minutes = (pomodoroState.secondsRemaining ~/ 60).toString().padLeft(
+      2,
+      '0',
+    );
+    final seconds = (pomodoroState.secondsRemaining % 60).toString().padLeft(
+      2,
+      '0',
+    );
+
+    final isWorkPhase = pomodoroState.phase == PomodoroPhase.work;
+    final phaseLabel = isWorkPhase ? "Focus Cycle" : "Break Time";
+    final phaseColor = isWorkPhase ? Colors.deepOrangeAccent : Colors.green;
+    print("hello from pomodoro");
+    return Card(
+      elevation: 6,
+      shadowColor: Colors.black38,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Container(
+        width: 190,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: Theme.of(context).cardColor,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Controls header layer bar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: phaseColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    phaseLabel,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: phaseColor,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.close, size: 16, color: Colors.grey),
+                  onPressed: () {
+                    // Turn layout element off globally
+                    ref
+                        .read(readerStateProvider.notifier)
+                        .setShowPomodoroFalse();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // Time Engine Strings Output Panel
+            Text(
+              "$minutes:$seconds",
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                fontFeatures: [
+                  FontFeature.tabularFigures(),
+                ], // Fixed tabular figures resolve digit jumping jitter
+              ),
+            ),
+
+            Text(
+              "Cycle ${pomodoroState.currentCycle} of ${pomodoroState.cycles}",
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            ),
+            const Divider(height: 12, thickness: 0.5),
+
+            // Media control triggers action grid map
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    pomodoroState.isRunning
+                        ? Icons.pause_circle_filled
+                        : Icons.play_circle_filled,
+                    size: 28,
+                    color: Colors.blueAccent,
+                  ),
+                  onPressed: () {
+                    if (pomodoroState.isRunning) {
+                      timerNotifier.pause();
+                    } else {
+                      timerNotifier.resume();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

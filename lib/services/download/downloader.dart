@@ -72,6 +72,11 @@ Future<dynamic> SearchBooks(String query) async {
   List<Map<String, dynamic>> bookMaps = [];
   List<DownloadBook> books = [];
 
+  if(results.isEmpty){
+    print("Results are empty");
+    return;
+  }
+  print(results.length);
   for (var el in results) {
     final book = convertToMap(el);
     if (book != null) {
@@ -118,17 +123,14 @@ Map<String, dynamic>? convertToMap(Element el) {
   final Iterable<RegExpMatch> matches = isbnRegex.allMatches(cellText);
   final List<String> foundIsbns = matches.map((m) => m.group(0)!).toList();
 
-
-  print(candidates[0]);
-  print(foundIsbns);
   return {
-    "title": candidates[0],
+    "title": candidates.isNotEmpty ? candidates[0] : "",
     "isbn": foundIsbns.isNotEmpty ? foundIsbns : null,
     "year": data[3].text,
-    "size": data[6].text,
-    "extension": data[7].text,
-    "href": data[8].querySelector("[title='libgen']")?.attributes['href'],
-    "language":data[4].text
+    "size": 6 < data.length ? data[6].text : "",
+    "extension": 7 < data.length ? data[7].text : "",
+    "href": 8 < data.length  ? data[8].querySelector("[title='libgen']")?.attributes['href'] : null,
+    "language":4 < data.length ? data[4].text : ""
   };
 }
 

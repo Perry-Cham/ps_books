@@ -428,6 +428,8 @@ class DownloadsDisplay extends ConsumerWidget {
                 height: 300,
                 width: 300,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Icon(Icons.equalizer_outlined),
                     Text("No Downloads Yet"),

@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:ps_books/models/drive_book.dart';
 import 'package:ps_books/state/google_auth.dart';
+import 'package:ps_books/state/wishlist_download_state.dart';
 
 class DriveBookWidget extends ConsumerWidget {
   final drive.File file;
@@ -15,6 +12,12 @@ class DriveBookWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(driveProgressProvider, (next, prev) {
+      if (next != null && next.completedMessage != "") {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.completedMessage)));
+      }});
     final model = DriveBook.fromDriveFile(file);
 
     return ListTile(
@@ -26,7 +29,10 @@ class DriveBookWidget extends ConsumerWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.download),
-            onPressed: () => _downloadFile(context, ref),
+            onPressed: () async {
+              ref.read(driveProgressProvider.notifier).startDownload(file);
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your Book is downloading")));
+            },
             tooltip: 'Download',
           ),
           IconButton(
@@ -69,78 +75,5 @@ class DriveBookWidget extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
     }
   }
-
-  Future<void> _downloadFile(BuildContext context, WidgetRef ref) async {
-    final authService = ref.read(authServiceProvider);
-    final driveApi = await authService.getDriveApi();
-    if (driveApi == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated with Google Drive')));
-      return;
-    }
-
-    final snack = ScaffoldMessenger.of(context);
-    final progressController = ValueNotifier<double?>(null);
-
-    // Show simple progress dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Downloading...'),
-            const SizedBox(height: 16),
-            ValueListenableBuilder<double?>(
-              valueListenable: progressController,
-              builder: (_, value, _) {
-                if (value == null) return const LinearProgressIndicator();
-                return LinearProgressIndicator(value: value);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-
-    try {
-      final media = await driveApi.files.get(
-        file.id!,
-        downloadOptions: drive.DownloadOptions.fullMedia,
-      ) as drive.Media;
-
-      final dir = await getApplicationDocumentsDirectory();
-      final booksDir = Directory('${dir.path}/Books');
-      await booksDir.create(recursive: true);
-      final safeName = file.name ?? 'downloaded_book';
-      final savePath = p.join(booksDir.path, safeName);
-
-      final outFile = File(savePath);
-      final sink = outFile.openWrite();
-
-      int received = 0;
-      final contentLength = file.size != null ? int.tryParse(file.size!) : null;
-
-      await for (var chunk in media.stream) {
-        sink.add(chunk);
-        received += chunk.length;
-        if (contentLength != null) {
-          progressController.value = received / contentLength;
-        }
-      }
-
-      await sink.flush();
-      await sink.close();
-
-      
-
-      Navigator.of(context).pop(); // close progress dialog
-    
-    } catch (e) {
-      Navigator.of(context).pop();
-      snack.showSnackBar(SnackBar(content: Text('Download failed: $e')));
-    } finally {
-      progressController.dispose();
-    }
   }
-}
+
