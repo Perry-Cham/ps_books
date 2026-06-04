@@ -105,7 +105,7 @@ class CustomBottomNav extends ConsumerWidget{
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isReading =
-        ref.watch(ReaderStateProvider.select((state) => state.isReading));
+        ref.watch(readerStateProvider.select((state) => state.isReading));
 
     final locationUrl = GoRouterState.of(context).uri.path;
     final index = destinations.indexOf(locationUrl);

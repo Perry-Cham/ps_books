@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/models/drive_book.dart';
 import 'package:ps_books/state/google_auth.dart';
+import 'package:ps_books/state/wishlist_download_state.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 
 import 'drive_book_widget.dart';
@@ -95,7 +96,20 @@ class DrivePage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Cloud Books")),
+      appBar: AppBar(
+        title: const Text("Cloud Books"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.downloading),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const DownloadProgressDialog(),
+              );
+            },
+          ),
+        ],
+      ),
       body: driveBooksAsync.when(
         data: (books) {
           if (books.isEmpty) {
@@ -131,6 +145,60 @@ class DrivePage extends ConsumerWidget {
         onPressed: uploadFiles,
         child: const Icon(Icons.upload_file),
       ),
+    );
+  }
+}
+
+class DownloadProgressDialog extends ConsumerWidget {
+  const DownloadProgressDialog({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final downloadState = ref.watch(driveProgressProvider);
+
+    return AlertDialog(
+      title: const Text('Download Progress'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            downloadState.fileName.isEmpty
+                ? 'No active download'
+                : 'Downloading: ${downloadState.fileName}',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          LinearProgressIndicator(
+            value: downloadState.isDownloading && downloadState.progress > 0
+                ? downloadState.progress
+                : (downloadState.isDownloading ? null : 0.0),
+          ),
+          const SizedBox(height: 10),
+          if (downloadState.isDownloading)
+            Text('${(downloadState.progress * 100).toStringAsFixed(1)}%'),
+          if (downloadState.completedMessage.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              downloadState.completedMessage,
+              style: const TextStyle(color: Colors.green),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        if (downloadState.isDownloading)
+          TextButton(
+            onPressed: () {
+              ref.read(driveProgressProvider.notifier).cancel();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
     );
   }
 }

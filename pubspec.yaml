@@ -85,6 +85,7 @@ dependencies:
   comic_reader:
     path: ../comic_reader-0.4.0
   webview_all: ^1.0.3
+  shelf: ^1.4.2
 
 dev_dependencies:
   flutter_test:

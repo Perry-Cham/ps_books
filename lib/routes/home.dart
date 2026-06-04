@@ -232,7 +232,7 @@ class BookCardState extends ConsumerState<BookCard> {
                 .removeSelected(widget.book.id);
           }
         } else {
-          ref.read(ReaderStateProvider.notifier).setIsReadingTrue();
+          ref.read(readerStateProvider.notifier).setIsReadingTrue();
           Navigator.push(
             context,
             MaterialPageRoute(

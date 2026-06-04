@@ -161,7 +161,7 @@ Future<BookData> processBook({
                     file.name.toLowerCase().endsWith('.jpeg')),
           );
 
-          final imageContent = imageFile.content as Uint8List;
+          final imageContent = imageFile.content;
           String sanitizedTitle = bookTitle.replaceAll(
             RegExp(r'[<>:"/\\|?*]'),
             '_',
