@@ -7,9 +7,11 @@ import 'package:oauth2_client/access_token_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'abstract.dart';
+import 'dart:io';
 
 const id = String.fromEnvironment('DRIVE_CLIENT_ID');
 const secret = String.fromEnvironment('DRIVE_CLIENT_SECRET');
+final isAndroid = Platform.isAndroid;
 
 /// Custom OAuth2 client for Google's endpoints.
 ///
@@ -20,8 +22,8 @@ class GoogleOAuth2Client extends OAuth2Client {
       : super(
     authorizeUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
     tokenUrl: 'https://oauth2.googleapis.com/token',
-    redirectUri: 'http://localhost:8080',
-    customUriScheme: 'http://localhost:8080',
+    redirectUri: !Platform.isAndroid ? 'http://localhost:8080' : 'ps.books',
+    customUriScheme: !Platform.isAndroid ? 'http://localhost:8080' : 'ps.books',
   );
 }
 
