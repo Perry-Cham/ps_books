@@ -6,7 +6,17 @@ import 'package:comic_reader/comic_reader.dart';
 class ComicReaderPage extends StatelessWidget {
   final Uint8List fileBytes;
   final String filename;
-  ComicReaderPage({super.key, required this.fileBytes, required this.filename});
+  final void Function(double progress)? onProgressChanged;
+  final void Function(double page)? onPageChanged;
+  final int initialPage;
+  ComicReaderPage({
+    super.key,
+    required this.fileBytes,
+    required this.filename,
+    this.onProgressChanged,
+    this.onPageChanged,
+    this.initialPage = 0,
+  });
   final ComicReaderParser parser = ComicReaderParser();
 
   @override
@@ -30,7 +40,12 @@ class ComicReaderPage extends StatelessWidget {
             return Text('No comicbook data');
           }
           return Center(
-           child: ComicViewer(comic: snapshot.data!),
+           child: ComicViewer(
+             comic: snapshot.data!,
+             onPageChanged: onPageChanged,
+             onProgressChanged: onProgressChanged,
+             initialPage: initialPage,
+           ),
           );
         }
       ),

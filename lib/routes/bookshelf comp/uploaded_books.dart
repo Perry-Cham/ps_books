@@ -43,53 +43,26 @@ class DrivePage extends ConsumerWidget {
           return;
         }
 
-        List<String> successes = [];
-        List<String> failures = [];
+        final files = result.files
+            .where((pf) => pf.path != null)
+            .map((pf) => File(pf.path!))
+            .toList();
 
-        for (PlatformFile pf in result.files) {
-          try {
-            if (pf.path == null) {
-              failures.add(pf.name);
-              continue;
-            }
-            final f = File(pf.path!);
-            final len = await f.length();
-            final media = drive.Media(f.openRead(), len);
-            final metadata = drive.File()..name = pf.name..parents = [folderId];
-            final created = await driveApi.files.create(metadata, uploadMedia: media);
-            successes.add(created.name ?? pf.name);
-          } catch (e) {
-            failures.add(pf.name);
-          }
+        if (files.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid files selected')));
+          return;
         }
 
-        // Refresh provider and show result
-        ref.refresh(driveBooksProvider);
-
+        // Show the upload modal immediately
         showDialog(
           context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: const Text('Upload complete'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (successes.isNotEmpty) ...[
-                    const Text('Uploaded:'),
-                    for (var s in successes) Text('- $s'),
-                  ],
-                  if (failures.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    const Text('Failed:'),
-                    for (var f in failures) Text('- $f'),
-                  ],
-                ],
-              ),
-              actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
-            );
-          },
+          builder: (context) => const UploadProgressModal(),
         );
+
+        await ref.read(uploadProgressProvider.notifier).uploadFiles(files, driveApi, folderId);
+
+        // Refresh provider
+        ref.refresh(driveBooksProvider);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
       }
@@ -105,6 +78,15 @@ class DrivePage extends ConsumerWidget {
               showDialog(
                 context: context,
                 builder: (context) => const DownloadProgressDialog(),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.upload),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const UploadProgressModal(),
               );
             },
           ),
@@ -194,6 +176,57 @@ class DownloadProgressDialog extends ConsumerWidget {
             },
             child: const Text('Cancel'),
           ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    );
+  }
+}
+
+class UploadProgressModal extends ConsumerWidget {
+  const UploadProgressModal({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final uploadState = ref.watch(uploadProgressProvider);
+    final uploads = uploadState.total.values.toList();
+
+    return AlertDialog(
+      title: const Text('Upload Progress'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: uploads.isEmpty
+            ? const Text('No active uploads')
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: uploads.length,
+                itemBuilder: (context, index) {
+                  final upload = uploads[index];
+                  final progress =
+                      upload.total > 0 ? upload.received / upload.total : 0.0;
+                  return ListTile(
+                    title: Text(upload.fileName),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LinearProgressIndicator(
+                            value: upload.isUploading
+                                ? progress
+                                : (upload.completedMessage == 'Done'
+                                    ? 1.0
+                                    : 0.0)),
+                        Text(upload.isUploading
+                            ? '${(progress * 100).toStringAsFixed(1)}%'
+                            : upload.completedMessage),
+                      ],
+                    ),
+                  );
+                },
+              ),
+      ),
+      actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Close'),

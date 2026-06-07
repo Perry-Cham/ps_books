@@ -133,46 +133,48 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
               return const Center(child: Text('No outline available'));
             }
 
-            return Column(
-              children: [
-                TabBar(
-                  controller: drawerTabController,
-                  tabs: [
-                    Tab(icon: Icon(Icons.bookmark)),
-                    Tab(icon: Icon(Icons.search)),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
+            return SafeArea(
+              child:Column(
+                children: [
+                  TabBar(
                     controller: drawerTabController,
-                    children: [
-                      ListView(
-                        padding: EdgeInsets.zero,
-                        children: [
-                          const DrawerHeader(
-                            decoration: BoxDecoration(color: Colors.blue),
-                            child: Text(
-                              'Table of Contents',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                          ...outline.map(
-                            (node) => PdfOutlineNodeWidget(
-                              node: node,
-                              controller: widget.controller,
-                              level: 0,
-                            ),
-                          ),
-                        ],
-                      ),
-                      TextSearchView(textSearcher: PdfTextSearcher(widget.controller))
+                    tabs: [
+                      Tab(icon: Icon(Icons.bookmark)),
+                      Tab(icon: Icon(Icons.search)),
                     ],
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: TabBarView(
+                      controller: drawerTabController,
+                      children: [
+                        ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
+                            const DrawerHeader(
+                              decoration: BoxDecoration(color: Colors.blue),
+                              child: Text(
+                                'Table of Contents',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            ...outline.map(
+                              (node) => PdfOutlineNodeWidget(
+                                node: node,
+                                controller: widget.controller,
+                                level: 0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        TextSearchView(textSearcher: PdfTextSearcher(widget.controller))
+                      ],
+                    ),
+                  ),
+                ],
+              ) ,
             );
           },
         ),

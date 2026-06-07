@@ -5,7 +5,7 @@ class ReaderState {
   final bool showPomodoroTimer;
   ReaderState({
     this.isReading = false,
-    this.showPomodoroTimer = true,
+    this.showPomodoroTimer = false,
 });
 
   ReaderState copyWith({

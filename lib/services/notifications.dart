@@ -134,19 +134,12 @@ class Notifications {
       ],
     );
 
-    const linuxDetails = LinuxNotificationDetails(
-      urgency: LinuxNotificationUrgency.low,
-      actions: [
-        LinuxNotificationAction(key: 'pause', label: 'Pause'),
-        LinuxNotificationAction(key: 'resume', label: 'Resume'),
-      ],
-    );
 
     await flutterNotifs.show(
       id: _ongoingId,
       title: title,
       body: body,
-      notificationDetails: NotificationDetails(android: androidDetails, linux: linuxDetails),
+      notificationDetails: NotificationDetails(android: androidDetails),
     );
   }
 
