@@ -77,7 +77,7 @@ class LayoutState extends State<Layout> {
                   label: Text('Goals'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.settings_applications),
+                  icon: Icon(Icons.settings),
                   selectedIcon: Icon(Icons.settings_applications),
                   label: Text('Settings'),
                 ),

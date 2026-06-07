@@ -112,6 +112,121 @@ class _FB2ReaderState extends State<FB2Reader> {
   // Element processing helpers
   // ---------------------------------------------------------------------------
 
+  /// Processes an <epigraph> element and its sub-elements.
+  Widget _processEpigraph(XmlElement epigraphEl) {
+    final List<Widget> children = [];
+
+    for (var child in epigraphEl.children) {
+      if (child is! XmlElement) continue;
+
+      switch (child.localName) {
+        case 'p':
+          final text = _extractLeafText(child);
+          if (text.isNotEmpty) {
+            children.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          }
+          break;
+
+        case 'poem':
+          children.add(_processPoem(child));
+          break;
+
+        case 'text-author':
+          final author = _extractLeafText(child);
+          if (author.isNotEmpty) {
+            children.add(
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    author,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+          break;
+
+        default:
+          // Handle other potential elements inside epigraph if needed
+          break;
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            color: Colors.grey.withValues(alpha: 0.5),
+            width: 3,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: children,
+      ),
+    );
+  }
+
+  /// Processes a <poem> element.
+  Widget _processPoem(XmlElement poemEl) {
+    final List<Widget> stanzas = [];
+
+    for (var child in poemEl.children) {
+      if (child is! XmlElement) continue;
+
+      if (child.localName == 'stanza') {
+        final List<Widget> verses = [];
+        for (var v in child.findAllElements('v')) {
+          verses.add(
+            Text(
+              v.innerText.trim(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          );
+        }
+        stanzas.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              children: verses,
+            ),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      children: stanzas,
+    );
+  }
+
   /// Recursively extracts title text from a title element's children.
   List<Widget> _processTitleElement(XmlElement titleEl) {
     final List<Widget> titleWidgets = [];
@@ -248,6 +363,13 @@ class _FB2ReaderState extends State<FB2Reader> {
                 content: _buildParagraphWidget(textContent),
               ));
             }
+            break;
+
+          case 'epigraph':
+            chapterParagraphs.add(IndexedParagraph(
+              chapterIndex: sectionIndex,
+              content: _processEpigraph(child),
+            ));
             break;
 
           case 'image':

@@ -12,7 +12,13 @@ import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:path/path.dart' as p;
 
 class DriveBookService {
- static Stream<double> downloadFile(AuthService service, drive.File file) async* {
+
+
+
+  static Stream<double> downloadFile(
+    AuthService service,
+    drive.File file,
+  ) async* {
     final authService = service;
 
     // 1. Prepare directory and safe file paths
@@ -29,13 +35,17 @@ class DriveBookService {
     try {
       final driveApi = await authService.getDriveApi();
       if (driveApi == null) {
-        throw Exception("Failed to retrieve an authorized Google Drive API instance.");
+        throw Exception(
+          "Failed to retrieve an authorized Google Drive API instance.",
+        );
       }
 
-      final media = await driveApi.files.get(
-        file.id!,
-        downloadOptions: drive.DownloadOptions.fullMedia,
-      ) as drive.Media;
+      final media =
+          await driveApi.files.get(
+                file.id!,
+                downloadOptions: drive.DownloadOptions.fullMedia,
+              )
+              as drive.Media;
 
       int received = 0;
       final contentLength = file.size != null ? int.tryParse(file.size!) : null;
@@ -77,16 +87,18 @@ class DriveBookService {
         extension: extension,
         coverPath: bookData.coverPath,
       );
-
     } catch (e, h) {
       debugPrint("Download encountered an error: $e");
       debugPrint(h.toString());
       rethrow;
     } finally {
       // 4. Safely flush, lock, and close open I/O resources when stream finishes or fails
-      try { await sink.flush(); } catch (_) {}
-      try { await sink.close(); } catch (_) {}
+      try {
+        await sink.flush();
+      } catch (_) {}
+      try {
+        await sink.close();
+      } catch (_) {}
     }
   }
 }
-

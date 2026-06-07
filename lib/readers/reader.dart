@@ -11,9 +11,9 @@ import 'dart:convert';
 import '../readers/pdfReader.dart';
 import '../readers/comic_reader.dart';
 import 'package:katbook_epub_reader/src/models/reading_position.dart';
-import 'dart:ui'; // Required for FontFeature.tabularFigures
-import 'package:flutter/foundation.dart'; // Required for defaultTargetPlatform
-import 'package:ps_books/state/pomodoro_timer.dart'; // Imports your Pomodoro state mechanisms
+import 'dart:ui';
+import 'package:flutter/foundation.dart';
+import 'package:ps_books/state/pomodoro_timer.dart';
 
 import '../helpers/pickBooks.dart';
 import '../helpers/utils.dart';
@@ -64,6 +64,14 @@ class ReaderState extends ConsumerState<Reader> {
   }
 
   void saveEpubProgress(double progress) {
+    _database.updateProgress(widget.id, progress);
+  }
+
+  void saveComicPage(double page) {
+    _database.updatePage(widget.id, page.toInt() + 1);
+  }
+
+  void saveComicProgress(double progress) {
     _database.updateProgress(widget.id, progress);
   }
 
@@ -147,6 +155,9 @@ class ReaderState extends ConsumerState<Reader> {
             return ComicReaderPage(
               fileBytes: snapshot.data!,
               filename: widget.path.split(Platform.pathSeparator).last,
+              onPageChanged: saveComicPage,
+              onProgressChanged: saveComicProgress,
+              initialPage: (widget.page ?? 1) - 1,
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -205,7 +216,18 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
     final showTimer = ref.watch(
       readerStateProvider.select((s) => s.showPomodoroTimer),
     );
-    if (showTimer) return const SizedBox.shrink();
+    final isTimerRunning = ref.watch(pomodoroProvider.select((s) => s.isRunning));
+
+    if(!showTimer && !isTimerRunning) return SizedBox.shrink();
+
+    if (!showTimer){
+      return IconButton.filled(
+        onPressed: (){
+          ref.read(readerStateProvider.notifier).setShowPomodoroTrue();
+        },
+        icon: Icon(Icons.av_timer),
+      );
+    }
 
     // 4. Track layout changes on Pomodoro State metrics
     final pomodoroState = ref.watch(pomodoroProvider);
@@ -226,7 +248,7 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
     final isWorkPhase = pomodoroState.phase == PomodoroPhase.work;
     final phaseLabel = isWorkPhase ? "Focus Cycle" : "Break Time";
     final phaseColor = isWorkPhase ? Colors.deepOrangeAccent : Colors.green;
-    print("hello from pomodoro");
+
     return Card(
       elevation: 6,
       shadowColor: Colors.black38,
@@ -301,6 +323,19 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    Icons.stop_circle_rounded,
+                    size: 28,
+                    color: Colors.blueAccent,
+                  ),
+                  onPressed: () {
+                   ref.read(pomodoroProvider.notifier).reset();
+                   ref.read(readerStateProvider.notifier).setShowPomodoroFalse();
+                  },
+                ),
                 IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),

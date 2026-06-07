@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/services/notifications.dart';
+import 'package:ps_books/state/reader_state.dart';
 
 enum PomodoroPhase { work, breakTime }
 
@@ -97,6 +98,7 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
     state = state.copyWith(isRunning: true);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     _notifications.updateOngoing(state);
+    ref.read(readerStateProvider.notifier).setShowPomodoroTrue();
   }
 
   void pause() {
@@ -146,6 +148,7 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
         );
         _notifications.cancelOngoing();
         _notifications.showSessionComplete();
+        ref.read(readerStateProvider.notifier).setShowPomodoroFalse;
         return;
       }
 

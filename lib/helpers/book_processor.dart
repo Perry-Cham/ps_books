@@ -28,7 +28,7 @@ Future<BookData> processBook({
       try {
         final doc = PdfDocument.fromBytes(fileBytes);
         final docForImage = await pdf.PdfDocument.openData(fileBytes);
-        if (doc.documentInfo.title != null) {
+        if (doc.documentInfo.title != null && doc.documentInfo.title!.isNotEmpty) {
           bookTitle = doc.documentInfo.title!;
         }
         author =
@@ -101,10 +101,13 @@ Future<BookData> processBook({
           }
 
           final coverpage = titleInfo.findElements('coverpage').firstOrNull;
+          print(coverpage);
           final imageElement = coverpage?.findElements('image').firstOrNull;
+          print(imageElement);
           final coverId = imageElement
               ?.getAttribute('l:href')
               ?.replaceAll('#', '');
+          print(imageElement);
 
           if (coverId != null) {
             final binaries = document.findAllElements('binary');
@@ -116,7 +119,7 @@ Future<BookData> processBook({
               extension = binary.getAttribute('content-type') == 'image/jpg'
                   ? 'jpg'
                   : 'png';
-              final base64Image = binary.innerText.trim();
+              final base64Image = binary.innerText.replaceAll(RegExp(r'\s+'), '');
               final bytes = base64Decode(base64Image);
               String sanitizedTitle = bookTitle.replaceAll(
                 RegExp(r'[<>:"/\\|?*]'),
