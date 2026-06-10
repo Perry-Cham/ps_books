@@ -1,15 +1,16 @@
 import 'dart:io';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/readers/reader.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/state/reader_state.dart';
 
 final _db = BookToDb();
 
-class CurrentlyReading extends StatelessWidget {
+class CurrentlyReading extends ConsumerWidget{
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder<Book?>(
       stream: _db.getCurrentlyReading(),
       builder: (context, snapshot) {
@@ -72,6 +73,7 @@ class CurrentlyReading extends StatelessWidget {
                       const SizedBox(height: 8),
                       IconButton.filled(
                         onPressed: () {
+                          ref.read(readerStateProvider.notifier).setIsReadingTrue();
                           Navigator.push(
                             context,
                             MaterialPageRoute(

@@ -178,13 +178,12 @@ class PopUpControls extends ConsumerWidget {
         PopupMenuItem(
           onTap: () async  {
            for(var bookId in selectedBookIds){
-             print(bookId);
              await BookToDb().removeCollection(bookId);
            }
           },
           child: Row(
             spacing: 5,
-            children: [Icon(Icons.minimize_outlined), Text('Remove from Collection')],
+            children: [Icon(Icons.remove), Text('Remove from Collection')],
           ),
         ),
         PopupMenuItem(

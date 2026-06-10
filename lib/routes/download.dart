@@ -121,8 +121,8 @@ class ProviderPills extends ConsumerWidget {
               .updateState(downloadProvider: provider);
         }
       },
-      selectedColor: Colors.deepPurple,
-      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),
+ /*     selectedColor: Colors.deepPurple,
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),*/
     );
   }
 }

@@ -51,7 +51,7 @@ class WishlistPage extends ConsumerWidget {
                   spacing: 5,
                   children: [
                     Icon(Icons.add),
-                    Text('Add Book', style: TextStyle(color: Colors.black)),
+                    Text('Add Book'),
                   ],
                 ),
               ),
@@ -207,6 +207,7 @@ class _FilterBar extends ConsumerWidget {
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.white24),
                   borderRadius: BorderRadius.circular(20),
+                  color: Theme.of(context).popupMenuTheme.color
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -220,9 +221,9 @@ class _FilterBar extends ConsumerWidget {
                                 orElse: () => collections.first,
                               )
                               .name,
-                      style: TextStyle(color: Colors.white70),
+
                     ),
-                    Icon(Icons.arrow_drop_down, color: Colors.white70),
+                    Icon(Icons.arrow_drop_down, ),
                   ],
                 ),
               ),
