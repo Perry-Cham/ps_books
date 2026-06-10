@@ -106,6 +106,7 @@ class MyApp extends ConsumerWidget {
 
   ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
+    final typographyColor = Typography();
 
     return ThemeData(
       useMaterial3: true,
@@ -182,6 +183,12 @@ class MyApp extends ConsumerWidget {
           ),
         ),
       ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: isDark ? const Color(0xFF1B1227) : const Color(0x7A7A7AFF),
+      ),
+      chipTheme: ChipThemeData.fromDefaults(primaryColor: isDark ? Colors.grey : Colors.white, secondaryColor:  Colors.deepPurple, labelStyle: TextStyle(color: isDark ? Colors.white : Colors.black)),
+   textTheme: !isDark ? typographyColor.black : typographyColor.white,
     );
+
   }
 }

@@ -27,11 +27,9 @@ class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget{
     }
     return AppBar(
       title: Text(
-        title,
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title
       ),
       iconTheme: const IconThemeData(color: Colors.white),
-      backgroundColor: Color(0xFF1E1729),
       actions: [
         PopUpControls(provider: LibraryStateProvider),
       ],

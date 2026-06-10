@@ -77,8 +77,8 @@ class LayoutState extends State<Layout> {
                   label: Text('Goals'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.settings),
-                  selectedIcon: Icon(Icons.settings_applications),
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
                   label: Text('Settings'),
                 ),
               ],
@@ -126,22 +126,27 @@ class CustomBottomNav extends ConsumerWidget{
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.library_books_outlined),
+          activeIcon: Icon(Icons.library_books_rounded),
           label: 'Library',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.bookmark_add_outlined),
+          activeIcon: Icon(Icons.bookmark_add),
           label: 'Bookshelf',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.flag_outlined),
+          activeIcon: Icon(Icons.flag),
           label: 'Study',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.search_outlined),
+          activeIcon: Icon(Icons.search),
           label: 'Find',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings_applications_outlined),
+          icon: Icon(Icons.settings_outlined),
+          activeIcon: Icon(Icons.settings),
           label: 'Settings',
         ),
       ],

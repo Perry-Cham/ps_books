@@ -24,10 +24,7 @@ class Bookshelf extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(title,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-        backgroundColor: Color(0xFF1E1729),
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(title),
         actions: [
           PopUpControls(provider: WishlistStateProvider, wishlist: true),
         ],
@@ -76,14 +73,9 @@ class _TabbedPageState extends State<_TabbedPage>
           ],
         ),
         Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Color(0xFF1B1227),
-            ),
-            child: TabBarView(
-              controller: _controller,
-              children: [WishlistPage(), DrivePage()],
-            ),
+          child: TabBarView(
+            controller: _controller,
+            children: [WishlistPage(), DrivePage()],
           )
         ),
       ],
