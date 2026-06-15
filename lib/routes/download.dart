@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:ps_books/models/book_data.dart';
 import '../services/download/downloader.dart';
 import '../services/download/zlib.dart';
 import '../services/download/steb.dart';
@@ -121,7 +123,7 @@ class ProviderPills extends ConsumerWidget {
               .updateState(downloadProvider: provider);
         }
       },
- /*     selectedColor: Colors.deepPurple,
+      /*     selectedColor: Colors.deepPurple,
       labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),*/
     );
   }
@@ -156,12 +158,15 @@ class _SearchBarState extends ConsumerState<SearchBar> {
         Expanded(
           child: TextFormField(
             controller: _searchController,
+            onFieldSubmitted: (_) {
+              _searchBooks(ref, _searchController.value as String);
+            },
             decoration: InputDecoration(
               suffixIcon: IconButton(
                 onPressed: () async {
                   try {
                     await _searchBooks(ref, _searchController.text);
-                  } catch (e,h) {
+                  } catch (e, h) {
                     print(e);
                     print(h);
                     ref
@@ -472,7 +477,7 @@ Future<void> _searchBooks(WidgetRef ref, String text) async {
       books = await searchZlib(text);
       break;
     case DownloadProvider.steb:
-      books = await searchSteb(text);
+     books = await SearchBooks(text);
       break;
   }
 

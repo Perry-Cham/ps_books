@@ -31,9 +31,15 @@ class Collections extends Table {
   TextColumn get name => text()();
   BoolColumn get isSavedCollection => boolean().withDefault(Constant(false))();
 }
+class Timetables extends Table{
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get version => integer()();
+  DateTimeColumn get last_modified => dateTime()();
+}
 
 class TimetableDays extends Table {
   IntColumn get id => integer().autoIncrement()();
+  IntColumn get timetableId => integer().references(Timetables, #id)();
   TextColumn get day => text()();
   BoolColumn get isBreakDay => boolean().withDefault(Constant(false))();
 }
@@ -70,6 +76,7 @@ class SavedBooks extends Table {
   tables: [
     Books,
     Collections,
+    Timetables,
     TimetableDays,
     TimetableSessions,
     TargetSubjects,

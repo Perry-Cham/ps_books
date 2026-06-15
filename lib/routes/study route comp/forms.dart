@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/services/DB%20services/timetableToDB.dart';
 import 'package:ps_books/dbs/database.dart';
+import 'package:ps_books/services/study/timetable_sync.dart';
 
 class AddSessionForm extends StatefulWidget{
   const AddSessionForm({required this.dayId});
@@ -106,6 +107,7 @@ class AddSessionFormState extends State<AddSessionForm> {
                     end: endTime!.format(context),
                     subjects: subjects.text,
                   );
+                  await syncTimetableIfSignedIn();
                   Navigator.pop(context);
                 },
                 child: Text("Submit"),
@@ -199,6 +201,7 @@ class _EditSessionFormState extends State<EditSessionForm> {
                     end: end_time.text,
                     subjects: subjects.text,
                   );
+                  await syncTimetableIfSignedIn();
                   Navigator.pop(context);
                 },
                 child: Text("Submit"),

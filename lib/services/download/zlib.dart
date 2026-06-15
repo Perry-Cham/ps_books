@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:html/parser.dart' as html;
+import 'package:ps_books/models/book_data.dart';
 import 'downloader.dart';
 
 Future<List<DownloadBook>> searchZlib(String query) async {

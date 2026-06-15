@@ -20,6 +20,108 @@ final displayNameProvider = FutureProvider<String?>((ref) async {
   return ref.watch(authServiceProvider).displayName;
 });
 
+class UserAccounts {
+  final PsBooks? psBooksUser;
+  final GoogleUser? googleUser;
+
+  UserAccounts({this.psBooksUser, this.googleUser});
+
+  UserAccounts copyWith({PsBooks? psBooksUser, GoogleUser? googleUser}) {
+    return UserAccounts(
+      psBooksUser: psBooksUser ?? this.psBooksUser,
+      googleUser: googleUser ?? this.googleUser,
+    );
+  }
+}
+
+class UserAccountsNotifier extends AsyncNotifier<UserAccounts> {
+  @override
+  Future<UserAccounts> build() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final gName = prefs.getString('given_name');
+    final gEmail = prefs.getString('google_email');
+    final gIsSignedIn = prefs.getBool('google_signed_in') ?? false;
+    final googleUser = GoogleUser(
+      name: gName,
+      email: gEmail,
+      isSignedIn: gIsSignedIn,
+    );
+
+    final psName = prefs.getString('ps_user_name') ?? '';
+    final psIsSignedIn = prefs.getBool('ps_signed_in') ?? false;
+    final psBooksUser = PsBooks(name: psName, isSignedIn: psIsSignedIn);
+
+    return UserAccounts(psBooksUser: psBooksUser, googleUser: googleUser);
+  }
+
+  Future<void> updateGoogleUser(
+    String? name,
+    String? email,
+    bool isSignedIn,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (name != null) await prefs.setString('given_name', name);
+    if (email != null) await prefs.setString('google_email', email);
+    await prefs.setBool('google_signed_in', isSignedIn);
+
+    final current = await future;
+    state = AsyncData(
+      current.copyWith(
+        googleUser: GoogleUser(name: name, email: email, isSignedIn: isSignedIn),
+      ),
+    );
+  }
+
+  Future<void> updatePsBooksUser(String name, bool isSignedIn) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString('ps_user_name', name);
+    await prefs.setBool('ps_signed_in', isSignedIn);
+
+    final current = await future;
+    state = AsyncData(
+      current.copyWith(psBooksUser: PsBooks(name: name, isSignedIn: isSignedIn)),
+    );
+  }
+
+  Future<void> logout(String accountType) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = await future;
+
+    if (accountType == 'google') {
+      await prefs.remove('given_name');
+      await prefs.remove('google_email');
+      await prefs.setBool('google_signed_in', false);
+      state = AsyncData(
+        current.copyWith(googleUser: GoogleUser(isSignedIn: false)),
+      );
+    } else if (accountType == 'psBooks') {
+      await prefs.remove('ps_user_name');
+      await prefs.setBool('ps_signed_in', false);
+      state = AsyncData(
+        current.copyWith(psBooksUser: PsBooks(isSignedIn: false)),
+      );
+    }
+  }
+}
+
+final userAccountsProvider =
+    AsyncNotifierProvider<UserAccountsNotifier, UserAccounts>(
+      UserAccountsNotifier.new,
+    );
+
+class PsBooks {
+  final String name;
+  final bool isSignedIn;
+
+  PsBooks({this.isSignedIn = false, this.name = ''});
+  PsBooks copyWith({bool? signedIn, String? name}) {
+    return PsBooks(isSignedIn: signedIn ?? isSignedIn, name: name ?? this.name);
+  }
+}
+
 class GoogleUser {
   final String? name;
   final String? email;
@@ -27,44 +129,14 @@ class GoogleUser {
 
   GoogleUser({this.name, this.email, this.isSignedIn = false});
 
-  GoogleUser copyWith({String? name, String? email, bool isSignedIn = false}) {
+  GoogleUser copyWith({String? name, String? email, bool? isSignedIn}) {
     return GoogleUser(
       name: name ?? this.name,
       email: email ?? this.email,
-      isSignedIn: isSignedIn,
+      isSignedIn: isSignedIn ?? this.isSignedIn,
     );
   }
 }
-
-class GoogleUserNotifier extends AsyncNotifier<GoogleUser> {
-  @override
-  Future<GoogleUser> build() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final name = prefs.getString('given_name');
-    final email = prefs.getString('google_email');
-    final isSignedIn = prefs.getBool('google_signed_in') ?? false;
-
-    return GoogleUser(name: name, email: email, isSignedIn: isSignedIn);
-  }
-
-  Future<void> updateState(String name, String email, bool isSignedIn) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setString('given_name', name);
-    await prefs.setString('google_email', email);
-    await prefs.setBool('google_signed_in', isSignedIn);
-
-    state = AsyncData(
-      GoogleUser(name: name, email: email, isSignedIn: isSignedIn),
-    );
-  }
-}
-
-final GoogleUserProvider =
-    AsyncNotifierProvider<GoogleUserNotifier, GoogleUser>(
-      GoogleUserNotifier.new,
-    );
 
 final driveBooksProvider = FutureProvider<List<drive.File>>((ref) async {
   final authService = ref.watch(authServiceProvider);

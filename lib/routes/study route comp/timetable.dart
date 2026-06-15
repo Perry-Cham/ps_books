@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/services/DB%20services/timetableToDB.dart';
+import 'package:ps_books/services/study/timetable_sync.dart';
+import 'package:ps_books/state/connectivity_provider.dart';
 
 class TimeTableForm extends StatefulWidget {
   const TimeTableForm({super.key});
@@ -118,10 +120,13 @@ class TimeTableFormState extends State<TimeTableForm> {
         ElevatedButton(
           onPressed: () async {
             await TimetableToDb().insertTimetable(Days);
+            if (await hasInternet()) {
+              await TimetableSyncingService().sync();
+            }
             // print(Days[0].sessions[0].subjects[0]);
             Navigator.pop(context);
           },
-          child: Text("submit"),
+          child: const Text("submit"),
         ),
       ],
     );

@@ -898,6 +898,263 @@ class BooksCompanion extends UpdateCompanion<Book> {
   }
 }
 
+class $TimetablesTable extends Timetables
+    with TableInfo<$TimetablesTable, Timetable> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TimetablesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _last_modifiedMeta = const VerificationMeta(
+    'last_modified',
+  );
+  @override
+  late final GeneratedColumn<DateTime> last_modified =
+      GeneratedColumn<DateTime>(
+        'last_modified',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [id, version, last_modified];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'timetables';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Timetable> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_versionMeta);
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+        _last_modifiedMeta,
+        last_modified.isAcceptableOrUnknown(
+          data['last_modified']!,
+          _last_modifiedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_last_modifiedMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Timetable map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Timetable(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      last_modified: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_modified'],
+      )!,
+    );
+  }
+
+  @override
+  $TimetablesTable createAlias(String alias) {
+    return $TimetablesTable(attachedDatabase, alias);
+  }
+}
+
+class Timetable extends DataClass implements Insertable<Timetable> {
+  final int id;
+  final int version;
+  final DateTime last_modified;
+  const Timetable({
+    required this.id,
+    required this.version,
+    required this.last_modified,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['version'] = Variable<int>(version);
+    map['last_modified'] = Variable<DateTime>(last_modified);
+    return map;
+  }
+
+  TimetablesCompanion toCompanion(bool nullToAbsent) {
+    return TimetablesCompanion(
+      id: Value(id),
+      version: Value(version),
+      last_modified: Value(last_modified),
+    );
+  }
+
+  factory Timetable.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Timetable(
+      id: serializer.fromJson<int>(json['id']),
+      version: serializer.fromJson<int>(json['version']),
+      last_modified: serializer.fromJson<DateTime>(json['last_modified']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'version': serializer.toJson<int>(version),
+      'last_modified': serializer.toJson<DateTime>(last_modified),
+    };
+  }
+
+  Timetable copyWith({int? id, int? version, DateTime? last_modified}) =>
+      Timetable(
+        id: id ?? this.id,
+        version: version ?? this.version,
+        last_modified: last_modified ?? this.last_modified,
+      );
+  Timetable copyWithCompanion(TimetablesCompanion data) {
+    return Timetable(
+      id: data.id.present ? data.id.value : this.id,
+      version: data.version.present ? data.version.value : this.version,
+      last_modified: data.last_modified.present
+          ? data.last_modified.value
+          : this.last_modified,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Timetable(')
+          ..write('id: $id, ')
+          ..write('version: $version, ')
+          ..write('last_modified: $last_modified')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, version, last_modified);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Timetable &&
+          other.id == this.id &&
+          other.version == this.version &&
+          other.last_modified == this.last_modified);
+}
+
+class TimetablesCompanion extends UpdateCompanion<Timetable> {
+  final Value<int> id;
+  final Value<int> version;
+  final Value<DateTime> last_modified;
+  const TimetablesCompanion({
+    this.id = const Value.absent(),
+    this.version = const Value.absent(),
+    this.last_modified = const Value.absent(),
+  });
+  TimetablesCompanion.insert({
+    this.id = const Value.absent(),
+    required int version,
+    required DateTime last_modified,
+  }) : version = Value(version),
+       last_modified = Value(last_modified);
+  static Insertable<Timetable> custom({
+    Expression<int>? id,
+    Expression<int>? version,
+    Expression<DateTime>? last_modified,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (version != null) 'version': version,
+      if (last_modified != null) 'last_modified': last_modified,
+    });
+  }
+
+  TimetablesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? version,
+    Value<DateTime>? last_modified,
+  }) {
+    return TimetablesCompanion(
+      id: id ?? this.id,
+      version: version ?? this.version,
+      last_modified: last_modified ?? this.last_modified,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (last_modified.present) {
+      map['last_modified'] = Variable<DateTime>(last_modified.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimetablesCompanion(')
+          ..write('id: $id, ')
+          ..write('version: $version, ')
+          ..write('last_modified: $last_modified')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TimetableDaysTable extends TimetableDays
     with TableInfo<$TimetableDaysTable, TimetableDay> {
   @override
@@ -915,6 +1172,20 @@ class $TimetableDaysTable extends TimetableDays
     requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _timetableIdMeta = const VerificationMeta(
+    'timetableId',
+  );
+  @override
+  late final GeneratedColumn<int> timetableId = GeneratedColumn<int>(
+    'timetable_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES timetables (id)',
     ),
   );
   static const VerificationMeta _dayMeta = const VerificationMeta('day');
@@ -942,7 +1213,7 @@ class $TimetableDaysTable extends TimetableDays
     defaultValue: Constant(false),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, day, isBreakDay];
+  List<GeneratedColumn> get $columns => [id, timetableId, day, isBreakDay];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -957,6 +1228,17 @@ class $TimetableDaysTable extends TimetableDays
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('timetable_id')) {
+      context.handle(
+        _timetableIdMeta,
+        timetableId.isAcceptableOrUnknown(
+          data['timetable_id']!,
+          _timetableIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_timetableIdMeta);
     }
     if (data.containsKey('day')) {
       context.handle(
@@ -988,6 +1270,10 @@ class $TimetableDaysTable extends TimetableDays
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      timetableId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}timetable_id'],
+      )!,
       day: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}day'],
@@ -1007,10 +1293,12 @@ class $TimetableDaysTable extends TimetableDays
 
 class TimetableDay extends DataClass implements Insertable<TimetableDay> {
   final int id;
+  final int timetableId;
   final String day;
   final bool isBreakDay;
   const TimetableDay({
     required this.id,
+    required this.timetableId,
     required this.day,
     required this.isBreakDay,
   });
@@ -1018,6 +1306,7 @@ class TimetableDay extends DataClass implements Insertable<TimetableDay> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['timetable_id'] = Variable<int>(timetableId);
     map['day'] = Variable<String>(day);
     map['is_break_day'] = Variable<bool>(isBreakDay);
     return map;
@@ -1026,6 +1315,7 @@ class TimetableDay extends DataClass implements Insertable<TimetableDay> {
   TimetableDaysCompanion toCompanion(bool nullToAbsent) {
     return TimetableDaysCompanion(
       id: Value(id),
+      timetableId: Value(timetableId),
       day: Value(day),
       isBreakDay: Value(isBreakDay),
     );
@@ -1038,6 +1328,7 @@ class TimetableDay extends DataClass implements Insertable<TimetableDay> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TimetableDay(
       id: serializer.fromJson<int>(json['id']),
+      timetableId: serializer.fromJson<int>(json['timetableId']),
       day: serializer.fromJson<String>(json['day']),
       isBreakDay: serializer.fromJson<bool>(json['isBreakDay']),
     );
@@ -1047,20 +1338,29 @@ class TimetableDay extends DataClass implements Insertable<TimetableDay> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'timetableId': serializer.toJson<int>(timetableId),
       'day': serializer.toJson<String>(day),
       'isBreakDay': serializer.toJson<bool>(isBreakDay),
     };
   }
 
-  TimetableDay copyWith({int? id, String? day, bool? isBreakDay}) =>
-      TimetableDay(
-        id: id ?? this.id,
-        day: day ?? this.day,
-        isBreakDay: isBreakDay ?? this.isBreakDay,
-      );
+  TimetableDay copyWith({
+    int? id,
+    int? timetableId,
+    String? day,
+    bool? isBreakDay,
+  }) => TimetableDay(
+    id: id ?? this.id,
+    timetableId: timetableId ?? this.timetableId,
+    day: day ?? this.day,
+    isBreakDay: isBreakDay ?? this.isBreakDay,
+  );
   TimetableDay copyWithCompanion(TimetableDaysCompanion data) {
     return TimetableDay(
       id: data.id.present ? data.id.value : this.id,
+      timetableId: data.timetableId.present
+          ? data.timetableId.value
+          : this.timetableId,
       day: data.day.present ? data.day.value : this.day,
       isBreakDay: data.isBreakDay.present
           ? data.isBreakDay.value
@@ -1072,6 +1372,7 @@ class TimetableDay extends DataClass implements Insertable<TimetableDay> {
   String toString() {
     return (StringBuffer('TimetableDay(')
           ..write('id: $id, ')
+          ..write('timetableId: $timetableId, ')
           ..write('day: $day, ')
           ..write('isBreakDay: $isBreakDay')
           ..write(')'))
@@ -1079,37 +1380,44 @@ class TimetableDay extends DataClass implements Insertable<TimetableDay> {
   }
 
   @override
-  int get hashCode => Object.hash(id, day, isBreakDay);
+  int get hashCode => Object.hash(id, timetableId, day, isBreakDay);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TimetableDay &&
           other.id == this.id &&
+          other.timetableId == this.timetableId &&
           other.day == this.day &&
           other.isBreakDay == this.isBreakDay);
 }
 
 class TimetableDaysCompanion extends UpdateCompanion<TimetableDay> {
   final Value<int> id;
+  final Value<int> timetableId;
   final Value<String> day;
   final Value<bool> isBreakDay;
   const TimetableDaysCompanion({
     this.id = const Value.absent(),
+    this.timetableId = const Value.absent(),
     this.day = const Value.absent(),
     this.isBreakDay = const Value.absent(),
   });
   TimetableDaysCompanion.insert({
     this.id = const Value.absent(),
+    required int timetableId,
     required String day,
     this.isBreakDay = const Value.absent(),
-  }) : day = Value(day);
+  }) : timetableId = Value(timetableId),
+       day = Value(day);
   static Insertable<TimetableDay> custom({
     Expression<int>? id,
+    Expression<int>? timetableId,
     Expression<String>? day,
     Expression<bool>? isBreakDay,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (timetableId != null) 'timetable_id': timetableId,
       if (day != null) 'day': day,
       if (isBreakDay != null) 'is_break_day': isBreakDay,
     });
@@ -1117,11 +1425,13 @@ class TimetableDaysCompanion extends UpdateCompanion<TimetableDay> {
 
   TimetableDaysCompanion copyWith({
     Value<int>? id,
+    Value<int>? timetableId,
     Value<String>? day,
     Value<bool>? isBreakDay,
   }) {
     return TimetableDaysCompanion(
       id: id ?? this.id,
+      timetableId: timetableId ?? this.timetableId,
       day: day ?? this.day,
       isBreakDay: isBreakDay ?? this.isBreakDay,
     );
@@ -1132,6 +1442,9 @@ class TimetableDaysCompanion extends UpdateCompanion<TimetableDay> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (timetableId.present) {
+      map['timetable_id'] = Variable<int>(timetableId.value);
     }
     if (day.present) {
       map['day'] = Variable<String>(day.value);
@@ -1146,6 +1459,7 @@ class TimetableDaysCompanion extends UpdateCompanion<TimetableDay> {
   String toString() {
     return (StringBuffer('TimetableDaysCompanion(')
           ..write('id: $id, ')
+          ..write('timetableId: $timetableId, ')
           ..write('day: $day, ')
           ..write('isBreakDay: $isBreakDay')
           ..write(')'))
@@ -2302,6 +2616,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CollectionsTable collections = $CollectionsTable(this);
   late final $BooksTable books = $BooksTable(this);
+  late final $TimetablesTable timetables = $TimetablesTable(this);
   late final $TimetableDaysTable timetableDays = $TimetableDaysTable(this);
   late final $TimetableSessionsTable timetableSessions =
       $TimetableSessionsTable(this);
@@ -2315,6 +2630,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     collections,
     books,
+    timetables,
     timetableDays,
     timetableSessions,
     targetSubjects,
@@ -2344,7 +2660,7 @@ final class $$CollectionsTableReferences
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.books,
-    aliasName: $_aliasNameGenerator(db.collections.id, db.books.collection),
+    aliasName: 'collections__id__books__collection',
   );
 
   $$BooksTableProcessedTableManager get booksRefs {
@@ -2362,10 +2678,7 @@ final class $$CollectionsTableReferences
   static MultiTypedResultKey<$SavedBooksTable, List<SavedBook>>
   _savedBooksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.savedBooks,
-    aliasName: $_aliasNameGenerator(
-      db.collections.id,
-      db.savedBooks.collection,
-    ),
+    aliasName: 'collections__id__saved_books__collection',
   );
 
   $$SavedBooksTableProcessedTableManager get savedBooksRefs {
@@ -2706,9 +3019,7 @@ final class $$BooksTableReferences
   $$BooksTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $CollectionsTable _collectionTable(_$AppDatabase db) =>
-      db.collections.createAlias(
-        $_aliasNameGenerator(db.books.collection, db.collections.id),
-      );
+      db.collections.createAlias('books__collection__collections__id');
 
   $$CollectionsTableProcessedTableManager? get collection {
     final $_column = $_itemColumn<int>('collection');
@@ -3096,15 +3407,280 @@ typedef $$BooksTableProcessedTableManager =
       Book,
       PrefetchHooks Function({bool collection})
     >;
+typedef $$TimetablesTableCreateCompanionBuilder =
+    TimetablesCompanion Function({
+      Value<int> id,
+      required int version,
+      required DateTime last_modified,
+    });
+typedef $$TimetablesTableUpdateCompanionBuilder =
+    TimetablesCompanion Function({
+      Value<int> id,
+      Value<int> version,
+      Value<DateTime> last_modified,
+    });
+
+final class $$TimetablesTableReferences
+    extends BaseReferences<_$AppDatabase, $TimetablesTable, Timetable> {
+  $$TimetablesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TimetableDaysTable, List<TimetableDay>>
+  _timetableDaysRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.timetableDays,
+    aliasName: 'timetables__id__timetable_days__timetable_id',
+  );
+
+  $$TimetableDaysTableProcessedTableManager get timetableDaysRefs {
+    final manager = $$TimetableDaysTableTableManager(
+      $_db,
+      $_db.timetableDays,
+    ).filter((f) => f.timetableId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_timetableDaysRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TimetablesTableFilterComposer
+    extends Composer<_$AppDatabase, $TimetablesTable> {
+  $$TimetablesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get last_modified => $composableBuilder(
+    column: $table.last_modified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> timetableDaysRefs(
+    Expression<bool> Function($$TimetableDaysTableFilterComposer f) f,
+  ) {
+    final $$TimetableDaysTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.timetableDays,
+      getReferencedColumn: (t) => t.timetableId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimetableDaysTableFilterComposer(
+            $db: $db,
+            $table: $db.timetableDays,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TimetablesTableOrderingComposer
+    extends Composer<_$AppDatabase, $TimetablesTable> {
+  $$TimetablesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get last_modified => $composableBuilder(
+    column: $table.last_modified,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TimetablesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TimetablesTable> {
+  $$TimetablesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get last_modified => $composableBuilder(
+    column: $table.last_modified,
+    builder: (column) => column,
+  );
+
+  Expression<T> timetableDaysRefs<T extends Object>(
+    Expression<T> Function($$TimetableDaysTableAnnotationComposer a) f,
+  ) {
+    final $$TimetableDaysTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.timetableDays,
+      getReferencedColumn: (t) => t.timetableId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimetableDaysTableAnnotationComposer(
+            $db: $db,
+            $table: $db.timetableDays,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TimetablesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TimetablesTable,
+          Timetable,
+          $$TimetablesTableFilterComposer,
+          $$TimetablesTableOrderingComposer,
+          $$TimetablesTableAnnotationComposer,
+          $$TimetablesTableCreateCompanionBuilder,
+          $$TimetablesTableUpdateCompanionBuilder,
+          (Timetable, $$TimetablesTableReferences),
+          Timetable,
+          PrefetchHooks Function({bool timetableDaysRefs})
+        > {
+  $$TimetablesTableTableManager(_$AppDatabase db, $TimetablesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TimetablesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TimetablesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TimetablesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime> last_modified = const Value.absent(),
+              }) => TimetablesCompanion(
+                id: id,
+                version: version,
+                last_modified: last_modified,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int version,
+                required DateTime last_modified,
+              }) => TimetablesCompanion.insert(
+                id: id,
+                version: version,
+                last_modified: last_modified,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TimetablesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({timetableDaysRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (timetableDaysRefs) db.timetableDays,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (timetableDaysRefs)
+                    await $_getPrefetchedData<
+                      Timetable,
+                      $TimetablesTable,
+                      TimetableDay
+                    >(
+                      currentTable: table,
+                      referencedTable: $$TimetablesTableReferences
+                          ._timetableDaysRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$TimetablesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).timetableDaysRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.timetableId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TimetablesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TimetablesTable,
+      Timetable,
+      $$TimetablesTableFilterComposer,
+      $$TimetablesTableOrderingComposer,
+      $$TimetablesTableAnnotationComposer,
+      $$TimetablesTableCreateCompanionBuilder,
+      $$TimetablesTableUpdateCompanionBuilder,
+      (Timetable, $$TimetablesTableReferences),
+      Timetable,
+      PrefetchHooks Function({bool timetableDaysRefs})
+    >;
 typedef $$TimetableDaysTableCreateCompanionBuilder =
     TimetableDaysCompanion Function({
       Value<int> id,
+      required int timetableId,
       required String day,
       Value<bool> isBreakDay,
     });
 typedef $$TimetableDaysTableUpdateCompanionBuilder =
     TimetableDaysCompanion Function({
       Value<int> id,
+      Value<int> timetableId,
       Value<String> day,
       Value<bool> isBreakDay,
     });
@@ -3117,14 +3693,28 @@ final class $$TimetableDaysTableReferences
     super.$_typedResult,
   );
 
+  static $TimetablesTable _timetableIdTable(_$AppDatabase db) =>
+      db.timetables.createAlias('timetable_days__timetable_id__timetables__id');
+
+  $$TimetablesTableProcessedTableManager get timetableId {
+    final $_column = $_itemColumn<int>('timetable_id')!;
+
+    final manager = $$TimetablesTableTableManager(
+      $_db,
+      $_db.timetables,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_timetableIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
   static MultiTypedResultKey<$TimetableSessionsTable, List<TimetableSession>>
   _timetableSessionsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.timetableSessions,
-        aliasName: $_aliasNameGenerator(
-          db.timetableDays.id,
-          db.timetableSessions.dayId,
-        ),
+        aliasName: 'timetable_days__id__timetable_sessions__day_id',
       );
 
   $$TimetableSessionsTableProcessedTableManager get timetableSessionsRefs {
@@ -3165,6 +3755,29 @@ class $$TimetableDaysTableFilterComposer
     column: $table.isBreakDay,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$TimetablesTableFilterComposer get timetableId {
+    final $$TimetablesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.timetableId,
+      referencedTable: $db.timetables,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimetablesTableFilterComposer(
+            $db: $db,
+            $table: $db.timetables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> timetableSessionsRefs(
     Expression<bool> Function($$TimetableSessionsTableFilterComposer f) f,
@@ -3215,6 +3828,29 @@ class $$TimetableDaysTableOrderingComposer
     column: $table.isBreakDay,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$TimetablesTableOrderingComposer get timetableId {
+    final $$TimetablesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.timetableId,
+      referencedTable: $db.timetables,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimetablesTableOrderingComposer(
+            $db: $db,
+            $table: $db.timetables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TimetableDaysTableAnnotationComposer
@@ -3236,6 +3872,29 @@ class $$TimetableDaysTableAnnotationComposer
     column: $table.isBreakDay,
     builder: (column) => column,
   );
+
+  $$TimetablesTableAnnotationComposer get timetableId {
+    final $$TimetablesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.timetableId,
+      referencedTable: $db.timetables,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimetablesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.timetables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> timetableSessionsRefs<T extends Object>(
     Expression<T> Function($$TimetableSessionsTableAnnotationComposer a) f,
@@ -3277,7 +3936,7 @@ class $$TimetableDaysTableTableManager
           $$TimetableDaysTableUpdateCompanionBuilder,
           (TimetableDay, $$TimetableDaysTableReferences),
           TimetableDay,
-          PrefetchHooks Function({bool timetableSessionsRefs})
+          PrefetchHooks Function({bool timetableId, bool timetableSessionsRefs})
         > {
   $$TimetableDaysTableTableManager(_$AppDatabase db, $TimetableDaysTable table)
     : super(
@@ -3293,20 +3952,24 @@ class $$TimetableDaysTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<int> timetableId = const Value.absent(),
                 Value<String> day = const Value.absent(),
                 Value<bool> isBreakDay = const Value.absent(),
               }) => TimetableDaysCompanion(
                 id: id,
+                timetableId: timetableId,
                 day: day,
                 isBreakDay: isBreakDay,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required int timetableId,
                 required String day,
                 Value<bool> isBreakDay = const Value.absent(),
               }) => TimetableDaysCompanion.insert(
                 id: id,
+                timetableId: timetableId,
                 day: day,
                 isBreakDay: isBreakDay,
               ),
@@ -3318,38 +3981,74 @@ class $$TimetableDaysTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({timetableSessionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (timetableSessionsRefs) db.timetableSessions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (timetableSessionsRefs)
-                    await $_getPrefetchedData<
-                      TimetableDay,
-                      $TimetableDaysTable,
-                      TimetableSession
-                    >(
-                      currentTable: table,
-                      referencedTable: $$TimetableDaysTableReferences
-                          ._timetableSessionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$TimetableDaysTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).timetableSessionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.dayId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({timetableId = false, timetableSessionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (timetableSessionsRefs) db.timetableSessions,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (timetableId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.timetableId,
+                                    referencedTable:
+                                        $$TimetableDaysTableReferences
+                                            ._timetableIdTable(db),
+                                    referencedColumn:
+                                        $$TimetableDaysTableReferences
+                                            ._timetableIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (timetableSessionsRefs)
+                        await $_getPrefetchedData<
+                          TimetableDay,
+                          $TimetableDaysTable,
+                          TimetableSession
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TimetableDaysTableReferences
+                              ._timetableSessionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TimetableDaysTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).timetableSessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dayId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3366,7 +4065,7 @@ typedef $$TimetableDaysTableProcessedTableManager =
       $$TimetableDaysTableUpdateCompanionBuilder,
       (TimetableDay, $$TimetableDaysTableReferences),
       TimetableDay,
-      PrefetchHooks Function({bool timetableSessionsRefs})
+      PrefetchHooks Function({bool timetableId, bool timetableSessionsRefs})
     >;
 typedef $$TimetableSessionsTableCreateCompanionBuilder =
     TimetableSessionsCompanion Function({
@@ -3398,10 +4097,8 @@ final class $$TimetableSessionsTableReferences
     super.$_typedResult,
   );
 
-  static $TimetableDaysTable _dayIdTable(_$AppDatabase db) =>
-      db.timetableDays.createAlias(
-        $_aliasNameGenerator(db.timetableSessions.dayId, db.timetableDays.id),
-      );
+  static $TimetableDaysTable _dayIdTable(_$AppDatabase db) => db.timetableDays
+      .createAlias('timetable_sessions__day_id__timetable_days__id');
 
   $$TimetableDaysTableProcessedTableManager get dayId {
     final $_column = $_itemColumn<int>('day_id')!;
@@ -3713,10 +4410,7 @@ final class $$TargetSubjectsTableReferences
   static MultiTypedResultKey<$TargetTopicsTable, List<TargetTopic>>
   _targetTopicsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.targetTopics,
-    aliasName: $_aliasNameGenerator(
-      db.targetSubjects.id,
-      db.targetTopics.subjectId,
-    ),
+    aliasName: 'target_subjects__id__target_topics__subject_id',
   );
 
   $$TargetTopicsTableProcessedTableManager get targetTopicsRefs {
@@ -3949,10 +4643,9 @@ final class $$TargetTopicsTableReferences
     extends BaseReferences<_$AppDatabase, $TargetTopicsTable, TargetTopic> {
   $$TargetTopicsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $TargetSubjectsTable _subjectIdTable(_$AppDatabase db) =>
-      db.targetSubjects.createAlias(
-        $_aliasNameGenerator(db.targetTopics.subjectId, db.targetSubjects.id),
-      );
+  static $TargetSubjectsTable _subjectIdTable(_$AppDatabase db) => db
+      .targetSubjects
+      .createAlias('target_topics__subject_id__target_subjects__id');
 
   $$TargetSubjectsTableProcessedTableManager get subjectId {
     final $_column = $_itemColumn<int>('subject_id')!;
@@ -4246,9 +4939,7 @@ final class $$SavedBooksTableReferences
   $$SavedBooksTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $CollectionsTable _collectionTable(_$AppDatabase db) =>
-      db.collections.createAlias(
-        $_aliasNameGenerator(db.savedBooks.collection, db.collections.id),
-      );
+      db.collections.createAlias('saved_books__collection__collections__id');
 
   $$CollectionsTableProcessedTableManager? get collection {
     final $_column = $_itemColumn<int>('collection');
@@ -4528,6 +5219,8 @@ class $AppDatabaseManager {
       $$CollectionsTableTableManager(_db, _db.collections);
   $$BooksTableTableManager get books =>
       $$BooksTableTableManager(_db, _db.books);
+  $$TimetablesTableTableManager get timetables =>
+      $$TimetablesTableTableManager(_db, _db.timetables);
   $$TimetableDaysTableTableManager get timetableDays =>
       $$TimetableDaysTableTableManager(_db, _db.timetableDays);
   $$TimetableSessionsTableTableManager get timetableSessions =>

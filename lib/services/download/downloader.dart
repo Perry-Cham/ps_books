@@ -9,48 +9,11 @@ import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/helpers/book_processor.dart';
 import 'package:kindle_unpack/kindle_unpack.dart';
 import 'package:path/path.dart' as p;
+import 'package:ps_books/models/book_data.dart';
 
 final String url = "https://libgen.gl";
 final _db = BookToDb();
 
-class DownloadBook {
-  final String title;
-  final String year;
-  final String extension;
-  final String href;
-  final String size;
-  List<String>? isbn;
-final String language;
-  DownloadBook({
-    required this.title,
-    required this.year,
-    required this.extension,
-    required this.href,
-    required this.size,
-    required this.language,
-    required this.isbn
-  });
-
-  static DownloadBook? fromMap(Map<String, dynamic> book) {
-  //  print(book['href']);
-    String ext = (book['extension'] ?? "").toString().toLowerCase();
-    if ((ext != "pdf" && ext != "epub" && ext != "fb2" && ext != "mobi" &&
-            ext != "cbz" && ext != "cbt" && ext != "cbw") ||
-        book['href'] == null) {
-      return null;
-    } else {
-      return DownloadBook(
-        extension: book['extension'],
-        year: book['year'],
-        title: book['title'],
-        href: book['href'],
-        size: book['size'],
-        isbn:book['isbn'],
-        language: book['language']
-      );
-    }
-  }
-}
 
 Future<dynamic> SearchBooks(String query) async {
   print("this is");

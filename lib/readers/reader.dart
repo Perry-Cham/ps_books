@@ -126,7 +126,7 @@ class ReaderState extends ConsumerState<Reader> {
           }
         },
       );
-    } else if (widget.type == 'docx' || widget.type == 'pptx') {
+    } else if (widget.type == 'docx') {
       return FutureBuilder(
         future: File(widget.path).readAsBytes(),
         builder: (context, snapshot) {
@@ -166,6 +166,17 @@ class ReaderState extends ConsumerState<Reader> {
           }
         },
       );
+    } else if(widget.type == 'mobi'){
+      return MobiReader();
+    }else if(widget.type == 'pptx'){
+      FutureBuilder(
+        future:File(widget.path).readAsBytes(),
+        builder:(context, snapshot){
+          if(snapshot.hasData){
+  return PptReader(bytes: snapshot.data!);
+          }
+        }
+      )
     } else {
       print(widget.type);
       return Center(child: Text('Unsupported file'));

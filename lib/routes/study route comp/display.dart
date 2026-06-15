@@ -5,103 +5,134 @@ import 'package:ps_books/routes/study%20route%20comp/timetable.dart';
 import 'package:ps_books/services/DB%20services/timetableToDB.dart';
 import 'package:ps_books/routes/study route comp/forms.dart';
 
-class TimetableDisplay extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ps_books/state/google_auth.dart';
+import 'package:ps_books/state/connectivity_provider.dart';
+import 'package:ps_books/services/study/timetable_sync.dart' show TimetableSyncingService, syncTimetableIfSignedIn;
+
+class TimetableDisplay extends ConsumerWidget {
   const TimetableDisplay({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return StreamBuilder(
-      stream: TimetableToDb().getTimeTable(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accountsAsync = ref.watch(userAccountsProvider);
 
-        if (snapshot.hasError) {
-          print(snapshot.error);
-          return Center(
-            child: Text("You haven't created any study TimeTables Yet"),
-          );
-        }
+    return accountsAsync.when(
+      data: (accounts) {
+        final psBooksUser = accounts.psBooksUser;
+        final isSignedIn = psBooksUser != null && psBooksUser.isSignedIn;
 
-        //Rework this logic to add error handling
-        final data = snapshot.data;
-        if (data == null || data.isEmpty) {
-          return Stack(
-            children: [
+        return StreamBuilder(
+          stream: TimetableToDb().getTimeTable(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                Center(
-                  child: Text("You haven't created any study TimeTables Yet"),
-                ),
+            if (snapshot.hasError) {
+              print(snapshot.error);
+              return const Center(
+                child: Text("You haven't created any study TimeTables Yet"),
+              );
+            }
 
-              Positioned(
-                bottom: 10,
-                right:10,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton.filled(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Pomodoro()),
-                        );
-                      },
-                      icon: Icon(Icons.timer),
-                    ),
-
-                    IconButton.filled(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return TimeTableForm();
+            final data = snapshot.data;
+            if (data == null || data.isEmpty) {
+              return Stack(
+                children: [
+                  const Center(
+                    child: Text("You haven't created any study TimeTables Yet"),
+                  ),
+                  Positioned(
+                    bottom: 10,
+                    right: 10,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (isSignedIn)
+                          IconButton.filled(
+                            onPressed: () async {
+                              if (await hasInternet()) {
+                                await TimetableSyncingService().getTimetable();
+                              }
+                            },
+                            icon: const Icon(Icons.refresh),
+                          ),
+                        IconButton.filled(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>  Pomodoro(),
+                              ),
+                            );
                           },
-                        );
-                      },
-                      icon: Icon(Icons.add),
-
+                          icon: const Icon(Icons.timer),
+                        ),
+                        IconButton.filled(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return const TimeTableForm();
+                              },
+                            );
+                          },
+                          icon: const Icon(Icons.add),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        } else {
-          return Display(timetable: data);
-        }
+                  ),
+                ],
+              );
+            } else {
+              return Display(timetable: data, isSignedIn: isSignedIn);
+            }
+          },
+        );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => Center(child: Text('Error: $e')),
     );
   }
 }
 
-class Display extends StatefulWidget {
-  const Display({super.key, required this.timetable});
+class Display extends ConsumerStatefulWidget {
+  const Display({super.key, required this.timetable, required this.isSignedIn});
 
   final List<TimeTable> timetable;
+  final bool isSignedIn;
 
   @override
-  State<Display> createState() {
-    // TODO: implement createState
-    return DisplayState();
-  }
+  ConsumerState<Display> createState() => DisplayState();
 }
 
-class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
+class DisplayState extends ConsumerState<Display>
+    with SingleTickerProviderStateMixin {
   late final TabController _controller;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _controller = TabController(
       length: widget.timetable.length,
       initialIndex: DateTime.now().weekday % 7,
       vsync: this,
     );
+  }
+
+  @override
+  void didUpdateWidget(Display oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.timetable.length != oldWidget.timetable.length) {
+      final oldIndex = _controller.index.clamp(0, widget.timetable.length - 1);
+      _controller.dispose();
+      _controller = TabController(
+        length: widget.timetable.length,
+        initialIndex: oldIndex,
+        vsync: this,
+      );
+    }
   }
 
   @override
@@ -114,16 +145,18 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
         TabBar(
           controller: _controller,
           isScrollable: size.width < 600 ? true : false,
-          tabs: widget.timetable.map((el) {
-            return Tab(text: el.day.day.toLowerCase().substring(0, 3));
-          }).toList(),
+          tabs:
+              widget.timetable.map((el) {
+                return Tab(text: el.day.day.toLowerCase().substring(0, 3));
+              }).toList(),
         ),
         Expanded(
           child: TabBarView(
             controller: _controller,
-            children: widget.timetable.map((el) {
-              return _DayPanel(day: el.day, sessions: el.session);
-            }).toList(),
+            children:
+                widget.timetable.map((el) {
+                  return _DayPanel(day: el.day, sessions: el.session);
+                }).toList(),
           ),
         ),
         if (!isAndroid)
@@ -136,20 +169,28 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.end,
                   spacing: 10,
                   children: [
+                    if (widget.isSignedIn)
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          if (await hasInternet()) {
+                            await TimetableSyncingService().getTimetable();
+                          }
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text("Refresh"),
+                      ),
                     // Break Day Toggle Switch
                     Row(
                       children: [
-                        Text('Break Day'),
-                        SizedBox(width: 8),
+                        const Text('Break Day'),
+                        const SizedBox(width: 8),
                         Switch(
-                          value: widget
-                              .timetable[_controller.index]
-                              .day
-                              .isBreakDay,
+                          value: widget.timetable[_controller.index].day.isBreakDay,
                           onChanged: (value) async {
                             await TimetableToDb().toggleBreakDay(
                               widget.timetable[_controller.index].day.id,
                             );
+                            await syncTimetableIfSignedIn();
                           },
                         ),
                       ],
@@ -158,39 +199,43 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
                     ElevatedButton.icon(
                       onPressed:
                           widget.timetable[_controller.index].day.isBreakDay
-                          ? null
-                          : () {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AddSessionForm(
-                                    dayId: widget
-                                        .timetable[_controller.index]
-                                        .day
-                                        .id,
-                                  );
-                                },
-                              );
-                            },
-                      icon: Icon(Icons.add),
-                      label: Text("Add Session"),
+                              ? null
+                              : () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AddSessionForm(
+                                      dayId:
+                                          widget
+                                              .timetable[_controller.index]
+                                              .day
+                                              .id,
+                                    );
+                                  },
+                                );
+                              },
+                      icon: const Icon(Icons.add),
+                      label: const Text("Add Session"),
                     ),
                     ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Pomodoro()),
+                          MaterialPageRoute(
+                            builder: (context) =>  Pomodoro(),
+                          ),
                         );
                       },
-                      icon: Icon(Icons.timer),
-                      label: Text("Study Timer"),
+                      icon: const Icon(Icons.timer),
+                      label: const Text("Study Timer"),
                     ),
                     ElevatedButton.icon(
                       onPressed: () async {
                         await TimetableToDb().deleteTimetable();
+                        await syncTimetableIfSignedIn();
                       },
-                      icon: Icon(Icons.delete),
-                      label: Text("Delete Timetable"),
+                      icon: const Icon(Icons.delete),
+                      label: const Text("Delete Timetable"),
                     ),
                   ],
                 ),
@@ -204,6 +249,17 @@ class DisplayState extends State<Display> with SingleTickerProviderStateMixin {
       return Scaffold(
         appBar: AppBar(
           actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed:
+                  widget.isSignedIn
+                      ? () async {
+                        if (await hasInternet()) {
+                          await TimetableSyncingService().getTimetable();
+                        }
+                      }
+                      : null,
+            ),
             ListenableBuilder(
               listenable: _controller,
               builder: (context, _) {
@@ -252,6 +308,7 @@ class _TimetableAndroidMenuState extends State<_TimetableAndroidMenu> {
           );
         } else if (value == 'delete') {
           await TimetableToDb().deleteTimetable();
+          await syncTimetableIfSignedIn();
         }
       },
       itemBuilder: (context) => [
@@ -262,7 +319,7 @@ class _TimetableAndroidMenuState extends State<_TimetableAndroidMenu> {
               final day = timetables.firstWhere(
                 (t) => t.day.id == currentDayId,
                 orElse: () => TimeTable(
-                  day: TimetableDay(id: 0, day: '', isBreakDay: false),
+                  day: TimetableDay(id: 0, day: '', isBreakDay: false, timetableId: 1),
                   session: [],
                 ),
               );
@@ -278,6 +335,7 @@ class _TimetableAndroidMenuState extends State<_TimetableAndroidMenu> {
                     value: breakDay,
                     onChanged: (value) async {
                       await TimetableToDb().toggleBreakDay(currentDayId);
+                      await syncTimetableIfSignedIn();
                       Navigator.pop(context);
                     },
                   ),
@@ -446,6 +504,7 @@ class _SessionCard extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () async {
                     await TimetableToDb().deleteSession(session.id);
+                    await syncTimetableIfSignedIn();
                   },
                   icon: Icon(Icons.delete),
                   label: Text("Delete"),

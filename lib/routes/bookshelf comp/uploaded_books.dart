@@ -8,6 +8,7 @@ import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/models/drive_book.dart';
 import 'package:ps_books/state/google_auth.dart';
 import 'package:ps_books/state/wishlist_download_state.dart';
+import 'package:ps_books/state/connectivity_provider.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 
 import 'drive_book_widget.dart';
@@ -68,6 +69,8 @@ class DrivePage extends ConsumerWidget {
       }
     }
 
+    final connectivityAsync = ref.watch(connectivityProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Cloud Books"),
@@ -92,36 +95,67 @@ class DrivePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: driveBooksAsync.when(
-        data: (books) {
-          if (books.isEmpty) {
-            return const Center(child: Text("No books found in Google Drive."));
-          }
-          return ListView.builder(
-            itemCount: books.length,
-            itemBuilder: (context, index) {
-              final book = books[index];
-              return DriveBookWidget(file: book);
+      body: Stack(
+        children: [
+          driveBooksAsync.when(
+            data: (books) {
+              if (books.isEmpty) {
+                return const Center(child: Text("No books found in Google Drive."));
+              }
+              return ListView.builder(
+                itemCount: books.length,
+                itemBuilder: (context, index) {
+                  final book = books[index];
+                  return DriveBookWidget(file: book);
+                },
+              );
             },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) {
-          print(err);
-          print(stack);
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Error accessing Google Drive"),
-                ElevatedButton(
-                  onPressed: () => ref.refresh(driveBooksProvider),
-                  child: const Text("Retry"),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) {
+              print(err);
+              print(stack);
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Error accessing Google Drive"),
+                    ElevatedButton(
+                      onPressed: () => ref.refresh(driveBooksProvider),
+                      child: const Text("Retry"),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+          connectivityAsync.when(
+            data: (isConnected) {
+              if (isConnected) return const SizedBox.shrink();
+              return Container(
+                color: Colors.black54,
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.wifi_off, size: 64, color: Colors.white70),
+                      SizedBox(height: 16),
+                      Text(
+                        "No Internet Connection",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: uploadFiles,

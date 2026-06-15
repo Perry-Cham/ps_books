@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ps_books/services/audio_player.dart';
 import 'package:ps_books/services/notifications.dart';
 import 'package:ps_books/state/reader_state.dart';
 
@@ -26,9 +27,9 @@ class PomodoroState {
   });
 
   // Ideal default initial state
-  factory PomodoroState.initial(int workDuration) {
+  factory PomodoroState.initial(int? workDuration) {
     return PomodoroState(
-      secondsRemaining: workDuration,
+      secondsRemaining: workDuration ?? 40 * 60,
       isRunning: false,
       phase: PomodoroPhase.work,
       currentCycle: 1,
@@ -62,10 +63,8 @@ class PomodoroState {
 class PomodoroNotifier extends Notifier<PomodoroState> {
   Timer? _timer;
   final Notifications _notifications = Notifications();
+  final AudioPlayerService _audioPlayer = AudioPlayerService();
 
-  // Configurations
-  static const int defaultWorkDuration = 25 * 60; // 25 minutes in seconds
-  static const int defaultBreakDuration = 5 * 60; // 5 minutes in seconds
 
   @override
   PomodoroState build() {
@@ -73,18 +72,16 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
     ref.onDispose(() {
       _timer?.cancel();
       _notifications.cancelOngoing();
+      _audioPlayer.dispose();
     });
     _notifications.init();
-    return PomodoroState.initial(defaultWorkDuration);
+    return PomodoroState.initial(null);
   }
 
   void init(int workDuration, int breakDuration, int cycles){
     if (state.isRunning) return;
 
     state = state.copyWith(
-        workDuration: workDuration * 60,
-        secondsRemaining: workDuration * 60,
-        breakDuration: breakDuration * 60,
         cycles: cycles,
         currentCycle: 1,
         phase: PomodoroPhase.work,
@@ -129,6 +126,7 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
   void _handlePhaseTransition() {
     _timer?.cancel();
     final previousPhase = state.phase;
+    _audioPlayer.playNotification();
 
     if (state.phase == PomodoroPhase.work) {
       // Transitioning from Work to Break
