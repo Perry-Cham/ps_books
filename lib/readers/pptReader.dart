@@ -4,24 +4,37 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shelf/shelf.dart';
+import 'package:shelf_router/shelf_router.dart' as sr;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:webview_all/webview_all.dart';
 
 // ---------------------------------------------------------------------------
 // Asset server
 // ---------------------------------------------------------------------------
+sr.Router createRouter(Uint8List fileBytes){
+  sr.Router router = sr.Router();
+  router.get('/reader/<path|.*>', (Request request) async {
+    //remove the reader annotation to get the path
+    final y = request.url.path.split('/');
+    y.remove('reader');
+    final x = y.join('/');
+    final path = request.url.path.isEmpty ? 'reader.html' : x;
+    print(path);
 
-Future<Response> _assetHandler(Request request) async {
-  final path = request.url.path.isEmpty ? 'reader.html' : request.url.path;
-  print(path);
+    try {
+      final data = await rootBundle.load('assets/$path');
+      final bytes = data.buffer.asUint8List();
+      Response.ok(bytes, headers: {'content-type': _mimeType(path)});
+    } catch (e) {
+      Response.notFound('Asset not found: $path');
+    }
+  });
+  router.get("/get_file",(Request){
+    Response.ok(fileBytes, headers: {
+  'content-type': 'application/octet-stream'
+  });});
 
-  try {
-    final data = await rootBundle.load('assets/$path');
-    final bytes = data.buffer.asUint8List();
-    return Response.ok(bytes, headers: {'content-type': _mimeType(path)});
-  } catch (e) {
-    return Response.notFound('Asset not found: $path');
-  }
+  return router;
 }
 
 String _mimeType(String path) {
@@ -33,10 +46,10 @@ String _mimeType(String path) {
   return 'application/octet-stream';
 }
 
-Future<HttpServer> startAssetServer() async {
+Future<HttpServer> startAssetServer(bytes) async {
   final handler = const Pipeline()
       .addMiddleware(logRequests())
-      .addHandler(_assetHandler);
+      .addHandler(createRouter(bytes).call);
 
   // Port 0 lets the OS pick a free port — avoids conflicts on restart.
   final server = await shelf_io.serve(handler, 'localhost', 0);
@@ -48,9 +61,9 @@ Future<HttpServer> startAssetServer() async {
 // App
 // ---------------------------------------------------------------------------
 
-class Mobireader extends StatelessWidget {
-  const Mobireader({super.key});
-
+class PptReaderPage extends StatelessWidget {
+  const PptReaderPage({super.key, required this.fileBytes});
+ final Uint8List fileBytes;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -58,7 +71,7 @@ class Mobireader extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: const MobireaderPage(),
+      home: PptReader(bytes: fileBytes),
     );
   }
 }
@@ -67,14 +80,15 @@ class Mobireader extends StatelessWidget {
 // Page
 // ---------------------------------------------------------------------------
 
-class MobireaderPage extends StatefulWidget {
-  const MobireaderPage({super.key});
+class PptReader extends StatefulWidget {
+  PptReader({super.key, required this.bytes});
+  final Uint8List bytes;
 
   @override
-  State<MobireaderPage> createState() => _MobireaderPageState();
+  State<PptReader> createState() => _PptReaderState();
 }
 
-class _MobireaderPageState extends State<MobireaderPage> {
+class _PptReaderState extends State<PptReader> {
   late final WebViewController _controller;
   HttpServer? _server;
   int _progress = 0;
@@ -88,16 +102,10 @@ class _MobireaderPageState extends State<MobireaderPage> {
   }
 
   Future<void> _startServerAndLoad() async {
-    // On web there is no Dart I/O — load the file directly instead.
-    if (kIsWeb) {
-      _controller.loadRequest(Uri.parse('assets/reader.html'));
-      if (mounted) setState(() => _serverReady = true);
-      return;
-    }
 
-    _server = await startAssetServer();
+    _server = await startAssetServer(widget.bytes);
     final url =
-        'http://localhost:${_server!.port}/js/foliate-js-main/reader.html';
+        'http://localhost:${_server!.port}/web/index.html';
 
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)

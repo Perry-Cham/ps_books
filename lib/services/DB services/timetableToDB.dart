@@ -7,35 +7,43 @@ class TimetableToDb {
   final _db = DBProvider().db;
   List<Day>? Timetable;
 
-  Future<void> insertTimetable(List<Day> timetable) async {
-    for (var day in timetable) {
-      int dayId = await (_db
-          .into(_db.timetableDays)
-          .insert(
-            TimetableDaysCompanion(
-              day: Value(day.day),
-              isBreakDay: Value(day.isBreak),
+  AppDatabase getDb() => _db;
+
+  Future<void> insertTimetable(
+    List<Day> timetable, {
+    int? version,
+    DateTime? lastModified,
+  }) async {
+    await _db.transaction(() async {
+      final timetableId = await _db.into(_db.timetables).insert(
+        TimetablesCompanion(
+          version: Value(version ?? 1),
+          last_modified: Value(lastModified ?? DateTime.now()),
+        ),
+      );
+
+      for (var day in timetable) {
+        int dayId = await (_db.into(_db.timetableDays).insert(
+          TimetableDaysCompanion(
+            timetableId: Value(timetableId),
+            day: Value(day.day),
+            isBreakDay: Value(day.isBreak),
+          ),
+        ));
+        if (day.isBreak == true) continue;
+
+        for (var session in day.sessions) {
+          await (_db.into(_db.timetableSessions).insert(
+            TimetableSessionsCompanion(
+              dayId: Value(dayId),
+              start: Value(session.start!),
+              end: Value(session.end!),
+              subjects: Value(session.subjects.join(',')),
             ),
           ));
-      print(day.isBreak);
-      print('inserted day');
-      if (day.isBreak == true) continue;
-
-      for (var session in day.sessions) {
-        print('inserting session');
-        await (_db
-            .into(_db.timetableSessions)
-            .insert(
-              TimetableSessionsCompanion(
-                dayId: Value(dayId),
-                start: Value(session.start!),
-                end: Value(session.end!),
-                subjects: Value(session.subjects.join(',')),
-              ),
-            ));
-        print('inserted session');
+        }
       }
-    }
+    });
   }
 
   Stream<List<TimeTable>> getTimeTable() {
@@ -69,9 +77,23 @@ class TimetableToDb {
 
   Future<void> deleteTimetable() {
     return _db.transaction(() async {
+      await _db.delete(_db.timetables).go();
       await _db.delete(_db.timetableDays).go();
       await _db.delete(_db.timetableSessions).go();
     });
+  }
+
+  Future<void> updateVersion() async {
+    final t = await (_db.select(_db.timetables)..limit(1)).getSingleOrNull();
+    if (t != null) {
+      await (_db.update(_db.timetables)..where((tbl) => tbl.id.equals(t.id)))
+          .write(
+            TimetablesCompanion(
+              version: Value(t.version + 1),
+              last_modified: Value(DateTime.now()),
+            ),
+          );
+    }
   }
 
   Future<bool> isTimeTableEmpty() async {
@@ -119,7 +141,7 @@ class TimetableToDb {
           .write(TimetableDaysCompanion(isBreakDay: Value(false)));
     }
 
-    return await (_db
+    final id = await (_db
         .into(_db.timetableSessions)
         .insert(
           TimetableSessionsCompanion(
@@ -129,6 +151,8 @@ class TimetableToDb {
             subjects: Value(subjects),
           ),
         ));
+    await updateVersion();
+    return id;
   }
 
   Future<int> deleteSession(int index) async {
@@ -157,7 +181,7 @@ class TimetableToDb {
         print("Day ${session.dayId} set as breakday");
       }
     }
-
+    await updateVersion();
     return id;
   }
 
@@ -185,6 +209,7 @@ class TimetableToDb {
         print("Day $dayId set as breakday with all sessions deleted");
       });
     }
+    await updateVersion();
   }
 
   Future<void> editSession(
@@ -192,9 +217,9 @@ class TimetableToDb {
     required String start,
     required String end,
     required String subjects,
-  }) {
+  }) async {
     print("$id, $start, $end, $subjects");
-    return (_db.update(
+    await (_db.update(
       _db.timetableSessions,
     )..where((t) => t.id.equals(id))).write(
       TimetableSessionsCompanion(
@@ -203,6 +228,7 @@ class TimetableToDb {
         subjects: Value(subjects),
       ),
     );
+    await updateVersion();
   }
 
   // Get the number of sessions for a day

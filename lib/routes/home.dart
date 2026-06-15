@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ps_books/readers/mobiReader.dart';
 import 'package:ps_books/routes/home%20comp/currently_reading.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
@@ -32,6 +33,9 @@ class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget{
       iconTheme: const IconThemeData(color: Colors.white),
       actions: [
         PopUpControls(provider: LibraryStateProvider),
+        IconButton(onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (_) => Mobireader()));
+        }, icon: Icon(Icons.web))
       ],
     );
   }
