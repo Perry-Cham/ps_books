@@ -149,7 +149,7 @@ class ReaderState extends ConsumerState<Reader> {
       );
     } else if (widget.type == 'cbz' ||
         widget.type == 'cbt' ||
-        widget.type == 'cbw') {
+        widget.type == 'cbw' || widget.type == 'cbr') {
       return FutureBuilder(
         future: File(widget.path).readAsBytes(),
         builder: (context, snapshot) {

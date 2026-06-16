@@ -82,10 +82,13 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
     if (state.isRunning) return;
 
     state = state.copyWith(
+        workDuration: workDuration,
+        breakDuration: breakDuration,
         cycles: cycles,
         currentCycle: 1,
         phase: PomodoroPhase.work,
-        isRunning: false
+        isRunning: false,
+        secondsRemaining: workDuration * 60,
     );
   }
 

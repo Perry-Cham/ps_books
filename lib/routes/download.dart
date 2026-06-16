@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ps_books/models/book_data.dart';
 import '../services/download/downloader.dart';
-import '../services/download/zlib.dart';
 import '../services/download/steb.dart';
 import '../state/download_state.dart';
 
@@ -62,7 +61,7 @@ class Page extends ConsumerWidget {
     return Column(
       children: [
         Center(
-          child: SizedBox(width: 400, height: 80, child: const SearchBar()),
+          child: SizedBox(width: 400, height: 80, child: const DownloadSearchBar()),
         ),
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -93,8 +92,6 @@ class ProviderPills extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildPill(ref, 'Libgen', DownloadProvider.libgen, selectedProvider),
-        const SizedBox(width: 10),
-        _buildPill(ref, 'Z-Library', DownloadProvider.zlib, selectedProvider),
         const SizedBox(width: 10),
         _buildPill(
           ref,
@@ -129,14 +126,14 @@ class ProviderPills extends ConsumerWidget {
   }
 }
 
-class SearchBar extends ConsumerStatefulWidget {
-  const SearchBar({super.key});
+class DownloadSearchBar extends ConsumerStatefulWidget {
+  const DownloadSearchBar({super.key});
 
   @override
-  ConsumerState<SearchBar> createState() => _SearchBarState();
+  ConsumerState<DownloadSearchBar> createState() => _DownloadSearchBarState();
 }
 
-class _SearchBarState extends ConsumerState<SearchBar> {
+class _DownloadSearchBarState extends ConsumerState<DownloadSearchBar> {
   late final TextEditingController _searchController;
 
   @override
@@ -215,7 +212,7 @@ class BookGrid extends ConsumerWidget {
         // 1. Generate the safe Open Library URL if an ISBN exists
         final String? coverUrl = (book.isbn != null && book.isbn!.isNotEmpty)
             ? 'https://covers.openlibrary.org/b/isbn/${book.isbn![0]}-L.jpg?default=false'
-            : null;
+            : book.image;
 
         return SizedBox.expand(
           child: Card(
@@ -468,7 +465,6 @@ Future<void> _searchBooks(WidgetRef ref, String text) async {
   final providerMap = {
     DownloadProvider.libgen: 'libgen',
     DownloadProvider.steb: 'steb',
-    DownloadProvider.zlib: 'zlib',
   };
   ref.read(DownloadStateProvider.notifier).updateState(loading: true);
 

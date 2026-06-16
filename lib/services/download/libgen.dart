@@ -17,7 +17,7 @@ class LibgenScraper {
 
   static Future<List<DownloadBook>?> search(String query) async {
     final response = await _dio.get(
-      'https://libgen.li/index.php',
+      'https://libgen.gl/',
       queryParameters: {
         'req': query,
         'columns[]': ['t', 'a', 's', 'y', 'p', 'i'],
@@ -46,9 +46,11 @@ class LibgenScraper {
     // Fetch download links in parallel
     final books = await Future.wait(
       bookMaps.map((book) async {
+print('currently here');
         var href = book['href'];
-        var downloadLink = await _downloadPageScraper(href);
-        book['href'] = downloadLink;
+        // var downloadLink = await _downloadPageScraper(href);
+        book['href'] = "$url$book['href']";
+        // print('link obtained $downloadLink');
         return DownloadBook.fromMap(book);
       }),
     );
@@ -89,7 +91,9 @@ class LibgenScraper {
   }
 
   static Future<String?> _downloadPageScraper(String link) async {
+    print('$url$link');
     final response = await _dio.get("$url$link");
+print("res r");
     final page = html.parse(response.data);
     final downloadLink = page.querySelector("#main a")?.attributes['href'];
     if (downloadLink != null) {
