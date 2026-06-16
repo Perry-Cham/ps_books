@@ -4,6 +4,8 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:ps_books/readers/epubReader.dart';
 import 'package:ps_books/readers/fb2_reader.dart';
 import 'package:ps_books/readers/microsoft_reader.dart';
+import 'package:ps_books/readers/mobiReader.dart';
+import 'package:ps_books/readers/pptReader.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/reader_state.dart';
 import 'dart:io';
@@ -166,17 +168,36 @@ class ReaderState extends ConsumerState<Reader> {
           }
         },
       );
-    } else if(widget.type == 'mobi'){
-      return MobiReader();
-    }else if(widget.type == 'pptx'){
-      FutureBuilder(
-        future:File(widget.path).readAsBytes(),
-        builder:(context, snapshot){
-          if(snapshot.hasData){
-  return PptReader(bytes: snapshot.data!);
+    } else if (widget.type == 'mobi') {
+      return FutureBuilder(
+        future: File(widget.path).readAsBytes(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasData) {
+            return MobireaderPage(
+              bytes: snapshot.data!,
+              id: widget.id,
+              position: widget.position,
+            );
+          } else {
+            return const Center(child: Text('An error occurred'));
           }
-        }
-      )
+        },
+      );
+    } else if (widget.type == 'pptx') {
+      return FutureBuilder(
+        future: File(widget.path).readAsBytes(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasData) {
+            return PptReader(bytes: snapshot.data!);
+          } else {
+            return const Center(child: Text('An error occurred'));
+          }
+        },
+      );
     } else {
       print(widget.type);
       return Center(child: Text('Unsupported file'));
@@ -227,13 +248,15 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
     final showTimer = ref.watch(
       readerStateProvider.select((s) => s.showPomodoroTimer),
     );
-    final isTimerRunning = ref.watch(pomodoroProvider.select((s) => s.isRunning));
+    final isTimerRunning = ref.watch(
+      pomodoroProvider.select((s) => s.isRunning),
+    );
 
-    if(!showTimer && !isTimerRunning) return SizedBox.shrink();
+    if (!showTimer && !isTimerRunning) return SizedBox.shrink();
 
-    if (!showTimer){
+    if (!showTimer) {
       return IconButton.filled(
-        onPressed: (){
+        onPressed: () {
           ref.read(readerStateProvider.notifier).setShowPomodoroTrue();
         },
         icon: Icon(Icons.av_timer),
@@ -343,8 +366,10 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
                     color: Colors.blueAccent,
                   ),
                   onPressed: () {
-                   ref.read(pomodoroProvider.notifier).reset();
-                   ref.read(readerStateProvider.notifier).setShowPomodoroFalse();
+                    ref.read(pomodoroProvider.notifier).reset();
+                    ref
+                        .read(readerStateProvider.notifier)
+                        .setShowPomodoroFalse();
                   },
                 ),
                 IconButton(

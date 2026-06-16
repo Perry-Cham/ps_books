@@ -11,28 +11,31 @@ import 'package:webview_all/webview_all.dart';
 // ---------------------------------------------------------------------------
 // Asset server
 // ---------------------------------------------------------------------------
-sr.Router createRouter(Uint8List fileBytes){
+sr.Router createRouter(Uint8List fileBytes) {
   sr.Router router = sr.Router();
-  router.get('/reader/<path|.*>', (Request request) async {
-    //remove the reader annotation to get the path
-    final y = request.url.path.split('/');
-    y.remove('reader');
-    final x = y.join('/');
-    final path = request.url.path.isEmpty ? 'reader.html' : x;
-    print(path);
+  router.get('/web/<path|.*>', (Request request) async {
+    final segments = request.url.path.split('/');
+    segments.remove('web');
+    final relativePath = segments.join('/');
+    final assetPath = relativePath.isEmpty ? 'index.html' : relativePath;
 
     try {
-      final data = await rootBundle.load('assets/$path');
+      final data = await rootBundle.load('assets/web/$assetPath');
       final bytes = data.buffer.asUint8List();
-      Response.ok(bytes, headers: {'content-type': _mimeType(path)});
+      return Response.ok(
+        bytes,
+        headers: {'content-type': _mimeType(assetPath)},
+      );
     } catch (e) {
-      Response.notFound('Asset not found: $path');
+      return Response.notFound('Asset not found: $assetPath');
     }
   });
-  router.get("/get_file",(Request){
-    Response.ok(fileBytes, headers: {
-  'content-type': 'application/octet-stream'
-  });});
+  router.get("/get_file", (Request request) {
+    return Response.ok(
+      fileBytes,
+      headers: {'content-type': 'application/octet-stream'},
+    );
+  });
 
   return router;
 }
@@ -46,12 +49,11 @@ String _mimeType(String path) {
   return 'application/octet-stream';
 }
 
-Future<HttpServer> startAssetServer(bytes) async {
+Future<HttpServer> startAssetServer(Uint8List bytes) async {
   final handler = const Pipeline()
       .addMiddleware(logRequests())
       .addHandler(createRouter(bytes).call);
 
-  // Port 0 lets the OS pick a free port — avoids conflicts on restart.
   final server = await shelf_io.serve(handler, 'localhost', 0);
   debugPrint('Asset server running on http://localhost:${server.port}');
   return server;
@@ -63,11 +65,12 @@ Future<HttpServer> startAssetServer(bytes) async {
 
 class PptReaderPage extends StatelessWidget {
   const PptReaderPage({super.key, required this.fileBytes});
- final Uint8List fileBytes;
+  final Uint8List fileBytes;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mobi Reader',
+      title: 'PPT Reader',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
@@ -81,7 +84,7 @@ class PptReaderPage extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class PptReader extends StatefulWidget {
-  PptReader({super.key, required this.bytes});
+  const PptReader({super.key, required this.bytes});
   final Uint8List bytes;
 
   @override
@@ -102,16 +105,19 @@ class _PptReaderState extends State<PptReader> {
   }
 
   Future<void> _startServerAndLoad() async {
-
     _server = await startAssetServer(widget.bytes);
-    final url =
-        'http://localhost:${_server!.port}/web/index.html';
+    final url = 'http://localhost:${_server!.port}/web/index.html';
 
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'PptReader',
+        onMessageReceived: (JavaScriptMessage message) {
+          debugPrint('PptReader channel: ${message.message}');
+        },
+      )
       ..setOnConsoleMessage((message) {
-        print(message.level);
-        print(message.message);
+        debugPrint('[JS ${message.level}] ${message.message}');
       })
       ..setNavigationDelegate(
         NavigationDelegate(
@@ -137,7 +143,6 @@ class _PptReaderState extends State<PptReader> {
 
   @override
   void dispose() {
-    // Always shut the server down when leaving the page.
     _server?.close(force: true);
     super.dispose();
   }
@@ -146,7 +151,7 @@ class _PptReaderState extends State<PptReader> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mobi Reader'),
+        title: const Text('PPT Reader'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_sharp),
           onPressed: () => Navigator.pop(context),
@@ -183,7 +188,12 @@ class _PptReaderState extends State<PptReader> {
         ),
       ),
       body: _serverReady
-          ? WebViewWidget(controller: _controller)
+          ? Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 800),
+                child: WebViewWidget(controller: _controller),
+              ),
+            )
           : const Center(child: CircularProgressIndicator()),
     );
   }

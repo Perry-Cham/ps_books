@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -5,23 +6,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_router/shelf_router.dart' as sr;
 import 'package:webview_all/webview_all.dart';
+
+import 'package:ps_books/services/DB%20services/bookToDb.dart';
+
+final _database = BookToDb();
 
 // ---------------------------------------------------------------------------
 // Asset server
 // ---------------------------------------------------------------------------
 
-Future<Response> _assetHandler(Request request) async {
-  final path = request.url.path.isEmpty ? 'reader.html' : request.url.path;
-  print(path);
+sr.Router _createRouter(Uint8List fileBytes) {
+  sr.Router router = sr.Router();
 
-  try {
-    final data = await rootBundle.load('assets/$path');
-    final bytes = data.buffer.asUint8List();
-    return Response.ok(bytes, headers: {'content-type': _mimeType(path)});
-  } catch (e) {
-    return Response.notFound('Asset not found: $path');
-  }
+  router.get('/get_file', (Request request) {
+    return Response.ok(
+      fileBytes,
+      headers: {'content-type': 'application/octet-stream'},
+    );
+  });
+
+  router.get('/<path|.*>', (Request request) async {
+    final path = request.url.path;
+    final assetPath = path.isEmpty ? 'mobi.html' : path;
+    try {
+      final data = await rootBundle.load('assets/$assetPath');
+      final bytes = data.buffer.asUint8List();
+      return Response.ok(
+        bytes,
+        headers: {'content-type': _mimeType(assetPath)},
+      );
+    } catch (e) {
+      return Response.notFound('Asset not found: $assetPath');
+    }
+  });
+
+  return router;
 }
 
 String _mimeType(String path) {
@@ -33,34 +54,14 @@ String _mimeType(String path) {
   return 'application/octet-stream';
 }
 
-Future<HttpServer> startAssetServer() async {
+Future<HttpServer> _startAssetServer(Uint8List bytes) async {
   final handler = const Pipeline()
       .addMiddleware(logRequests())
-      .addHandler(_assetHandler);
+      .addHandler(_createRouter(bytes).call);
 
-  // Port 0 lets the OS pick a free port — avoids conflicts on restart.
   final server = await shelf_io.serve(handler, 'localhost', 0);
   debugPrint('Asset server running on http://localhost:${server.port}');
   return server;
-}
-
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
-
-class Mobireader extends StatelessWidget {
-  const Mobireader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mobi Reader',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      home: const MobireaderPage(),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -68,7 +69,16 @@ class Mobireader extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class MobireaderPage extends StatefulWidget {
-  const MobireaderPage({super.key});
+  const MobireaderPage({
+    super.key,
+    required this.bytes,
+    required this.id,
+    this.position,
+  });
+
+  final Uint8List bytes;
+  final int id;
+  final String? position;
 
   @override
   State<MobireaderPage> createState() => _MobireaderPageState();
@@ -76,6 +86,7 @@ class MobireaderPage extends StatefulWidget {
 
 class _MobireaderPageState extends State<MobireaderPage> {
   late final WebViewController _controller;
+  final Map<String, void Function(Map<String, dynamic>)> _handlers = {};
   HttpServer? _server;
   int _progress = 0;
   bool _serverReady = false;
@@ -83,27 +94,62 @@ class _MobireaderPageState extends State<MobireaderPage> {
   @override
   void initState() {
     super.initState();
+    _initHandlers();
     _controller = WebViewController();
     _startServerAndLoad();
   }
 
+  void _initHandlers() {
+    _handlers['relocate'] = (data) {
+      final cfi = data['cfi'] as String?;
+      final fraction = data['fraction'] as double?;
+      if (cfi != null) {
+        _database.updatePositionAndProgress(widget.id, cfi);
+      }
+      if (fraction != null) {
+        _database.updateProgress(widget.id, fraction);
+      }
+    };
+    _handlers['load'] = (data) {
+      if (widget.position != null) {
+        final escaped = jsonEncode(widget.position);
+        _controller.runJavaScript('mobiReader.goTo($escaped)');
+      }
+    };
+  }
+
+  void _onJavaScriptMessage(JavaScriptMessage message) {
+    try {
+      final data = jsonDecode(message.message) as Map<String, dynamic>;
+      final type = data['type'] as String?;
+      final handler = _handlers[type];
+      if (handler != null) {
+        handler(data);
+      }
+    } catch (e) {
+      debugPrint('PsBooksReader channel error: $e');
+    }
+  }
+
   Future<void> _startServerAndLoad() async {
-    // On web there is no Dart I/O — load the file directly instead.
     if (kIsWeb) {
-      _controller.loadRequest(Uri.parse('assets/reader.html'));
+      _controller.loadRequest(Uri.parse('assets/js/foliate-js-main/mobi.html'));
       if (mounted) setState(() => _serverReady = true);
       return;
     }
 
-    _server = await startAssetServer();
+    _server = await _startAssetServer(widget.bytes);
     final url =
-        'http://localhost:${_server!.port}/js/foliate-js-main/reader.html';
+        'http://localhost:${_server!.port}/js/foliate-js-main/mobi.html';
 
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'PsBooksReader',
+        onMessageReceived: _onJavaScriptMessage,
+      )
       ..setOnConsoleMessage((message) {
-        print(message.level);
-        print(message.message);
+        debugPrint('[MOBI JS ${message.level}] ${message.message}');
       })
       ..setNavigationDelegate(
         NavigationDelegate(
@@ -129,7 +175,6 @@ class _MobireaderPageState extends State<MobireaderPage> {
 
   @override
   void dispose() {
-    // Always shut the server down when leaving the page.
     _server?.close(force: true);
     super.dispose();
   }
@@ -138,7 +183,7 @@ class _MobireaderPageState extends State<MobireaderPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mobi Reader'),
+        title: const Text('MOBI Reader'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_sharp),
           onPressed: () => Navigator.pop(context),

@@ -68,7 +68,7 @@ class Page extends ConsumerWidget {
           padding: EdgeInsets.symmetric(vertical: 8.0),
           child: ProviderPills(),
         ),
-        if (downloadState.loading != null && downloadState.loading!)
+        if (downloadState.loading == true)
           const Expanded(child: LoadingResults())
         else if (downloadState.searchResults != null &&
             downloadState.searchResults!.isNotEmpty)
@@ -159,7 +159,7 @@ class _SearchBarState extends ConsumerState<SearchBar> {
           child: TextFormField(
             controller: _searchController,
             onFieldSubmitted: (_) {
-              _searchBooks(ref, _searchController.value as String);
+              _searchBooks(ref, _searchController.text);
             },
             decoration: InputDecoration(
               suffixIcon: IconButton(
@@ -327,10 +327,9 @@ class BookGrid extends ConsumerWidget {
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () async {
-                      String? link = await downloadPageScraper(book.href);
-                      if (link != null) {
+                      if (book.href != null) {
                         try {
-                          String fileName = await getFileName(link);
+                          String fileName = await getFileName(book.href);
                           ref
                               .read(downloadProgressProvider.notifier)
                               .setFileName(fileName);
@@ -342,7 +341,7 @@ class BookGrid extends ConsumerWidget {
                           );
                           ref
                               .read(downloadProgressProvider.notifier)
-                              .startDownload(link, fileName);
+                              .startDownload(book.href, fileName);
                         } catch (e, h) {
                           print(e);
                           print(h);
@@ -466,20 +465,15 @@ class LoadingResults extends StatelessWidget {
 
 Future<void> _searchBooks(WidgetRef ref, String text) async {
   final provider = ref.read(DownloadStateProvider).downloadProvider;
+  final providerMap = {
+    DownloadProvider.libgen: 'libgen',
+    DownloadProvider.steb: 'steb',
+    DownloadProvider.zlib: 'zlib',
+  };
   ref.read(DownloadStateProvider.notifier).updateState(loading: true);
 
   List<DownloadBook> books;
-  switch (provider) {
-    case DownloadProvider.libgen:
-      books = await SearchBooks(text);
-      break;
-    case DownloadProvider.zlib:
-      books = await searchZlib(text);
-      break;
-    case DownloadProvider.steb:
-     books = await SearchBooks(text);
-      break;
-  }
+  books = await SearchBooks(text, providerMap[provider]!);
 
   print("The book objects are here");
   print(books);

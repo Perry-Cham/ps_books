@@ -28,6 +28,7 @@ class Pick_Books {
           'cbz',
           'cbt',
           'cbw',
+          'azw3'
         ],
         type: FileType.custom,
       );
@@ -93,7 +94,7 @@ class Pick_Books {
                     extension: extension,
                   ),
                 );
-          } else if (extension == 'mobi') {
+          } else if (extension == 'mobi' || extension == 'azw3') {
             final book = KindleBook.fromBytes(fileBytes);
             final bookData = await processBook(
               fileBytes: fileBytes,
@@ -101,8 +102,8 @@ class Pick_Books {
               extension: extension,
               coversDir: CoversDir,
             );
-            final convertedEpubPath = "${BooksDir.path}/${bookData.title}.epub";
-             await File(convertedEpubPath).writeAsBytes(book.toEpub());
+           /* final convertedEpubPath = "${BooksDir.path}/${bookData.title}.epub";
+             await File(convertedEpubPath).writeAsBytes(book.toEpub());*/
 
             await database
                 .into(database.books)
@@ -110,18 +111,16 @@ class Pick_Books {
                   BooksCompanion.insert(
                     name: bookData.title,
                     author: Value(bookData.author),
-                    path: convertedEpubPath,
-                    extension: 'epub',
-                    page: extension == 'pdf'
-                        ? const Value(1)
-                        : const Value.absent(),
+                    path: destinationPath,
+                    extension: extension,
+                    page: Value.absent(),
                     coverPath: bookData.coverPath != null
                         ? Value(bookData.coverPath)
                         : const Value(null),
                   ),
                 );
-            final mobiFile = File(destinationPath);
-            await mobiFile.delete();
+            /*final mobiFile = File(destinationPath);
+            await mobiFile.delete();*/
           }
         } catch (e, stack) {
           print(e);
