@@ -46,3 +46,6 @@ app.*.map.json
 
 # Env 
 env.json 
+
+#foliate js build files
+/home/perry/Pictures/pictures/Websites/ps_books/assets/js/foliate-js-main/node_modules/
