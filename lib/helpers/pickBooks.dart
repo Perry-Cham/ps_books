@@ -11,7 +11,7 @@ import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
 
 final database = DBProvider().db;
-final _extensions = ['pdf', 'epub', 'fb2', 'cbz', 'cbt', 'cbw'];
+final _extensions = ['pdf', 'epub', 'fb2', 'cbz', 'cbt', 'cbr', 'cbw'];
 
 class Pick_Books {
   Future<Message> pickbooks() async {
@@ -27,6 +27,7 @@ class Pick_Books {
           'docx',
           'cbz',
           'cbt',
+          'cbr',
           'cbw',
           'azw3'
         ],

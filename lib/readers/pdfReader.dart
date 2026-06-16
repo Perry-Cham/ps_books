@@ -129,10 +129,6 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
         child: ValueListenableBuilder(
           valueListenable: widget.controller,
           builder: (context, value, child) {
-            if (outline.isEmpty) {
-              return const Center(child: Text('No outline available'));
-            }
-
             return SafeArea(
               child:Column(
                 children: [
@@ -147,28 +143,30 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
                     child: TabBarView(
                       controller: drawerTabController,
                       children: [
-                        ListView(
-                          padding: EdgeInsets.zero,
-                          children: [
-                            const DrawerHeader(
-                              decoration: BoxDecoration(color: Colors.blue),
-                              child: Text(
-                                'Table of Contents',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                ),
+                        outline.isEmpty
+                            ? const Center(child: Text('No outline available'))
+                            : ListView(
+                                padding: EdgeInsets.zero,
+                                children: [
+                                  const DrawerHeader(
+                                    decoration: BoxDecoration(color: Colors.blue),
+                                    child: Text(
+                                      'Table of Contents',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ),
+                                  ...outline.map(
+                                    (node) => PdfOutlineNodeWidget(
+                                      node: node,
+                                      controller: widget.controller,
+                                      level: 0,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            ...outline.map(
-                              (node) => PdfOutlineNodeWidget(
-                                node: node,
-                                controller: widget.controller,
-                                level: 0,
-                              ),
-                            ),
-                          ],
-                        ),
                         TextSearchView(textSearcher: PdfTextSearcher(widget.controller))
                       ],
                     ),

@@ -31,6 +31,7 @@ class _DownloadBook {
     size: size,
     language: language,
     isbn: isbn,
+    image: image,
   );
 }
 

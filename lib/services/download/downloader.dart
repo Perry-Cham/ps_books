@@ -7,7 +7,6 @@ import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/helpers/book_processor.dart';
 import 'package:ps_books/models/book_data.dart';
 import 'package:ps_books/services/download/steb.dart';
-import 'package:ps_books/services/download/zlib.dart';
 import 'package:ps_books/services/download/libgen.dart';
 
 final _db = BookToDb();
@@ -17,8 +16,6 @@ Future<List<DownloadBook>> SearchBooks(String query, String provider) async {
     return await LibgenScraper.search(query) ?? [];
   } else if (provider == 'steb') {
     return await StandardEbooksScraper.search(query);
-  } else if (provider == 'zlib') {
-    return await searchZlib(query);
   }
   return [];
 }

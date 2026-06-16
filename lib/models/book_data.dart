@@ -21,6 +21,7 @@ class DownloadBook {
   final String size;
   List<String>? isbn;
   final String language;
+  final String? image;
   DownloadBook({
     required this.title,
     required this.year,
@@ -28,14 +29,15 @@ class DownloadBook {
     required this.href,
     required this.size,
     required this.language,
-    required this.isbn
+    required this.isbn,
+    this.image,
   });
 
   static DownloadBook? fromMap(Map<String, dynamic> book) {
     //  print(book['href']);
     String ext = (book['extension'] ?? "").toString().toLowerCase();
     if ((ext != "pdf" && ext != "epub" && ext != "fb2" && ext != "mobi" &&
-        ext != "cbz" && ext != "cbt" && ext != "cbw") ||
+        ext != "cbz" && ext != "cbt" && ext != "cbw" && ext != 'azw3' && ext != 'cbr') ||
         book['href'] == null) {
       return null;
     } else {
@@ -46,7 +48,8 @@ class DownloadBook {
           href: book['href'],
           size: book['size'],
           isbn:book['isbn'],
-          language: book['language']
+          language: book['language'],
+          image: book['image'],
       );
     }
   }

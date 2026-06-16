@@ -10,39 +10,38 @@ import 'package:timezone/timezone.dart';
 import 'package:workmanager/workmanager.dart';
 
 final _db = TimetableToDb();
-late final globalProviderContainer;
+late final ProviderContainer globalProviderContainer;
 // Global reference pointer provider to hold the active main UI Riverpod container mapping
 
 
 @pragma('vm:entry-point')
 void registerStudyNotifications() async {
   Workmanager().executeTask((name, input) async {
-    final l = DateTime.now();
-    final d = DateFormat('EEEE').format(l);
+    try {
+      final l = DateTime.now();
+      final d = DateFormat('EEEE').format(l);
 
-    final data = await _db.getTimetableSessions(d.toLowerCase());
-    final notifs = Notifications();
-    await notifs.init();
+      final data = await _db.getTimetableSessions(d.toLowerCase());
+      final notifs = Notifications();
+      await notifs.init();
 
-    if (data.isNotEmpty) {
-      for (var session in data) {
-        await notifs.scheduleNotification(session);
+      if (data.isNotEmpty) {
+        for (var session in data) {
+          await notifs.scheduleNotification(session);
+        }
       }
+      return Future.value(true);
+    } catch (e) {
+      print("Workmanager task failed: $e");
+      return Future.value(false);
     }
-    return Future.value(true);
   });
 }
 
-// FIX: This callback MUST be a top-level or static function to execute reliably from background/minimized states
 @pragma('vm:entry-point')
 void onNotificationTap(NotificationResponse response) {
-  if (globalProviderContainer == null) {
-    print("⚠️ App container reference not initialized yet.");
-    return;
-  }
-
-  final notifier = globalProviderContainer!.read(pomodoroProvider.notifier);
-print(response.actionId);
+  final notifier = globalProviderContainer.read(pomodoroProvider.notifier);
+  print(response.actionId);
   switch (response.actionId) {
     case 'pause':
       notifier.pause();
@@ -51,7 +50,6 @@ print(response.actionId);
       notifier.resume();
       break;
     case 'skip':
-    // Implement your skip logic here if needed
       break;
   }
 }
@@ -73,9 +71,19 @@ class Notifications {
     const InitializationSettings initializationSettings =
     InitializationSettings(android: initializationSettingsAndroid, linux: linux);
 
+    final androidPlugin = flutterNotifs.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(channel);
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'timetable_channel',
+        'Timetable Notifications',
+        importance: Importance.max,
+      ),
+    );
+
     await flutterNotifs.initialize(
       settings: initializationSettings,
-      // FIX: Reference the global callback handler entry point cleanly
       onDidReceiveNotificationResponse: onNotificationTap,
       onDidReceiveBackgroundNotificationResponse: onNotificationTap,
     );
@@ -207,7 +215,7 @@ TZDateTime _convertToTZDateTime(String t) {
   );
   final loc = local;
   final now = TZDateTime.now(loc);
-  return TZDateTime(
+  var scheduledDate = TZDateTime(
     loc,
     now.year,
     now.month,
@@ -215,4 +223,8 @@ TZDateTime _convertToTZDateTime(String t) {
     time.hour,
     time.minute,
   );
+  if (scheduledDate.isBefore(now)) {
+    scheduledDate = scheduledDate.add(const Duration(days: 1));
+  }
+  return scheduledDate;
 }

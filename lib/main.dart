@@ -29,7 +29,7 @@ void main() async {
 
   if (Platform.isAndroid) {
     await Workmanager().initialize(registerStudyNotifications);
-    final bool enableAlarms = prefs.getBool('timetable_alarms') ?? false;
+    final bool enableAlarms = prefs.getBool('enableAlarms') ?? false;
     if (enableAlarms) {
       await Workmanager().registerPeriodicTask(
         "timetable-sync-task", // Unique name

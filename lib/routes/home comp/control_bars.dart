@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
@@ -67,14 +68,25 @@ class ControlBar extends ConsumerWidget {
     final selectedBookIds = ref.watch(
       provider.select((state) => (state as dynamic).selectedBookIds),
     );
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.purple[800]!, width: 2.0),
-        borderRadius: BorderRadius.all(Radius.circular(15)),
-        color: Colors.purple[800]!,
-      ),
-      padding: EdgeInsets.all(10),
-      child: Row(
+    return ClipRRect(
+      borderRadius: BorderRadius.all(Radius.circular(15)),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.purple[300]!.withValues(alpha: 0.4), width: 1.5),
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            gradient: LinearGradient(
+              colors: [
+                Colors.purple[800]!.withValues(alpha: 0.65),
+                Colors.purple[600]!.withValues(alpha: 0.45),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          padding: EdgeInsets.all(10),
+          child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         spacing: 10.0,
         children: [
@@ -134,6 +146,8 @@ class ControlBar extends ConsumerWidget {
             label: Text("Add To Collection"),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

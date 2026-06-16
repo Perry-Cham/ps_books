@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/services/download/downloader.dart';
 import 'package:ps_books/models/book_data.dart';
 
-enum DownloadProvider { libgen, zlib, steb }
+enum DownloadProvider { libgen, steb }
 
 class DownloadState {
   final List<DownloadBook>? searchResults;

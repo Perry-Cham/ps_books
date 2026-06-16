@@ -1714,6 +1714,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  unrar:
+    dependency: transitive
+    description:
+      name: unrar
+      sha256: "21cdddf7cda18ece1163f3bc484f56e7bd1e9eed3cf9d1c5c234111026f29b41"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   url_launcher:
     dependency: "direct main"
     description:
