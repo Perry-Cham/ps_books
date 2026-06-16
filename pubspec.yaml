@@ -85,7 +85,7 @@ dependencies:
   comic_reader:
     path: ../comic_reader-0.4.0
   shelf: ^1.4.2
-  zikzak_inappwebview: ^4.3.5
+  zikzak_inappwebview: any
   audioplayers: ^6.0.0
   internet_connection_checker_plus: ^3.0.1
   webview_all: ^1.0.3

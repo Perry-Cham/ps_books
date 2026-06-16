@@ -33,9 +33,6 @@ class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget{
       iconTheme: const IconThemeData(color: Colors.white),
       actions: [
         PopUpControls(provider: LibraryStateProvider),
-        IconButton(onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (_) => Mobireader()));
-        }, icon: Icon(Icons.web))
       ],
     );
   }
