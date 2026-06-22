@@ -42,11 +42,8 @@ dependencies:
   drift: ^2.32.1
   drift_flutter: ^0.3.0
   pdfrx: ^2.4.0
- # katbook_epub_reader: ^2.1.2
-  katbook_epub_reader: 
-    git: 
-      url: https://github.com/Perry-Cham/katbook_epub_reader.git
-      ref: navigation 
+  katbook_epub_reader:
+    path: ../katbook_epub_reader
   dart_pdf_reader: ^2.2.0
   epub_pro: ^5.6.0
   shared_preferences: ^2.5.5
@@ -55,8 +52,7 @@ dependencies:
   dio: ^5.9.2
   #microsoft_viewer: ^0.0.8
   microsoft_viewer:
-      git:
-        url: https://github.com/Perry-Cham/microsoft_viewer_flutter.git
+      path: ../microsoft_viewer-0.0.8
   url_launcher: ^6.3.2
   google_sign_in: ^7.2.0
   extension_google_sign_in_as_googleapis_auth: ^3.0.0
@@ -85,11 +81,14 @@ dependencies:
   comic_reader:
     path: ../comic_reader-0.4.0
   shelf: ^1.4.2
-  zikzak_inappwebview: any
   audioplayers: ^6.0.0
   internet_connection_checker_plus: ^3.0.1
   webview_all: ^1.0.3
   shelf_router: ^1.1.4
+  flutter_chat_core: ^2.9.0
+  flutter_chat_ui: ^2.11.1
+  pdf_renderer_bridge: ^0.0.3
+  uuid: ^4.5.3
 
 dev_dependencies:
   flutter_test:

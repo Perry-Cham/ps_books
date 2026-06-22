@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:dart_pdf_engine/dart_pdf_engine_viewer.dart';
 import 'package:image/image.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart' as pdf;
+import 'package:pdf_engine_core/pdf_engine_core.dart';
+import 'package:pdf_renderer_bridge/pdf_renderer_bridge.dart';
 import 'package:epub_pro/epub_pro.dart';
 import 'package:xml/xml.dart';
 import 'package:ps_books/models/book_data.dart';
@@ -26,19 +30,47 @@ Future<BookData> processBook({
   try {
     if (extension == 'pdf') {
       try {
+        final stopwatch = Stopwatch()..start();
+        final dir = await getApplicationDocumentsDirectory();
+
         final doc = PdfDocument.fromBytes(fileBytes);
-        final docForImage = await pdf.PdfDocument.openData(fileBytes);
+        // 2. Read elapsed time (can use elapsedMilliseconds for better precision)
+        print("dart-pdf loaded the doc in ${stopwatch.elapsed.inSeconds} seconds");
+
+        // If you want to benchmark pdfrx separately from a clean slate:
+        stopwatch.reset();
+
+    //    final docForImage = await pdf.PdfDocument.openFile("$dir/Books/$fileName");
+        print("pdfrx processed the doc in ${stopwatch.elapsed.inSeconds} seconds");
+
+        // Stop the stopwatch when you're completely done benchmarking
+        stopwatch.stop();
         if (doc.documentInfo.title != null && doc.documentInfo.title!.isNotEmpty) {
           bookTitle = doc.documentInfo.title!;
+          print(doc.documentInfo.title);
         }
         author =
             doc.documentInfo.author ?? doc.documentInfo.creator ?? "Unknown";
 
-        final page = docForImage.pages[0];
+
+        final bridge = PdfRendererBridge();
+        final document = await bridge.openDocument(
+          PdfDocumentSource.bytes(fileBytes),
+        );
+
+        final page = await bridge.renderPage(
+          PdfRenderRequest(documentId: document.documentId, pageIndex: 0, scale: 2),
+        );
+
+        await bridge.closeDocument(document.documentId);
+
+
+     /*   final page = docForImage.pages[0];
         final pageImage = await page.render();
 
         final img = pageImage?.createImageNF();
-        final coverImage = img != null ? encodePng(img) : null;
+        final coverImage = img != null ? encodePng(img) : null; */
+        final coverImage = page.pngBytes;
         if (coverImage != null) {
           // Sanitize title for filename
           String sanitizedTitle = bookTitle.replaceAll(
@@ -133,7 +165,7 @@ Future<BookData> processBook({
       } catch (e) {
         print("Error processing FB2: $e");
       }
-    } else if (extension == 'mobi') {
+    } else if (extension == 'mobi' || extension == 'azw3') {
       final book = KindleBook.fromBytes(fileBytes);
       bookTitle = book.title;
       author = book.exth?.authors.first;

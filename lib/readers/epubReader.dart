@@ -28,9 +28,6 @@ class EpubReaderScreen extends ConsumerStatefulWidget {
   /// Width percentage of the screen for content
   final double contentWidthPercent;
 
-  /// Show the app bar
-  final bool showAppBar;
-
   /// Callback when the position changes
   final void Function(ReadingPosition position)? onPositionChanged;
 
@@ -68,7 +65,6 @@ class EpubReaderScreen extends ConsumerStatefulWidget {
     this.initialPosition,
     this.initialFontSize = 16.0,
     this.contentWidthPercent = 0.70,
-    this.showAppBar = true,
     this.onPositionChanged,
     this.onReadingModeChanged,
     this.onProgressChanged,
@@ -88,7 +84,7 @@ class EpubReaderScreen extends ConsumerStatefulWidget {
 
 class EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
   final KatbookEpubController _controller = KatbookEpubController();
-  final GlobalKey<KatbookEpubReaderState> _readerKey =
+  final GlobalKey<KatbookEpubReaderState> readerKey =
       GlobalKey<KatbookEpubReaderState>();
   bool _isLoading = true;
   String? _error;
@@ -175,87 +171,61 @@ class EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
    return preferences.when(
       data: (prefs) {
         if (_isLoading) {
-          return Scaffold(
-            appBar: widget.showAppBar
-                ? AppBar(
-                    title: const Text('Loading...'),
-                    leading: widget.onClose != null
-                        ? IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: widget.onClose,
-                          )
-                        : null,
-                  )
-                : null,
-            body: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading EPUB...'),
-                ],
-              ),
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading EPUB...'),
+              ],
             ),
           );
         }
 
         // Show error state
         if (_error != null) {
-          return Scaffold(
-            appBar: widget.showAppBar
-                ? AppBar(
-                    title: const Text('Error'),
-                    leading: widget.onClose != null
-                        ? IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: widget.onClose,
-                          )
-                        : null,
-                  )
-                : null,
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red,
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Error loading EPUB',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Error loading EPUB',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(_error!, textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _loadEpub,
+                    child: const Text('Try Again'),
+                  ),
+                  if (widget.onClose != null) ...[
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: widget.onClose,
+                      child: const Text('Go Back'),
                     ),
-                    const SizedBox(height: 8),
-                    Text(_error!, textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _loadEpub,
-                      child: const Text('Try Again'),
-                    ),
-                    if (widget.onClose != null) ...[
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: widget.onClose,
-                        child: const Text('Go Back'),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
             ),
           );
         }
         // Show the EPUB reader
         return KatbookEpubReader(
-          key: _readerKey,
+          key: readerKey,
           controller: _controller,
           initialPosition: widget.initialPosition,
 
@@ -266,7 +236,7 @@ class EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
 
           // Layout settings
           contentWidthPercent: widget.contentWidthPercent,
-          showAppBar: widget.showAppBar,
+          showAppBar: false,
 
           // Language settings
           locale: widget.locale,
@@ -310,72 +280,46 @@ class EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
       },
 
       error: (error, stackTrace) {
-        return Scaffold(
-          appBar: widget.showAppBar
-              ? AppBar(
-                  title: const Text('Error'),
-                  leading: widget.onClose != null
-                      ? IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: widget.onClose,
-                        )
-                      : null,
-                )
-              : null,
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Error loading EPUB',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Error loading EPUB',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(_error!, textAlign: TextAlign.center),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _loadEpub,
+                  child: const Text('Try Again'),
+                ),
+                if (widget.onClose != null) ...[
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: widget.onClose,
+                    child: const Text('Go Back'),
                   ),
-                  const SizedBox(height: 8),
-                  Text(_error!, textAlign: TextAlign.center),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _loadEpub,
-                    child: const Text('Try Again'),
-                  ),
-                  if (widget.onClose != null) ...[
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: widget.onClose,
-                      child: const Text('Go Back'),
-                    ),
-                  ],
                 ],
-              ),
+              ],
             ),
           ),
         );
       },
       loading: () {
-        return Scaffold(
-          appBar: widget.showAppBar
-              ? AppBar(
-                  title: const Text('Loading...'),
-                  leading: widget.onClose != null
-                      ? IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: widget.onClose,
-                        )
-                      : null,
-                )
-              : null,
-          body: const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Loading EPUB...'),
-              ],
-            ),
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading EPUB...'),
+            ],
           ),
         );
       },

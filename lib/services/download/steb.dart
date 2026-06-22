@@ -107,7 +107,7 @@ class StandardEbooksScraper {
       );
       if (link != null) {
         final href = link.attributes['href'];
-        return href!.startsWith("http") ? href : "$baseUrl$href";
+        return href!.startsWith("http") ? href : "$baseUrl${href}?source=download";
       }
       print("No epubs found on detail page");
     } catch (e) {

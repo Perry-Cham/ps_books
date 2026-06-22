@@ -9,20 +9,8 @@ class MicrosoftReader extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed:(){
-            if(context.mounted){Navigator.of(context).pop();}
-          }
-        ),
-        title: Text('Reader'),
-      ),
-      body:Center(
-        child: SizedBox(height:1000, child: MicrosoftViewer(fileBytes, false, scale:3.0))
-      )
+    return Center(
+      child: SizedBox(height:1000, child: MicrosoftViewer(fileBytes, false, scale:3.0))
     );
-
   }
 }

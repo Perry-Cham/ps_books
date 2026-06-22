@@ -54,13 +54,17 @@ class TimetableSessions extends Table {
 
 class TargetSubjects extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get uuid => text().unique()();
   TextColumn get name => text()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
 }
 
 class TargetTopics extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get uuid => text().unique()();
   TextColumn get name => text()();
   BoolColumn get isCompleted => boolean()();
+  DateTimeColumn get lastModified => dateTime()();
   IntColumn get subjectId => integer().references(TargetSubjects, #id)();
 }
 
@@ -91,7 +95,24 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.addColumn(targetSubjects, targetSubjects.uuid);
+          await m.addColumn(targetSubjects, targetSubjects.syncedAt);
+          await m.addColumn(targetTopics, targetTopics.uuid);
+          await m.addColumn(targetTopics, targetTopics.lastModified);
+        }
+      },
+    );
+  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

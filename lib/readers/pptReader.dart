@@ -149,52 +149,13 @@ class _PptReaderState extends State<PptReader> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('PPT Reader'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_sharp),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          if (!kIsWeb) ...[
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () async {
-                if (await _controller.canGoBack()) {
-                  await _controller.goBack();
-                }
-              },
+    return _serverReady
+        ? Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 800),
+              child: WebViewWidget(controller: _controller),
             ),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: () async {
-                if (await _controller.canGoForward()) {
-                  await _controller.goForward();
-                }
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () => _controller.reload(),
-            ),
-          ],
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3),
-          child: !kIsWeb && _progress < 100
-              ? LinearProgressIndicator(value: _progress / 100)
-              : const SizedBox(height: 3),
-        ),
-      ),
-      body: _serverReady
-          ? Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 800),
-                child: WebViewWidget(controller: _controller),
-              ),
-            )
-          : const Center(child: CircularProgressIndicator()),
-    );
+          )
+        : const Center(child: CircularProgressIndicator());
   }
 }

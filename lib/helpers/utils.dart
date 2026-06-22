@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../dbs/initdb.dart';
 import 'package:charset_converter/charset_converter.dart';
 
@@ -123,5 +126,33 @@ Future<void> deleteBooks(Set<int> deletedBookIds) async {
     if (await bookFile.exists()) {
       await bookFile.delete();
     }
+  }
+}
+
+class AuthDio {
+  static final Dio _dio = Dio();
+  static bool _initialized = false;
+
+  static Dio get instance {
+    if (!_initialized) {
+      _dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) async {
+            final prefs = await SharedPreferences.getInstance();
+            final token = prefs.getString('ps_auth_token');
+            if (token != null) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
+            return handler.next(options);
+          },
+        ),
+      );
+      _initialized = true;
+    }
+    return _dio;
+  }
+
+  static Future<Dio> returnInstance() async {
+    return instance;
   }
 }

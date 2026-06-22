@@ -10,9 +10,9 @@
 #include <charset_converter/charset_converter_plugin.h>
 #include <desktop_webview_window/desktop_webview_window_plugin.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
+#include <pdf_renderer_bridge/pdf_renderer_bridge_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <webview_all_windows/webview_windows_plugin.h>
-#include <webview_windows/webview_windows_plugin.h>
 #include <window_to_front/window_to_front_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
@@ -24,10 +24,10 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("DesktopWebviewWindowPlugin"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
+  PdfRendererBridgePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PdfRendererBridgePluginCApi"));
   UrlLauncherWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
-  WebviewWindowsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("WebviewWindowsPlugin"));
   WebviewWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("WebviewWindowsPlugin"));
   WindowToFrontPluginRegisterWithRegistrar(

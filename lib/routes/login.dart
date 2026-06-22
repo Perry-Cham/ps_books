@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ps_books/services/study/target_sync.dart' as target_sync;
 import 'package:ps_books/state/google_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -59,6 +60,8 @@ print('$baseUrl$endpoint');
 
       final userName = userData != null ? userData['name'] as String : '';
       await ref.read(userAccountsProvider.notifier).updatePsBooksUser(userName, true);
+
+      target_sync.syncTargetsIfSignedIn();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -3,39 +3,66 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class ReaderState {
   final bool isReading;
   final bool showPomodoroTimer;
+  final bool showAiChat;
+  final int? secondBookId;
   ReaderState({
     this.isReading = false,
     this.showPomodoroTimer = false,
-});
+    this.showAiChat = false,
+    this.secondBookId,
+  });
 
   ReaderState copyWith({
     bool? isReading,
     bool? showPomodoroTimer,
-}){
+    bool? showAiChat,
+    int? secondBookId,
+  }) {
     return ReaderState(
-        isReading: isReading ?? this.isReading,
-        showPomodoroTimer: showPomodoroTimer ?? this.showPomodoroTimer,
-      );
+      isReading: isReading ?? this.isReading,
+      showPomodoroTimer: showPomodoroTimer ?? this.showPomodoroTimer,
+      showAiChat: showAiChat ?? this.showAiChat,
+      secondBookId: secondBookId ?? this.secondBookId,
+    );
   }
 }
 
-class ReaderStateNotifier extends Notifier<ReaderState>{
+class ReaderStateNotifier extends Notifier<ReaderState> {
   @override
   ReaderState build() => ReaderState();
 
-  void setIsReadingTrue(){
+  void setIsReadingTrue() {
     state = state.copyWith(isReading: true);
   }
-  void setIsReadingFalse(){
+
+  void setIsReadingFalse() {
     state = state.copyWith(isReading: false);
   }
 
-  void setShowPomodoroTrue(){
+  void setShowPomodoroTrue() {
     state = state.copyWith(showPomodoroTimer: true);
   }
-  void setShowPomodoroFalse(){
+
+  void setShowPomodoroFalse() {
     state = state.copyWith(showPomodoroTimer: false);
+  }
+
+  void setShowAiChatTrue() {
+    state = state.copyWith(showAiChat: true, secondBookId: null);
+  }
+
+  void setShowAiChatFalse() {
+    state = state.copyWith(showAiChat: false);
+  }
+
+  void setSecondBook(int id) {
+    state = state.copyWith(secondBookId: id, showAiChat: false);
+  }
+
+  void clearSecondBook() {
+    state = state.copyWith(secondBookId: null);
   }
 }
 
-final readerStateProvider = NotifierProvider<ReaderStateNotifier, ReaderState>(ReaderStateNotifier.new);
+final readerStateProvider =
+    NotifierProvider<ReaderStateNotifier, ReaderState>(ReaderStateNotifier.new);

@@ -1830,6 +1830,16 @@ class $TargetSubjectsTable extends TargetSubjects
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -1839,8 +1849,19 @@ class $TargetSubjectsTable extends TargetSubjects
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, uuid, name, syncedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1856,6 +1877,14 @@ class $TargetSubjectsTable extends TargetSubjects
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -1863,6 +1892,12 @@ class $TargetSubjectsTable extends TargetSubjects
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
     }
     return context;
   }
@@ -1877,10 +1912,18 @@ class $TargetSubjectsTable extends TargetSubjects
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
     );
   }
 
@@ -1892,18 +1935,36 @@ class $TargetSubjectsTable extends TargetSubjects
 
 class TargetSubject extends DataClass implements Insertable<TargetSubject> {
   final int id;
+  final String uuid;
   final String name;
-  const TargetSubject({required this.id, required this.name});
+  final DateTime? syncedAt;
+  const TargetSubject({
+    required this.id,
+    required this.uuid,
+    required this.name,
+    this.syncedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['uuid'] = Variable<String>(uuid);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
     return map;
   }
 
   TargetSubjectsCompanion toCompanion(bool nullToAbsent) {
-    return TargetSubjectsCompanion(id: Value(id), name: Value(name));
+    return TargetSubjectsCompanion(
+      id: Value(id),
+      uuid: Value(uuid),
+      name: Value(name),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
   }
 
   factory TargetSubject.fromJson(
@@ -1913,7 +1974,9 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TargetSubject(
       id: serializer.fromJson<int>(json['id']),
+      uuid: serializer.fromJson<String>(json['uuid']),
       name: serializer.fromJson<String>(json['name']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
     );
   }
   @override
@@ -1921,16 +1984,29 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'uuid': serializer.toJson<String>(uuid),
       'name': serializer.toJson<String>(name),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
     };
   }
 
-  TargetSubject copyWith({int? id, String? name}) =>
-      TargetSubject(id: id ?? this.id, name: name ?? this.name);
+  TargetSubject copyWith({
+    int? id,
+    String? uuid,
+    String? name,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => TargetSubject(
+    id: id ?? this.id,
+    uuid: uuid ?? this.uuid,
+    name: name ?? this.name,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
   TargetSubject copyWithCompanion(TargetSubjectsCompanion data) {
     return TargetSubject(
       id: data.id.present ? data.id.value : this.id,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
       name: data.name.present ? data.name.value : this.name,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
     );
   }
 
@@ -1938,44 +2014,69 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
   String toString() {
     return (StringBuffer('TargetSubject(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('syncedAt: $syncedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, uuid, name, syncedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TargetSubject &&
           other.id == this.id &&
-          other.name == this.name);
+          other.uuid == this.uuid &&
+          other.name == this.name &&
+          other.syncedAt == this.syncedAt);
 }
 
 class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
   final Value<int> id;
+  final Value<String> uuid;
   final Value<String> name;
+  final Value<DateTime?> syncedAt;
   const TargetSubjectsCompanion({
     this.id = const Value.absent(),
+    this.uuid = const Value.absent(),
     this.name = const Value.absent(),
+    this.syncedAt = const Value.absent(),
   });
   TargetSubjectsCompanion.insert({
     this.id = const Value.absent(),
+    required String uuid,
     required String name,
-  }) : name = Value(name);
+    this.syncedAt = const Value.absent(),
+  }) : uuid = Value(uuid),
+       name = Value(name);
   static Insertable<TargetSubject> custom({
     Expression<int>? id,
+    Expression<String>? uuid,
     Expression<String>? name,
+    Expression<DateTime>? syncedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (uuid != null) 'uuid': uuid,
       if (name != null) 'name': name,
+      if (syncedAt != null) 'synced_at': syncedAt,
     });
   }
 
-  TargetSubjectsCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return TargetSubjectsCompanion(id: id ?? this.id, name: name ?? this.name);
+  TargetSubjectsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? uuid,
+    Value<String>? name,
+    Value<DateTime?>? syncedAt,
+  }) {
+    return TargetSubjectsCompanion(
+      id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      name: name ?? this.name,
+      syncedAt: syncedAt ?? this.syncedAt,
+    );
   }
 
   @override
@@ -1984,8 +2085,14 @@ class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
     }
     return map;
   }
@@ -1994,7 +2101,9 @@ class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
   String toString() {
     return (StringBuffer('TargetSubjectsCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('syncedAt: $syncedAt')
           ..write(')'))
         .toString();
   }
@@ -2019,6 +2128,16 @@ class $TargetTopicsTable extends TargetTopics
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -2042,6 +2161,17 @@ class $TargetTopicsTable extends TargetTopics
       'CHECK ("is_completed" IN (0, 1))',
     ),
   );
+  static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
+    'lastModified',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+    'last_modified',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _subjectIdMeta = const VerificationMeta(
     'subjectId',
   );
@@ -2057,7 +2187,14 @@ class $TargetTopicsTable extends TargetTopics
     ),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, isCompleted, subjectId];
+  List<GeneratedColumn> get $columns => [
+    id,
+    uuid,
+    name,
+    isCompleted,
+    lastModified,
+    subjectId,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2072,6 +2209,14 @@ class $TargetTopicsTable extends TargetTopics
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -2091,6 +2236,17 @@ class $TargetTopicsTable extends TargetTopics
       );
     } else if (isInserting) {
       context.missing(_isCompletedMeta);
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+        _lastModifiedMeta,
+        lastModified.isAcceptableOrUnknown(
+          data['last_modified']!,
+          _lastModifiedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastModifiedMeta);
     }
     if (data.containsKey('subject_id')) {
       context.handle(
@@ -2113,6 +2269,10 @@ class $TargetTopicsTable extends TargetTopics
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -2120,6 +2280,10 @@ class $TargetTopicsTable extends TargetTopics
       isCompleted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_completed'],
+      )!,
+      lastModified: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_modified'],
       )!,
       subjectId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -2136,21 +2300,27 @@ class $TargetTopicsTable extends TargetTopics
 
 class TargetTopic extends DataClass implements Insertable<TargetTopic> {
   final int id;
+  final String uuid;
   final String name;
   final bool isCompleted;
+  final DateTime lastModified;
   final int subjectId;
   const TargetTopic({
     required this.id,
+    required this.uuid,
     required this.name,
     required this.isCompleted,
+    required this.lastModified,
     required this.subjectId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['uuid'] = Variable<String>(uuid);
     map['name'] = Variable<String>(name);
     map['is_completed'] = Variable<bool>(isCompleted);
+    map['last_modified'] = Variable<DateTime>(lastModified);
     map['subject_id'] = Variable<int>(subjectId);
     return map;
   }
@@ -2158,8 +2328,10 @@ class TargetTopic extends DataClass implements Insertable<TargetTopic> {
   TargetTopicsCompanion toCompanion(bool nullToAbsent) {
     return TargetTopicsCompanion(
       id: Value(id),
+      uuid: Value(uuid),
       name: Value(name),
       isCompleted: Value(isCompleted),
+      lastModified: Value(lastModified),
       subjectId: Value(subjectId),
     );
   }
@@ -2171,8 +2343,10 @@ class TargetTopic extends DataClass implements Insertable<TargetTopic> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TargetTopic(
       id: serializer.fromJson<int>(json['id']),
+      uuid: serializer.fromJson<String>(json['uuid']),
       name: serializer.fromJson<String>(json['name']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
+      lastModified: serializer.fromJson<DateTime>(json['lastModified']),
       subjectId: serializer.fromJson<int>(json['subjectId']),
     );
   }
@@ -2181,30 +2355,40 @@ class TargetTopic extends DataClass implements Insertable<TargetTopic> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'uuid': serializer.toJson<String>(uuid),
       'name': serializer.toJson<String>(name),
       'isCompleted': serializer.toJson<bool>(isCompleted),
+      'lastModified': serializer.toJson<DateTime>(lastModified),
       'subjectId': serializer.toJson<int>(subjectId),
     };
   }
 
   TargetTopic copyWith({
     int? id,
+    String? uuid,
     String? name,
     bool? isCompleted,
+    DateTime? lastModified,
     int? subjectId,
   }) => TargetTopic(
     id: id ?? this.id,
+    uuid: uuid ?? this.uuid,
     name: name ?? this.name,
     isCompleted: isCompleted ?? this.isCompleted,
+    lastModified: lastModified ?? this.lastModified,
     subjectId: subjectId ?? this.subjectId,
   );
   TargetTopic copyWithCompanion(TargetTopicsCompanion data) {
     return TargetTopic(
       id: data.id.present ? data.id.value : this.id,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
       name: data.name.present ? data.name.value : this.name,
       isCompleted: data.isCompleted.present
           ? data.isCompleted.value
           : this.isCompleted,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
       subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
     );
   }
@@ -2213,68 +2397,89 @@ class TargetTopic extends DataClass implements Insertable<TargetTopic> {
   String toString() {
     return (StringBuffer('TargetTopic(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
           ..write('name: $name, ')
           ..write('isCompleted: $isCompleted, ')
+          ..write('lastModified: $lastModified, ')
           ..write('subjectId: $subjectId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, isCompleted, subjectId);
+  int get hashCode =>
+      Object.hash(id, uuid, name, isCompleted, lastModified, subjectId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TargetTopic &&
           other.id == this.id &&
+          other.uuid == this.uuid &&
           other.name == this.name &&
           other.isCompleted == this.isCompleted &&
+          other.lastModified == this.lastModified &&
           other.subjectId == this.subjectId);
 }
 
 class TargetTopicsCompanion extends UpdateCompanion<TargetTopic> {
   final Value<int> id;
+  final Value<String> uuid;
   final Value<String> name;
   final Value<bool> isCompleted;
+  final Value<DateTime> lastModified;
   final Value<int> subjectId;
   const TargetTopicsCompanion({
     this.id = const Value.absent(),
+    this.uuid = const Value.absent(),
     this.name = const Value.absent(),
     this.isCompleted = const Value.absent(),
+    this.lastModified = const Value.absent(),
     this.subjectId = const Value.absent(),
   });
   TargetTopicsCompanion.insert({
     this.id = const Value.absent(),
+    required String uuid,
     required String name,
     required bool isCompleted,
+    required DateTime lastModified,
     required int subjectId,
-  }) : name = Value(name),
+  }) : uuid = Value(uuid),
+       name = Value(name),
        isCompleted = Value(isCompleted),
+       lastModified = Value(lastModified),
        subjectId = Value(subjectId);
   static Insertable<TargetTopic> custom({
     Expression<int>? id,
+    Expression<String>? uuid,
     Expression<String>? name,
     Expression<bool>? isCompleted,
+    Expression<DateTime>? lastModified,
     Expression<int>? subjectId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (uuid != null) 'uuid': uuid,
       if (name != null) 'name': name,
       if (isCompleted != null) 'is_completed': isCompleted,
+      if (lastModified != null) 'last_modified': lastModified,
       if (subjectId != null) 'subject_id': subjectId,
     });
   }
 
   TargetTopicsCompanion copyWith({
     Value<int>? id,
+    Value<String>? uuid,
     Value<String>? name,
     Value<bool>? isCompleted,
+    Value<DateTime>? lastModified,
     Value<int>? subjectId,
   }) {
     return TargetTopicsCompanion(
       id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
       name: name ?? this.name,
       isCompleted: isCompleted ?? this.isCompleted,
+      lastModified: lastModified ?? this.lastModified,
       subjectId: subjectId ?? this.subjectId,
     );
   }
@@ -2285,11 +2490,17 @@ class TargetTopicsCompanion extends UpdateCompanion<TargetTopic> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
     if (isCompleted.present) {
       map['is_completed'] = Variable<bool>(isCompleted.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
     }
     if (subjectId.present) {
       map['subject_id'] = Variable<int>(subjectId.value);
@@ -2301,8 +2512,10 @@ class TargetTopicsCompanion extends UpdateCompanion<TargetTopic> {
   String toString() {
     return (StringBuffer('TargetTopicsCompanion(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
           ..write('name: $name, ')
           ..write('isCompleted: $isCompleted, ')
+          ..write('lastModified: $lastModified, ')
           ..write('subjectId: $subjectId')
           ..write(')'))
         .toString();
@@ -4395,9 +4608,19 @@ typedef $$TimetableSessionsTableProcessedTableManager =
       PrefetchHooks Function({bool dayId})
     >;
 typedef $$TargetSubjectsTableCreateCompanionBuilder =
-    TargetSubjectsCompanion Function({Value<int> id, required String name});
+    TargetSubjectsCompanion Function({
+      Value<int> id,
+      required String uuid,
+      required String name,
+      Value<DateTime?> syncedAt,
+    });
 typedef $$TargetSubjectsTableUpdateCompanionBuilder =
-    TargetSubjectsCompanion Function({Value<int> id, Value<String> name});
+    TargetSubjectsCompanion Function({
+      Value<int> id,
+      Value<String> uuid,
+      Value<String> name,
+      Value<DateTime?> syncedAt,
+    });
 
 final class $$TargetSubjectsTableReferences
     extends BaseReferences<_$AppDatabase, $TargetSubjectsTable, TargetSubject> {
@@ -4440,8 +4663,18 @@ class $$TargetSubjectsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4485,8 +4718,18 @@ class $$TargetSubjectsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -4503,8 +4746,14 @@ class $$TargetSubjectsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
 
   Expression<T> targetTopicsRefs<T extends Object>(
     Expression<T> Function($$TargetTopicsTableAnnotationComposer a) f,
@@ -4563,11 +4812,27 @@ class $$TargetSubjectsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String> uuid = const Value.absent(),
                 Value<String> name = const Value.absent(),
-              }) => TargetSubjectsCompanion(id: id, name: name),
+                Value<DateTime?> syncedAt = const Value.absent(),
+              }) => TargetSubjectsCompanion(
+                id: id,
+                uuid: uuid,
+                name: name,
+                syncedAt: syncedAt,
+              ),
           createCompanionCallback:
-              ({Value<int> id = const Value.absent(), required String name}) =>
-                  TargetSubjectsCompanion.insert(id: id, name: name),
+              ({
+                Value<int> id = const Value.absent(),
+                required String uuid,
+                required String name,
+                Value<DateTime?> syncedAt = const Value.absent(),
+              }) => TargetSubjectsCompanion.insert(
+                id: id,
+                uuid: uuid,
+                name: name,
+                syncedAt: syncedAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -4627,15 +4892,19 @@ typedef $$TargetSubjectsTableProcessedTableManager =
 typedef $$TargetTopicsTableCreateCompanionBuilder =
     TargetTopicsCompanion Function({
       Value<int> id,
+      required String uuid,
       required String name,
       required bool isCompleted,
+      required DateTime lastModified,
       required int subjectId,
     });
 typedef $$TargetTopicsTableUpdateCompanionBuilder =
     TargetTopicsCompanion Function({
       Value<int> id,
+      Value<String> uuid,
       Value<String> name,
       Value<bool> isCompleted,
+      Value<DateTime> lastModified,
       Value<int> subjectId,
     });
 
@@ -4676,6 +4945,11 @@ class $$TargetTopicsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -4683,6 +4957,11 @@ class $$TargetTopicsTableFilterComposer
 
   ColumnFilters<bool> get isCompleted => $composableBuilder(
     column: $table.isCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4724,6 +5003,11 @@ class $$TargetTopicsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -4731,6 +5015,11 @@ class $$TargetTopicsTableOrderingComposer
 
   ColumnOrderings<bool> get isCompleted => $composableBuilder(
     column: $table.isCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4770,11 +5059,19 @@ class $$TargetTopicsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<bool> get isCompleted => $composableBuilder(
     column: $table.isCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
     builder: (column) => column,
   );
 
@@ -4831,25 +5128,33 @@ class $$TargetTopicsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String> uuid = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
+                Value<DateTime> lastModified = const Value.absent(),
                 Value<int> subjectId = const Value.absent(),
               }) => TargetTopicsCompanion(
                 id: id,
+                uuid: uuid,
                 name: name,
                 isCompleted: isCompleted,
+                lastModified: lastModified,
                 subjectId: subjectId,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required String uuid,
                 required String name,
                 required bool isCompleted,
+                required DateTime lastModified,
                 required int subjectId,
               }) => TargetTopicsCompanion.insert(
                 id: id,
+                uuid: uuid,
                 name: name,
                 isCompleted: isCompleted,
+                lastModified: lastModified,
                 subjectId: subjectId,
               ),
           withReferenceMapper: (p0) => p0
