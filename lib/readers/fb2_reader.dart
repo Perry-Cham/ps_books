@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/helpers/utils.dart';
+import 'package:ps_books/reader_utils/reader_destination.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:xml/xml.dart';
 import 'dart:io';
@@ -51,7 +52,7 @@ class FB2Reader extends StatefulWidget {
   State<FB2Reader> createState() => FB2ReaderState();
 }
 
-class FB2ReaderState extends State<FB2Reader> {
+class FB2ReaderState extends State<FB2Reader> implements DestinationCapable {
   /// Structured chapter data — each Chapter holds indexed paragraphs.
   List<Chapter> chapters = [];
 
@@ -539,6 +540,32 @@ class FB2ReaderState extends State<FB2Reader> {
   }
 
   void scrollToChapterById(int id) {
+    _scrollToChapter(id);
+  }
+
+  // ---------------------------------------------------------------------------
+  // DestinationCapable — lingua franca for the reader shell
+  // ---------------------------------------------------------------------------
+
+  /// Returns the FB2 chapter list as flat [ReaderDestination]s.
+  ///
+  /// The locator is `ChapterEntry.id.toString()` — the same int
+  /// [scrollToChapterById] accepts.
+  @override
+  Future<List<ReaderDestination>> getDestinations() async {
+    return chapterList
+        .map((c) => ReaderDestination(
+              label: c.title,
+              locator: c.id.toString(),
+              level: 0,
+            ))
+        .toList();
+  }
+
+  @override
+  Future<void> goToDestination(ReaderDestination destination) async {
+    final id = int.tryParse(destination.locator);
+    if (id == null) return;
     _scrollToChapter(id);
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:ps_books/reader_utils/reader_destination.dart';
 import 'package:ps_books/services/settings/reader-preferences.dart';
 import 'package:synchronized/extension.dart';
 
@@ -13,59 +14,62 @@ class PDF extends ConsumerStatefulWidget {
     required this.path,
     required this.controller,
     required this.page,
+    this.immersiveController,
   });
 
   final String path;
   final PdfViewerController controller;
   final int page;
 
+  /// Optional immersive-mode notifier owned by the [ReaderShell].
+  ///
+  /// When provided, the page-count overlay slides out of view whenever
+  /// this notifier's value is `true`. When `null`, the overlay is always
+  /// visible (no immersive mode).
+  final ValueListenable<bool>? immersiveController;
+
   @override
   ConsumerState<PDF> createState() => _PDFState();
 }
 
-class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
+class _PDFState extends ConsumerState<PDF>
+    with TickerProviderStateMixin
+    implements DestinationCapable {
   List<PdfOutlineNode> outline = [];
   double? initialZoom;
 
-  // Immersive Mode Layout Animation Properties
-  bool _isImmersiveMode = false;
-  late AnimationController _uiAnimationController;
-  late Animation<Offset> _bottomBarOffset;
-
-  //Drawer tab cntroller
+  /// Drawer tab controller (search tab retained as a secondary access path;
+  /// the primary TOC is now exposed via [getDestinations] to the shell).
   late TabController drawerTabController;
 
-  //Text Search Controller
- // late PdfTextSearcher textSearcher;
+  /// Animation controller that drives the slide-in/out of the page-count
+  /// overlay. Driven by [widget.immersiveController] when provided.
+  late final AnimationController _overlaySlideController;
+  late final Animation<Offset> _overlaySlide;
 
   @override
   void initState() {
     super.initState();
 
     drawerTabController = TabController(length: 2, vsync: this);
-   
 
-    _uiAnimationController = AnimationController(
+    _overlaySlideController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
     );
+    _overlaySlide = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0, 1.5),
+    ).animate(CurvedAnimation(
+      parent: _overlaySlideController,
+      curve: Curves.easeInOut,
+    ));
 
-    _bottomBarOffset =
-        Tween<Offset>(
-          begin: Offset.zero,
-          end: const Offset(
-            0,
-            1.5,
-          ), // Slides the page counter down out of frame
-        ).animate(
-          CurvedAnimation(
-            parent: _uiAnimationController,
-            curve: Curves.easeInOut,
-          ),
-        );
-
-    // Listen to scroll actions to automatically hide UI bars on mobile screens
-    widget.controller.addListener(_handleScroll);
+    widget.immersiveController?.addListener(_onImmersiveChanged);
+    // Apply the initial value synchronously.
+    if (widget.immersiveController?.value == true) {
+      _overlaySlideController.value = 1.0;
+    }
 
     // Fetch User Zoom Preferences
     ref
@@ -78,39 +82,68 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
         .catchError((_) {});
   }
 
-  @override
-  void dispose() {
-    widget.controller.removeListener(_handleScroll);
-    _uiAnimationController.dispose();
-    super.dispose();
-  }
-
-  void _handleScroll() {
-    final isMobile =
-        defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS;
-    if (isMobile && !_isImmersiveMode && widget.controller.isReady) {
-      _toggleImmersiveMode(true);
+  void _onImmersiveChanged() {
+    final isImmersive = widget.immersiveController?.value ?? false;
+    if (isImmersive) {
+      _overlaySlideController.forward();
+    } else {
+      _overlaySlideController.reverse();
     }
   }
 
-  void _toggleImmersiveMode(bool targetState) {
-    setState(() {
-      _isImmersiveMode = targetState;
-      if (targetState) {
-        _uiAnimationController.forward();
-      } else {
-        _uiAnimationController.reverse();
-      }
-    });
+  @override
+  void dispose() {
+    widget.immersiveController?.removeListener(_onImmersiveChanged);
+    _overlaySlideController.dispose();
+    drawerTabController.dispose();
+    super.dispose();
+  }
+
+  // ---------------------------------------------------------------------------
+  // DestinationCapable — lingua franca for the reader shell
+  // ---------------------------------------------------------------------------
+
+  /// Maps the pdfrx outline tree to [ReaderDestination]s.
+  ///
+  /// The locator is a slash-separated path of child indices (e.g. `"0/2/1"`),
+  /// which [goToDestination] walks to recover the same `PdfOutlineNode`
+  /// instance and call `controller.goToDest(node.dest)`.
+  @override
+  Future<List<ReaderDestination>> getDestinations() async {
+    return outline.asMap().entries.map((entry) {
+      return _nodeToDestination(entry.value, '${entry.key}');
+    }).toList();
+  }
+
+  static ReaderDestination _nodeToDestination(PdfOutlineNode node, String path) {
+    return ReaderDestination(
+      label: node.title,
+      locator: path,
+      level: path.split('/').length - 1,
+      children: node.children.asMap().entries.map((e) {
+        return _nodeToDestination(e.value, '$path/${e.key}');
+      }).toList(),
+    );
+  }
+
+  @override
+  Future<void> goToDestination(ReaderDestination destination) async {
+    final parts = destination.locator.split('/');
+    PdfOutlineNode? current;
+    List<PdfOutlineNode> list = outline;
+    for (final part in parts) {
+      final idx = int.tryParse(part);
+      if (idx == null || idx < 0 || idx >= list.length) return;
+      current = list[idx];
+      list = current.children;
+    }
+    if (current?.dest != null) {
+      widget.controller.goToDest(current!.dest);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isMobile =
-        defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS;
-
     return Scaffold(
       backgroundColor: Colors.grey[200],
       drawer: Drawer(
@@ -174,13 +207,9 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
               controller: widget.controller,
               initialPageNumber: widget.page,
               params: PdfViewerParams(
-                onGeneralTap: (_, _, _) {
-                  if (isMobile) {
-                    _toggleImmersiveMode(!_isImmersiveMode);
-                    return true;
-                  }
-                  return false;
-                },
+                // Note: immersive-mode tap-to-exit on mobile is now handled
+                // by the ReaderShell's center-tap detector, NOT here.
+                onGeneralTap: (_, _, _) => false,
                 linkHandlerParams: PdfLinkHandlerParams(
                   onLinkTap: (link) async {
                     if (link.url != null) {
@@ -207,38 +236,18 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
             ),
           ),
 
-          // 2. Floating Bottom Page Entry Controller
+          // 2. Floating Bottom Page Entry Controller — slides out of view
+          //    when the shell's immersiveController reports `true`.
           if (widget.controller.isReady)
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
               child: SlideTransition(
-                position: _bottomBarOffset,
+                position: _overlaySlide,
                 child: SafeArea(
                   child: Center(
                     child: PageNumberDisplay(pdfController: widget.controller),
-                  ),
-                ),
-              ),
-            ),
-
-          // 4. Desktop Escape Hatch Floating Return Button
-          if (!isMobile && _isImmersiveMode)
-            Positioned(
-              top: 20,
-              right: 20,
-              child: FadeTransition(
-                opacity: _uiAnimationController,
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: FloatingActionButton.small(
-                    backgroundColor: Colors.white.withOpacity(0.85),
-                    onPressed: () => _toggleImmersiveMode(false),
-                    child: const Icon(
-                      Icons.fullscreen_exit,
-                      color: Colors.black87,
-                    ),
                   ),
                 ),
               ),

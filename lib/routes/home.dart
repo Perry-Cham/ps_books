@@ -7,7 +7,7 @@ import 'package:ps_books/routes/home%20comp/currently_reading.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/state/reader_state.dart';
-import '../readers/reader.dart';
+import '../readers/reader_shell.dart';
 import '../helpers/pickBooks.dart';
 import 'home comp/control_bars.dart';
 import 'package:ps_books/dbs/database.dart';
@@ -235,7 +235,7 @@ class BookCardState extends ConsumerState<BookCard> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => Reader(
+              builder: (context) => ReaderShell(
                 path: widget.book.path,
                 type: widget.book.extension,
                 id: widget.book.id,

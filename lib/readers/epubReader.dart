@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:katbook_epub_reader/katbook_epub_reader.dart';
+import 'package:ps_books/reader_utils/reader_destination.dart';
 import 'package:ps_books/services/settings/reader-preferences.dart';
 
 class EpubReaderScreen extends ConsumerStatefulWidget {
@@ -82,7 +83,8 @@ class EpubReaderScreen extends ConsumerStatefulWidget {
   ConsumerState<EpubReaderScreen> createState() => EpubReaderScreenState();
 }
 
-class EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
+class EpubReaderScreenState extends ConsumerState<EpubReaderScreen>
+    implements DestinationCapable {
   final KatbookEpubController _controller = KatbookEpubController();
   final GlobalKey<KatbookEpubReaderState> readerKey =
       GlobalKey<KatbookEpubReaderState>();
@@ -157,6 +159,36 @@ class EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
 
   /// Recharger l'EPUB
   Future<void> reload() => _loadEpub();
+
+  // ---------------------------------------------------------------------------
+  // DestinationCapable — lingua franca for the reader shell
+  // ---------------------------------------------------------------------------
+
+  /// Maps the katbook `ChapterNode` tree to [ReaderDestination]s.
+  ///
+  /// The locator is `chapter.startIndex.toString()` — the same int
+  /// `KatbookEpubController.jumpToIndex` accepts. This lets the shell's
+  /// destinations sheet navigate without knowing anything about EPUBs.
+  @override
+  Future<List<ReaderDestination>> getDestinations() async {
+    return _controller.tableOfContents.map(_chapterToDestination).toList();
+  }
+
+  static ReaderDestination _chapterToDestination(ChapterNode chapter) {
+    return ReaderDestination(
+      label: chapter.title,
+      locator: chapter.startIndex.toString(),
+      level: chapter.depth,
+      children: chapter.children.map(_chapterToDestination).toList(),
+    );
+  }
+
+  @override
+  Future<void> goToDestination(ReaderDestination destination) async {
+    final index = int.tryParse(destination.locator);
+    if (index == null) return;
+    _controller.jumpToIndex(index);
+  }
 
   @override
   void dispose() {

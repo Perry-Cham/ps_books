@@ -100,6 +100,30 @@ class MobiReader {
         $('#side-bar').classList.remove('show');
     }
 
+    // -----------------------------------------------------------------------
+    // Flutter bridge
+    // -----------------------------------------------------------------------
+    //
+    // The Dart side registers a JavaScriptChannel named `flutterChannel` on
+    // its WebViewController. Flutter injects a global `window.flutterChannel`
+    // object whose `.postMessage(string)` is forwarded to the Dart
+    // `onMessageReceived` callback.
+    //
+    // We always JSON-encode the payload so the Dart side can `jsonDecode`
+    // it uniformly and dispatch on the `type` field.
+    //
+    // The Dart side never injects this object — if the channel isn't
+    // registered (e.g. when the HTML is opened in a regular browser), the
+    // calls are silently no-ops thanks to optional chaining.
+    _postToFlutter(type, payload = {}) {
+        try {
+            const msg = JSON.stringify({ type, ...payload });
+            window.flutterChannel?.postMessage?.(msg);
+        } catch (e) {
+            console.error('Failed to post to flutterChannel:', e);
+        }
+    }
+
     async open() {
         this.view = document.createElement('foliate-view');
         document.body.append(this.view);
@@ -211,7 +235,7 @@ class MobiReader {
     }
 
     #onRelocate({ detail }) {
-        const { fraction, location, tocItem, pageItem } = detail;
+        const { fraction, location, tocItem, pageItem, cfi, range } = detail;
         const percent = percentFormat.format(fraction);
         const loc = pageItem
             ? `Page ${pageItem.label}`
@@ -221,13 +245,59 @@ class MobiReader {
         slider.value = fraction;
         slider.title = `${percent} · ${loc}`;
         if (tocItem?.href) this.#tocView?.setCurrentHref?.(tocItem.href);
+
+        // Push the new position to Flutter so the Dart side can persist it.
+        this._postToFlutter('relocate', {
+            cfi: cfi ?? null,
+            fraction,
+            label: tocItem?.label ?? loc,
+            href: tocItem?.href ?? null,
+            location: location?.current ?? null,
+        });
     }
 
     async goTo(target) {
-console.log(target);
         if (this.view) {
            await this.view.goTo(target);
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // DestinationCapable — methods invoked from Dart via runJavaScript*
+    // -----------------------------------------------------------------------
+
+    /// Returns the document's TOC as a JSON string in the lingua-franca
+    /// shape: `[{ label, locator, level, children: [...] }]`.
+    ///
+    /// The locator is the TOC entry's `href` — pass it back to
+    /// [goToDestinationByLocator] to navigate.
+    getDestinationsJSON() {
+        const toc = this.view?.book?.toc ?? [];
+        const map = (item, level) => ({
+            label: item.label ?? item.title ?? '(untitled)',
+            locator: item.href ?? item.url ?? '',
+            level,
+            children: (item.subitems ?? []).map(c => map(c, level + 1)),
+        });
+        return JSON.stringify(toc.map(i => map(i, 0)));
+    }
+
+    /// Navigates to a destination by its locator (the `href` produced by
+    /// [getDestinationsJSON]). Wrapped around the existing [goTo] so the
+    /// Dart side does not need to know about the underlying view API.
+    async goToDestinationByLocator(locator) {
+        if (!this.view || !locator) return;
+        try {
+            await this.view.goTo(locator);
+        } catch (e) {
+            console.error('goToDestinationByLocator failed:', e);
+        }
+    }
+
+    /// Returns the current CFI (or null) — used by Dart on dispose to
+    /// persist the last reading position.
+    getCurrentCFI() {
+        return this.view?.lastLocation?.cfi ?? null;
     }
 }
 

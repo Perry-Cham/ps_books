@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:ps_books/dbs/database.dart';
-import 'package:ps_books/readers/reader.dart';
+import 'package:ps_books/readers/reader_shell.dart';
 import 'package:ps_books/services/DB%20services/bookToDb.dart';
 import 'package:ps_books/state/reader_state.dart';
 
@@ -77,7 +77,7 @@ class CurrentlyReading extends ConsumerWidget{
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Reader(
+                              builder: (context) => ReaderShell(
                                 path: book.path,
                                 type: book.extension,
                                 id: book.id,
