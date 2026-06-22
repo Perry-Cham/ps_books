@@ -30,7 +30,6 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
   // Immersive Mode Layout Animation Properties
   bool _isImmersiveMode = false;
   late AnimationController _uiAnimationController;
-  late Animation<Offset> _topBarOffset;
   late Animation<Offset> _bottomBarOffset;
 
   //Drawer tab cntroller
@@ -50,17 +49,6 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 250),
     );
-
-    _topBarOffset =
-        Tween<Offset>(
-          begin: Offset.zero,
-          end: const Offset(0, -1.2), // Slides the AppBar up out of frame
-        ).animate(
-          CurvedAnimation(
-            parent: _uiAnimationController,
-            curve: Curves.easeInOut,
-          ),
-        );
 
     _bottomBarOffset =
         Tween<Offset>(
@@ -109,7 +97,7 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
   void _toggleImmersiveMode(bool targetState) {
     setState(() {
       _isImmersiveMode = targetState;
-      if (_isImmersiveMode) {
+      if (targetState) {
         _uiAnimationController.forward();
       } else {
         _uiAnimationController.reverse();
@@ -219,56 +207,7 @@ class _PDFState extends ConsumerState<PDF> with TickerProviderStateMixin {
             ),
           ),
 
-          // 2. Slidable Custom AppBar Overlay
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SlideTransition(
-              position: _topBarOffset,
-              child: AppBar(
-                title: const Text("Reader"),
-                actions: [
-                  IconButton(
-                    onPressed: () {
-                      double currZoom = widget.controller.currentZoom;
-                      widget.controller.setZoom(
-                        widget.controller.centerPosition,
-                        (currZoom < 2.8) ? (currZoom + 0.1) : 2.8,
-                      );
-                    },
-                    icon: const Icon(Icons.zoom_in),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      double currZoom = widget.controller.currentZoom;
-                      widget.controller.setZoom(
-                        widget.controller.centerPosition,
-                        (currZoom > 1.0) ? (currZoom - 0.1) : 1.0,
-                      );
-                    },
-                    icon: const Icon(Icons.zoom_out),
-                  ),
-                  if (!isMobile)
-                    IconButton(
-                      icon: const Icon(Icons.fullscreen),
-                      tooltip: 'Reading Mode',
-                      onPressed: () => _toggleImmersiveMode(true),
-                    ),
-                  IconButton(
-                    onPressed: () {
-                      if (widget.controller.isReady) {
-                        Navigator.pop(context);
-                      }
-                    },
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // 3. Floating Bottom Page Entry Controller
+          // 2. Floating Bottom Page Entry Controller
           if (widget.controller.isReady)
             Positioned(
               bottom: 0,

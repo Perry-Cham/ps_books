@@ -185,7 +185,15 @@ class MobiReader {
             });
         }
 
-        PsBooksReader.postMessage(JSON.stringify({ type: 'load' }));
+        try {
+            const res = await fetch('/get_position');
+            const { cfi } = await res.json();
+            if (cfi) {
+                await this.view.goTo(cfi);
+            }
+        } catch (e) {
+            console.error('Failed to restore position:', e);
+        }
     }
 
     #handleKeydown(event) {
@@ -196,6 +204,10 @@ class MobiReader {
 
     #onLoad({ detail: { doc } }) {
         doc.addEventListener('keydown', this.#handleKeydown.bind(this));
+    }
+
+    getCFI() {
+        return this.view?.lastLocation?.cfi || null;
     }
 
     #onRelocate({ detail }) {
@@ -209,22 +221,12 @@ class MobiReader {
         slider.value = fraction;
         slider.title = `${percent} · ${loc}`;
         if (tocItem?.href) this.#tocView?.setCurrentHref?.(tocItem.href);
-
-        PsBooksReader.postMessage(JSON.stringify({
-            type: 'relocate',
-            cfi: detail.cfi,
-            fraction,
-            section: detail.section,
-            location,
-            time: detail.time,
-            tocItem,
-            pageItem,
-        }));
     }
 
     async goTo(target) {
+console.log(target);
         if (this.view) {
-            await this.view.goTo(target);
+           await this.view.goTo(target);
         }
     }
 }

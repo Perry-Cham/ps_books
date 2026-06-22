@@ -135,7 +135,7 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
       // Transitioning from Work to Break
       state = state.copyWith(
         phase: PomodoroPhase.breakTime,
-        secondsRemaining: state.breakDuration,
+        secondsRemaining: state.breakDuration * 60,
         isRunning: false,
       );
       _notifications.showPhaseTransition(previous: previousPhase, next: PomodoroPhase.breakTime);
@@ -155,7 +155,7 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
 
       state = state.copyWith(
         phase: PomodoroPhase.work,
-        secondsRemaining: state.workDuration,
+        secondsRemaining: state.workDuration * 60,
         currentCycle: state.currentCycle + 1,
         isRunning: false,
       );

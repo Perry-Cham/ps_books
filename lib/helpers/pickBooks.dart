@@ -37,7 +37,6 @@ class Pick_Books {
         return Message(message: "No files were selected", state: "Error");
       }
 
-      List<String> paths = [];
       final directory = await getApplicationDocumentsDirectory();
       final supportDir = await getApplicationSupportDirectory();
 
@@ -53,7 +52,6 @@ class Pick_Books {
         final fileBytes = await sourceFile.readAsBytes();
 
         await sourceFile.copy(destinationPath);
-        paths.add(destinationPath);
         print("saved ${file.name} in $destinationPath");
 
         String extension = file.name.split('.').last.toLowerCase();
@@ -120,15 +118,13 @@ class Pick_Books {
                         : const Value(null),
                   ),
                 );
-            /*final mobiFile = File(destinationPath);
-            await mobiFile.delete();*/
+
           }
         } catch (e, stack) {
           print(e);
           print(stack);
         }
       }
-      print(paths);
       return Message(
         message: "The operation completed successfully",
         state: "Success",

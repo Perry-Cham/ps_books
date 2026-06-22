@@ -8,6 +8,7 @@ import 'package:workmanager/workmanager.dart';
 import 'dart:io';
 
 import 'package:ps_books/services/notifications.dart';
+import 'package:ps_books/services/study/target_sync.dart' as target_sync;
 import 'routes/home.dart';
 import 'routes/study.dart';
 import 'package:ps_books/routes/download.dart';
@@ -43,6 +44,10 @@ void main() async {
     } else {
       await Workmanager().cancelByUniqueName("timetable-sync-task");
     }
+  }
+
+  if (prefs.getBool('ps_signed_in') ?? false) {
+    target_sync.syncTargetsIfSignedIn();
   }
 
   runApp(

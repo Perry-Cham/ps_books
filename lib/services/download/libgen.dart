@@ -42,15 +42,18 @@ class LibgenScraper {
         bookMaps.add(book);
       }
     }
-
+print(document.querySelector('#tablelibgen')!.outerHtml);
     // Fetch download links in parallel
     final books = await Future.wait(
       bookMaps.map((book) async {
-print('currently here');
-        var href = book['href'];
-        // var downloadLink = await _downloadPageScraper(href);
-        book['href'] = "$url$book['href']";
-        // print('link obtained $downloadLink');
+        String href = book['href'];
+        String? downloadLink;
+        if(href.startsWith('/ads.php?')){
+downloadLink = await _downloadPageScraper(href);
+        }else{
+          downloadLink = "$url${book['href']}";
+        }
+        book['href'] = downloadLink;
         return DownloadBook.fromMap(book);
       }),
     );
@@ -60,34 +63,51 @@ print('currently here');
 
   static Map<String, dynamic>? _convertToMap(Element el) {
     List<Element> data = el.querySelectorAll("td");
-    if (data.length < 9) return null;
+    if (data.isEmpty) return null;
 
-    List<Element> titles = data[0].querySelectorAll("a[data-html='true']");
-    List<String> candidates = [];
-    for (var el in titles) {
-      var j = el.text.trim();
-      if (j == '') {
-        continue;
-      } else {
-        candidates.add(j);
+    final bool isFileRow = data[0].attributes['colspan'] != null;
+
+    if (isFileRow) {
+      // Shape A: colspan title cell + pages/size/ext/mirrors
+      if (data.length < 5) return null;
+
+      final titleSpan = data[0].querySelector('span[data-toggle="tooltip"]');
+      final title = titleSpan?.text.trim() ?? '';
+
+      return {
+        "title": title,
+        "isbn": null,
+        "year": "",   // not present in this row shape; could regex from title/path
+        "size": data[2].text.trim(),
+        "extension": data[3].text.trim(),
+        "href": data[4].querySelector("[title='libgen']")?.attributes['href'],
+        "language": "",
+      };
+    } else {
+      // Shape B: full 9-column "book/edition" row
+      if (data.length < 9) return null;
+
+      List<Element> titles = data[0].querySelectorAll("a[data-html='true']");
+      List<String> candidates = [];
+      for (var el in titles) {
+        var j = el.text.trim();
+        if (j.isNotEmpty) candidates.add(j);
       }
+
+      final String cellText = data[0].text;
+      final isbnRegex = RegExp(r'\b\d{13}\b|\b\d{9}[\dXx]\b');
+      final foundIsbns = isbnRegex.allMatches(cellText).map((m) => m.group(0)!).toList();
+
+      return {
+        "title": candidates.isNotEmpty ? candidates[0] : "",
+        "isbn": foundIsbns.isNotEmpty ? foundIsbns : null,
+        "year": data[3].text.trim(),
+        "size": data[6].text.trim(),
+        "extension": data[7].text.trim(),
+        "href": data[8].querySelector("[title='libgen']")?.attributes['href'],
+        "language": data[4].text.trim(),
+      };
     }
-
-    // Extract ISBN from cell text
-    final String cellText = data[0].text;
-    final isbnRegex = RegExp(r'\b\d{13}\b|\b\d{9}[\dXx]\b');
-    final Iterable<RegExpMatch> matches = isbnRegex.allMatches(cellText);
-    final List<String> foundIsbns = matches.map((m) => m.group(0)!).toList();
-
-    return {
-      "title": candidates.isNotEmpty ? candidates[0] : "",
-      "isbn": foundIsbns.isNotEmpty ? foundIsbns : null,
-      "year": data[3].text,
-      "size": data[6].text,
-      "extension": data[7].text,
-      "href": data[8].querySelector("[title='libgen']")?.attributes['href'],
-      "language": data[4].text,
-    };
   }
 
   static Future<String?> _downloadPageScraper(String link) async {

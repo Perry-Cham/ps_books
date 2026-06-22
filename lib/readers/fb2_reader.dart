@@ -48,10 +48,10 @@ class FB2Reader extends StatefulWidget {
 
 
   @override
-  State<FB2Reader> createState() => _FB2ReaderState();
+  State<FB2Reader> createState() => FB2ReaderState();
 }
 
-class _FB2ReaderState extends State<FB2Reader> {
+class FB2ReaderState extends State<FB2Reader> {
   /// Structured chapter data — each Chapter holds indexed paragraphs.
   List<Chapter> chapters = [];
 
@@ -518,9 +518,32 @@ class _FB2ReaderState extends State<FB2Reader> {
   // Build
   // ---------------------------------------------------------------------------
 
+  List<ChapterEntry> get chapterEntries => chapterList;
+
+  int get currentChapter => currentChapterIndex;
+
+  bool get darkMode => isDarkMode;
+
+  double get paddingValue => padding;
+
+  void setDarkMode(bool value) {
+    setState(() {
+      isDarkMode = value;
+    });
+  }
+
+  void setPadding(double value) {
+    setState(() {
+      padding = value;
+    });
+  }
+
+  void scrollToChapterById(int id) {
+    _scrollToChapter(id);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final bool isDesktop = MediaQuery.of(context).size.width > 600;
     final readerTheme = isDarkMode
         ? ThemeData.dark().copyWith(
@@ -531,80 +554,7 @@ class _FB2ReaderState extends State<FB2Reader> {
 
     return Theme(
       data: readerTheme,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Reader'),
-          actions: [
-            IconButton(
-              onPressed: () => _showSettings(context),
-              icon: const Icon(Icons.settings),
-            ),
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.close),
-            )
-          ],
-        ),
-        drawer: Drawer(
-          child: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                  child: Text(
-                    'Chapters',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: chapterList.length,
-                    itemBuilder: (context, index) {
-                      final chapter = chapterList[index];
-                      final isActive = chapter.id == currentChapterIndex;
-
-                      return ListTile(
-                        dense: true,
-                        selected: isActive,
-                        selectedTileColor: theme.colorScheme.primaryContainer
-                            .withValues(alpha: 0.3),
-                        leading: isActive
-                            ? Icon(Icons.menu_book,
-                                color: theme.colorScheme.primary, size: 20)
-                            : const Icon(Icons.circle, size: 6),
-                        title: Text(
-                          chapter.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight:
-                                isActive ? FontWeight.w600 : FontWeight.normal,
-                            color: isActive
-                                ? theme.colorScheme.primary
-                                : theme.textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pop(); // close drawer
-                          _scrollToChapter(chapter.id);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        body: renderable.isEmpty
+      child: renderable.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : isDesktop ? Center(
               child: SizedBox(
@@ -640,101 +590,9 @@ class _FB2ReaderState extends State<FB2Reader> {
             return renderable[index];
           },
         ),
-      ),
     );
   }
 
-  void _showSettings(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Reader Settings',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Light Theme'),
-                      Switch(
-                        value: !isDarkMode,
-                        onChanged: (value) {
-                          setState(() {
-                            isDarkMode = !value;
-                          });
-                          setModalState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Horizontal Padding'),
-                  Slider(
-                    value: padding,
-                    min: 0.0,
-                    max: 50.0,
-                    divisions: 10,
-                    label: padding.round().toString(),
-                    onChanged: (value) {
-                      setState(() {
-                        padding = value;
-                      });
-                      setModalState(() {});
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class Settings extends StatefulWidget {
-  final int padding;
-
-  Settings({super.key, required this.padding});
-
-  @override
-  State<Settings> createState() => _SettingsState();
-}
-
-class _SettingsState extends State<Settings> {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 400,
-      height: 500,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                IconButton.filled(onPressed: () {}, icon: Icon(Icons.add)),
-                Text(widget.padding.toString()),
-                IconButton.filled(
-                  onPressed: () {},
-                  icon: Icon(Icons.exposure_minus_1),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 /// A chapter's structured data — title widgets + indexed paragraphs.

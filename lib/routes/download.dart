@@ -326,6 +326,7 @@ class BookGrid extends ConsumerWidget {
                     onPressed: () async {
                       if (book.href != null) {
                         try {
+print(book.href);
                           String fileName = await getFileName(book.href);
                           ref
                               .read(downloadProgressProvider.notifier)

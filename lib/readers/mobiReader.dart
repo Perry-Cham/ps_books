@@ -17,13 +17,20 @@ final _database = BookToDb();
 // Asset server
 // ---------------------------------------------------------------------------
 
-sr.Router _createRouter(Uint8List fileBytes) {
+sr.Router _createRouter(Uint8List fileBytes, String? position) {
   sr.Router router = sr.Router();
 
   router.get('/get_file', (Request request) {
     return Response.ok(
       fileBytes,
       headers: {'content-type': 'application/octet-stream'},
+    );
+  });
+
+  router.get('/get_position', (Request request) {
+    return Response.ok(
+      jsonEncode({'cfi': position}),
+      headers: {'content-type': 'application/json'},
     );
   });
 
@@ -54,10 +61,10 @@ String _mimeType(String path) {
   return 'application/octet-stream';
 }
 
-Future<HttpServer> _startAssetServer(Uint8List bytes) async {
+Future<HttpServer> _startAssetServer(Uint8List bytes, String? position) async {
   final handler = const Pipeline()
       .addMiddleware(logRequests())
-      .addHandler(_createRouter(bytes).call);
+      .addHandler(_createRouter(bytes, position).call);
 
   final server = await shelf_io.serve(handler, 'localhost', 0);
   debugPrint('Asset server running on http://localhost:${server.port}');
@@ -86,7 +93,6 @@ class MobireaderPage extends StatefulWidget {
 
 class _MobireaderPageState extends State<MobireaderPage> {
   late final WebViewController _controller;
-  final Map<String, void Function(Map<String, dynamic>)> _handlers = {};
   HttpServer? _server;
   int _progress = 0;
   bool _serverReady = false;
@@ -94,41 +100,8 @@ class _MobireaderPageState extends State<MobireaderPage> {
   @override
   void initState() {
     super.initState();
-    _initHandlers();
     _controller = WebViewController();
     _startServerAndLoad();
-  }
-
-  void _initHandlers() {
-    _handlers['relocate'] = (data) {
-      final cfi = data['cfi'] as String?;
-      final fraction = data['fraction'] as double?;
-      if (cfi != null) {
-        _database.updatePositionAndProgress(widget.id, cfi);
-      }
-      if (fraction != null) {
-        _database.updateProgress(widget.id, fraction);
-      }
-    };
-    _handlers['load'] = (data) {
-      if (widget.position != null) {
-        final escaped = jsonEncode(widget.position);
-        _controller.runJavaScript('mobiReader.goTo($escaped)');
-      }
-    };
-  }
-
-  void _onJavaScriptMessage(JavaScriptMessage message) {
-    try {
-      final data = jsonDecode(message.message) as Map<String, dynamic>;
-      final type = data['type'] as String?;
-      final handler = _handlers[type];
-      if (handler != null) {
-        handler(data);
-      }
-    } catch (e) {
-      debugPrint('PsBooksReader channel error: $e');
-    }
   }
 
   Future<void> _startServerAndLoad() async {
@@ -138,16 +111,12 @@ class _MobireaderPageState extends State<MobireaderPage> {
       return;
     }
 
-    _server = await _startAssetServer(widget.bytes);
+    _server = await _startAssetServer(widget.bytes, widget.position);
     final url =
         'http://localhost:${_server!.port}/js/foliate-js-main/mobi.html';
 
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..addJavaScriptChannel(
-        'PsBooksReader',
-        onMessageReceived: _onJavaScriptMessage,
-      )
       ..setOnConsoleMessage((message) {
         debugPrint('[MOBI JS ${message.level}] ${message.message}');
       })
@@ -181,47 +150,8 @@ class _MobireaderPageState extends State<MobireaderPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('MOBI Reader'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_sharp),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          if (!kIsWeb) ...[
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () async {
-                if (await _controller.canGoBack()) {
-                  await _controller.goBack();
-                }
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: () async {
-                if (await _controller.canGoForward()) {
-                  await _controller.goForward();
-                }
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () => _controller.reload(),
-            ),
-          ],
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3),
-          child: !kIsWeb && _progress < 100
-              ? LinearProgressIndicator(value: _progress / 100)
-              : const SizedBox(height: 3),
-        ),
-      ),
-      body: _serverReady
-          ? WebViewWidget(controller: _controller)
-          : const Center(child: CircularProgressIndicator()),
-    );
+    return _serverReady
+        ? WebViewWidget(controller: _controller)
+        : const Center(child: CircularProgressIndicator());
   }
 }

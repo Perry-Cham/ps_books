@@ -9,6 +9,7 @@ class ComicReaderPage extends StatelessWidget {
   final void Function(double progress)? onProgressChanged;
   final void Function(double page)? onPageChanged;
   final int initialPage;
+  final bool showAppBar;
   ComicReaderPage({
     super.key,
     required this.fileBytes,
@@ -16,39 +17,31 @@ class ComicReaderPage extends StatelessWidget {
     this.onProgressChanged,
     this.onPageChanged,
     this.initialPage = 0,
+    this.showAppBar = false,
   });
   final ComicReaderParser parser = ComicReaderParser();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Comic Reader'),
-        actions: [
-          IconButton(onPressed: (){
-            Navigator.pop(context);
-          }, icon: Icon(Icons.close))
-        ],
-      ),
-      body: FutureBuilder(
-        future: parser.parse(fileBytes, filename),
-        builder: (context, snapshot) {
-          if(!snapshot.hasData){
-            return CircularProgressIndicator();
-          }
-          if(snapshot.data == null){
-            return Text('No comicbook data');
-          }
-          return Center(
-           child: ComicViewer(
-             comic: snapshot.data!,
-             onPageChanged: onPageChanged,
-             onProgressChanged: onProgressChanged,
-             initialPage: initialPage,
-           ),
-          );
+    return FutureBuilder(
+      future: parser.parse(fileBytes, filename),
+      builder: (context, snapshot) {
+        if(!snapshot.hasData){
+          return const Center(child: CircularProgressIndicator());
         }
-      ),
+        if(snapshot.data == null){
+          return const Center(child: Text('No comicbook data'));
+        }
+        return Center(
+         child: ComicViewer(
+           comic: snapshot.data!,
+           onPageChanged: onPageChanged,
+           onProgressChanged: onProgressChanged,
+           initialPage: initialPage,
+           showAppBar: showAppBar,
+         ),
+        );
+      }
     );
   }
 }
