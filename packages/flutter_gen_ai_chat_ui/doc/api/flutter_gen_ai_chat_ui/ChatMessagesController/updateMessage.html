@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the updateMessage method from the ChatMessagesController class, for the Dart programming language.">
+  <title>updateMessage method - ChatMessagesController class - flutter_gen_ai_chat_ui library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui.dart</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/ChatMessagesController-class.html">ChatMessagesController</a></li>
+    <li class="self-crumb">updateMessage method</li>
+  </ol>
+  <div class="self-name">updateMessage</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="flutter_gen_ai_chat_ui&#47;ChatMessagesController-class-sidebar.html"
+    data-below-sidebar="">
+    <div>
+<h1><span class="kind-method">updateMessage</span> method 
+</h1></div>
+
+    <section class="multi-line-signature">
+      
+<span class="returntype">void</span>
+<span class="name ">updateMessage</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="updateMessage-param-message"><span class="type-annotation"><a href="../../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span> <span class="parameter-name">message</span></span></li>
+</ol>)
+
+      
+
+    </section>
+    
+<section class="desc markdown">
+  <p>Updates an existing message or adds it if not found.</p>
+<p>Useful for updating streaming messages or editing existing ones.</p>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">void updateMessage(final ChatMessage message) {
+  try {
+    &#47;&#47; Get the message ID - first from customProperties, then calculate if not present
+    final customId = message.customProperties?[&#39;id&#39;] as String?;
+    final messageId = customId ?? _getMessageId(message);
+
+    &#47;&#47; Check if the message exists
+    final index = _messages.indexWhere(
+      (final msg) =&gt; _getMessageId(msg) == messageId,
+    );
+
+    final isStreaming =
+        message.customProperties?[&#39;isStreaming&#39;] as bool? ?? false;
+
+    &#47;&#47; Check if this is a user message
+    final isUserMessage =
+        message.customProperties?[&#39;isUserMessage&#39;] as bool? ??
+            message.customProperties?[&#39;source&#39;] == &#39;user&#39;;
+
+    &#47;&#47; When updating streaming messages, make sure we maintain proper state transitions
+    if (index != -1 &amp;&amp; isStreaming) {
+      &#47;&#47; For streaming messages, preserve the original streaming state if present
+      final existingIsStreaming =
+          _messages[index].customProperties?[&#39;isStreaming&#39;] as bool? ?? false;
+
+      &#47;&#47; Fix: Preserve the isFirstResponseMessage and isStartOfResponse flags during updates
+      final existingIsFirstResponse = _messages[index]
+              .customProperties?[&#39;isFirstResponseMessage&#39;] as bool? ??
+          false;
+      final existingIsStartOfResponse =
+          _messages[index].customProperties?[&#39;isStartOfResponse&#39;] as bool? ??
+              false;
+
+      &#47;&#47; Create updated properties with preserved flags
+      final updatedProperties = {...?message.customProperties};
+
+      &#47;&#47; Preserve the response flags during streaming updates
+      if (existingIsFirstResponse) {
+        updatedProperties[&#39;isFirstResponseMessage&#39;] = true;
+      }
+
+      if (existingIsStartOfResponse) {
+        updatedProperties[&#39;isStartOfResponse&#39;] = true;
+      }
+
+      &#47;&#47; Only override the streaming state if explicitly set to false (indicating end of stream)
+      if (existingIsStreaming &amp;&amp; isStreaming) {
+        &#47;&#47; Keep streaming active - preserve existing ID and streaming flag
+        _messages[index] =
+            message.copyWith(customProperties: updatedProperties);
+        _messageCache[messageId] = _messages[index];
+      } else {
+        &#47;&#47; End of streaming or non-streaming update - regular update
+        _messages[index] =
+            message.copyWith(customProperties: updatedProperties);
+        _messageCache[messageId] = _messages[index];
+      }
+    } else if (index != -1) {
+      &#47;&#47; Regular non-streaming message update
+      &#47;&#47; Fix: Also preserve response flags for non-streaming updates
+      final existingIsFirstResponse = _messages[index]
+              .customProperties?[&#39;isFirstResponseMessage&#39;] as bool? ??
+          false;
+      final existingIsStartOfResponse =
+          _messages[index].customProperties?[&#39;isStartOfResponse&#39;] as bool? ??
+              false;
+
+      &#47;&#47; Create updated properties with preserved flags
+      final updatedProperties = {...?message.customProperties};
+
+      if (existingIsFirstResponse) {
+        updatedProperties[&#39;isFirstResponseMessage&#39;] = true;
+      }
+
+      if (existingIsStartOfResponse) {
+        updatedProperties[&#39;isStartOfResponse&#39;] = true;
+      }
+
+      _messages[index] =
+          message.copyWith(customProperties: updatedProperties);
+      _messageCache[messageId] = _messages[index];
+    } else {
+      &#47;&#47; Add new message if not found - respecting list order
+      &#47;&#47; For new messages being created directly through updateMessage (rare case),
+      &#47;&#47; preserve any isStartOfResponse flag that might be set
+      final newMsgProperties = {...?message.customProperties};
+
+      &#47;&#47; If this is explicitly marked as start of response, make it consistent
+      if (newMsgProperties[&#39;isStartOfResponse&#39;] == true) {
+        newMsgProperties[&#39;isFirstResponseMessage&#39;] = true;
+        _currentResponseFirstMessageId = messageId;
+      }
+
+      final updatedMessage =
+          message.copyWith(customProperties: newMsgProperties);
+
+      if (paginationConfig.reverseOrder) {
+        _messages.insert(0, updatedMessage);
+      } else {
+        _messages.add(updatedMessage);
+      }
+      _messageCache[messageId] = updatedMessage;
+    }
+
+    &#47;&#47; Safe notification and scrolling strategy
+    if (isStreaming) {
+      _isCurrentlyStreaming = true;
+      &#47;&#47; For streaming: just notify, no scrolling to prevent assertion errors
+      notifyListeners();
+    } else {
+      &#47;&#47; If we were streaming and now we&#39;re not, this is the end of stream
+      final wasStreaming = _isCurrentlyStreaming;
+      _isCurrentlyStreaming = false;
+
+      &#47;&#47; Always notify listeners
+      notifyListeners();
+
+      &#47;&#47; Only scroll if configured to do so and not during rapid updates
+      final config = scrollBehaviorConfig;
+      var shouldScroll = false;
+      switch (config.autoScrollBehavior) {
+        case AutoScrollBehavior.always:
+          &#47;&#47; For streaming end, scroll after a delay to prevent assertion errors
+          shouldScroll = true;
+          break;
+        case AutoScrollBehavior.onNewMessage:
+          &#47;&#47; Only scroll on truly new messages (index == -1) or when streaming ends
+          shouldScroll = index == -1 || wasStreaming;
+          break;
+        case AutoScrollBehavior.onUserMessageOnly:
+          shouldScroll = isUserMessage;
+          break;
+        case AutoScrollBehavior.never:
+          shouldScroll = false;
+          break;
+      }
+
+      if (shouldScroll &amp;&amp; wasStreaming) {
+        &#47;&#47; For streaming end, use a longer delay to prevent assertion errors
+        &#47;&#47; Cancel any pending scroll timer first
+        _pendingScrollTimer?.cancel();
+        _pendingScrollTimer = Timer(const Duration(milliseconds: 500), () {
+          if (mounted &amp;&amp; _scrollController?.hasClients == true) {
+            _scrollAfterRender(isUserMessage, false, config);
+          }
+          _pendingScrollTimer = null;
+        });
+      } else if (shouldScroll) {
+        _scrollAfterRender(isUserMessage, false, config);
+      }
+    }
+  } catch (e) {
+    debugPrint(&#39;Error updating message: $e&#39;);
+    &#47;&#47; If updating fails, try to add as a new message instead
+    try {
+      final newId =
+          &#39;${message.user.id}_${DateTime.now().millisecondsSinceEpoch}&#39;;
+      final messageWithId = ChatMessage(
+        text: message.text,
+        user: message.user,
+        createdAt: message.createdAt,
+        isMarkdown: message.isMarkdown,
+        customProperties: {...?message.customProperties, &#39;id&#39;: newId},
+      );
+
+      if (paginationConfig.reverseOrder) {
+        _messages.insert(0, messageWithId);
+      } else {
+        _messages.add(messageWithId);
+      }
+      _messageCache[newId] = messageWithId;
+      notifyListeners();
+
+      &#47;&#47; Only scroll if configured to do so for new messages
+      final config = scrollBehaviorConfig;
+
+      &#47;&#47; Detect if this is a user message
+      final isUserMessage =
+          message.customProperties?[&#39;isUserMessage&#39;] as bool? ??
+              message.customProperties?[&#39;source&#39;] == &#39;user&#39;;
+
+      &#47;&#47; Identify the first message in a response chain
+      final isFirstResponse =
+          message.customProperties?[&#39;isFirstResponseMessage&#39;] as bool? ??
+              false;
+
+      var shouldScroll = false;
+      switch (config.autoScrollBehavior) {
+        case AutoScrollBehavior.always:
+        case AutoScrollBehavior.onNewMessage:
+          shouldScroll = !isUserMessage &amp;&amp; !isFirstResponse;
+          break;
+        case AutoScrollBehavior.onUserMessageOnly:
+          shouldScroll = isUserMessage &amp;&amp; !isFirstResponse;
+          break;
+        case AutoScrollBehavior.never:
+          shouldScroll = false;
+          break;
+      }
+
+      if (shouldScroll) {
+        _scrollAfterRender(false, false, config);
+      } else if (isUserMessage &amp;&amp; isFirstResponse) {
+        debugPrint(&#39;SKIPPING SCROLL: Custom scroll behavior is active&#39;);
+      }
+    } catch (fallbackError) {
+      debugPrint(&#39;Failed to add message as fallback: $fallbackError&#39;);
+    }
+  }
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/ChatMessagesController-class.html">ChatMessagesController</a></li>
+    <li class="self-crumb">updateMessage method</li>
+</ol>
+
+    <h5>ChatMessagesController class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+</div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    flutter_gen_ai_chat_ui
+      2.11.1
+  </span>
+  
+</footer>
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

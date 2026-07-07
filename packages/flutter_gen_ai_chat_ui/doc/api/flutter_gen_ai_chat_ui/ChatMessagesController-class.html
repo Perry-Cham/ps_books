@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the ChatMessagesController class from the flutter_gen_ai_chat_ui library, for the Dart programming language.">
+  <title>ChatMessagesController class - flutter_gen_ai_chat_ui library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui.dart</a></li>
+    <li class="self-crumb">ChatMessagesController class</li>
+  </ol>
+  <div class="self-name">ChatMessagesController</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="flutter_gen_ai_chat_ui&#47;flutter_gen_ai_chat_ui-library-sidebar.html"
+    data-below-sidebar="flutter_gen_ai_chat_ui&#47;ChatMessagesController-class-sidebar.html">
+    <div>
+<h1><span class="kind-class">ChatMessagesController</span> class 
+ 
+</h1></div>
+
+    
+<section class="desc markdown">
+  <p>Controller for managing chat messages and their states.</p>
+<p><code>ChatMessagesController</code> is the canonical message store for an
+<a href="../flutter_gen_ai_chat_ui/AiChatWidget-class.html">AiChatWidget</a>. It is a <a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier-class.html">ChangeNotifier</a> and is owned by the consumer
+across rebuilds (same pattern as <code>TextEditingController</code>).</p>
+<p>The controller exposes <code>addMessage</code>, <code>updateMessage</code>, <code>clearMessages</code>
+and <code>scrollToBottom</code> for the common chat flow, plus pagination
+(<code>loadMore</code>, <code>resetPagination</code>), streaming helpers
+(<code>addStreamingMessage</code>, <code>setStreamingMessage</code>, <code>stopStreamingMessage</code>),
+and scroll-targeting helpers
+(<code>scrollToMessage</code>, <code>forceScrollToFirstMessageInChain</code>).</p>
+<p>Streaming usage:</p>
+<pre class="language-dart"><code class="language-dart">// 1. Add an empty AI message with a stable id.
+const responseId = 'response-42';
+controller.addMessage(ChatMessage(
+  user: aiUser,
+  text: '',
+  createdAt: DateTime.now(),
+  customProperties: {'id': responseId, 'isStreaming': true},
+));
+
+// 2. As tokens arrive, replace the text in-place.
+await for (final delta in tokenStream) {
+  accumulated += delta;
+  controller.updateMessage(ChatMessage(
+    user: aiUser,
+    text: accumulated,
+    createdAt: DateTime.now(),
+    customProperties: {'id': responseId, 'isStreaming': true},
+  ));
+}
+
+// 3. Flip isStreaming to false to end the animation.
+controller.stopStreamingMessage(responseId);
+</code></pre>
+<p>Always call <a href="../flutter_gen_ai_chat_ui/ChatMessagesController/dispose.html">dispose</a> when the owning widget is removed; pending scroll
+and streaming-simulation timers are cancelled in <code>dispose</code>.</p>
+</section>
+
+
+    <section>
+      <dl class="dl-horizontal">
+        
+  <dt>Inheritance</dt>
+  <dd>
+    <ul class="gt-separated dark clazz-relationships">
+      <li><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></li>
+        <li><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier-class.html">ChangeNotifier</a></li>
+      <li>ChatMessagesController</li>
+    </ul>
+  </dd>
+
+        
+        
+
+
+        
+        
+
+
+      </dl>
+    </section>
+
+    
+  <section class="summary offset-anchor" id="constructors">
+    <h2>Constructors</h2>
+    <dl class="constructor-summary-list">
+        <dt id="ChatMessagesController.new" class="callable">
+          <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/ChatMessagesController.html">ChatMessagesController</a></span><span class="signature">({<span class="parameter" id="-param-initialMessages"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>&gt;</span>?</span> <span class="parameter-name">initialMessages</span>, </span><span class="parameter" id="-param-paginationConfig"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/PaginationConfig-class.html">PaginationConfig</a></span> <span class="parameter-name">paginationConfig</span> = <span class="default-value">const PaginationConfig()</span>, </span><span class="parameter" id="-param-onLoadMoreMessages"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>&gt;</span></span>&gt;</span></span> <span class="parameter-name">onLoadMoreMessages</span>(<span class="parameter" id="param-lastMessage"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a>?</span> <span class="parameter-name">lastMessage</span></span>)?, </span><span class="parameter" id="-param-showWelcomeMessage"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">showWelcomeMessage</span> = <span class="default-value">false</span>, </span><span class="parameter" id="-param-scrollBehaviorConfig"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ScrollBehaviorConfig-class.html">ScrollBehaviorConfig</a>?</span> <span class="parameter-name">scrollBehaviorConfig</span></span>})</span>
+        </dt>
+        <dd>
+          Creates a new chat messages controller.
+        </dd>
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-properties">
+    <h2>Properties</h2>
+    <dl class="properties">
+        <dt id="currentlyStreamingMessageId" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/currentlyStreamingMessageId.html">currentlyStreamingMessageId</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
+  
+
+</dt>
+<dd>
+  The ID of the message currently being streamed
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="currentPage" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/currentPage.html">currentPage</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd>
+  Current page of pagination
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="hashCode" class="property inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  The hash code for this object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="hasListeners" class="property inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/hasListeners.html">hasListeners</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  Whether any listeners are currently registered.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="hasMoreMessages" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/hasMoreMessages.html">hasMoreMessages</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether there are more messages to load.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="isCurrentlyStreaming" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/isCurrentlyStreaming.html">isCurrentlyStreaming</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether a message is currently being streamed
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="isLoadingMore" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/isLoadingMore.html">isLoadingMore</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether more messages are currently being loaded.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="messages" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/messages.html">messages</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  List of all chat messages.
+If paginationConfig.reverseOrder is true, newest messages are first (index 0).
+If paginationConfig.reverseOrder is false, oldest messages are first (index 0).
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="mounted" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/mounted.html">mounted</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether this controller has not yet been disposed.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="newlyDeliveredMessageId" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/newlyDeliveredMessageId.html">newlyDeliveredMessageId</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
+  
+
+</dt>
+<dd>
+  The ID of the most recently delivered (non-streaming) AI message.
+Cleared after the first frame so the animation only plays once.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="paginationConfig" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/paginationConfig.html">paginationConfig</a></span>
+  <span class="signature">&#8594; <a href="../flutter_gen_ai_chat_ui/PaginationConfig-class.html">PaginationConfig</a></span>
+  
+
+</dt>
+<dd>
+  Configuration for pagination behavior
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="runtimeType" class="property inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Type-class.html">Type</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  A representation of the runtime type of the object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="scrollBehaviorConfig" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/scrollBehaviorConfig.html">scrollBehaviorConfig</a></span>
+  <span class="signature">&#8596; <a href="../flutter_gen_ai_chat_ui/ScrollBehaviorConfig-class.html">ScrollBehaviorConfig</a></span>
+  
+
+</dt>
+<dd>
+  Get the current scroll behavior configuration
+  <div class="features"><span class="feature">getter/setter pair</span></div>
+
+</dd>
+
+        <dt id="showWelcomeMessage" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/showWelcomeMessage.html">showWelcomeMessage</a></span>
+  <span class="signature">&#8596; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether to show the welcome message.
+  <div class="features"><span class="feature">getter/setter pair</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-methods">
+    <h2>Methods</h2>
+    <dl class="callables">
+        <dt id="addAgentMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/addAgentMessage.html">addAgentMessage</a></span><span class="signature">(<wbr><span class="parameter" id="addAgentMessage-param-message"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span> <span class="parameter-name">message</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds an agent-authored message without running the response-tracking
+or auto-scroll logic that <a href="../flutter_gen_ai_chat_ui/ChatMessagesController/addMessage.html">addMessage</a> applies.
+  
+
+</dd>
+
+        <dt id="addListener" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></span><span class="signature">(<wbr><span class="parameter" id="addListener-param-listener"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/VoidCallback.html">VoidCallback</a></span> <span class="parameter-name">listener</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Register a closure to be called when the object changes.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="addMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/addMessage.html">addMessage</a></span><span class="signature">(<wbr><span class="parameter" id="addMessage-param-message"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span> <span class="parameter-name">message</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds a new message to the chat.
+  
+
+</dd>
+
+        <dt id="addMessages" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/addMessages.html">addMessages</a></span><span class="signature">(<wbr><span class="parameter" id="addMessages-param-messages"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>&gt;</span></span> <span class="parameter-name">messages</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds multiple messages to the chat at once.
+  
+
+</dd>
+
+        <dt id="addStreamingMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/addStreamingMessage.html">addStreamingMessage</a></span><span class="signature">(<wbr><span class="parameter" id="addStreamingMessage-param-message"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span> <span class="parameter-name">message</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds a new message with streaming enabled
+  
+
+</dd>
+
+        <dt id="clearMessages" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/clearMessages.html">clearMessages</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Clears all messages and shows the welcome message.
+  
+
+</dd>
+
+        <dt id="dispose" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/dispose.html">dispose</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Discards any resources used by the object. After this is called, the
+object is not in a usable state and should be discarded (calls to
+<a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a> will throw after the object is disposed).
+  <div class="features"><span class="feature">override</span></div>
+
+</dd>
+
+        <dt id="forceScrollToFirstMessageInChain" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/forceScrollToFirstMessageInChain.html">forceScrollToFirstMessageInChain</a></span><span class="signature">(<wbr><span class="parameter" id="forceScrollToFirstMessageInChain-param-responseId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">responseId</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Animates to the first message in the response chain identified by
+<code>responseId</code>, so the start of a multi-part AI response stays in view.
+  
+
+</dd>
+
+        <dt id="forceScrollToTop" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/forceScrollToTop.html">forceScrollToTop</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Jumps to the very top of the list (no animation).
+  
+
+</dd>
+
+        <dt id="getMessageId" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/getMessageId.html">getMessageId</a></span><span class="signature">(<wbr><span class="parameter" id="getMessageId-param-message"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span> <span class="parameter-name">message</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Public method to get a message ID (for testing/debugging)
+  
+
+</dd>
+
+        <dt id="handleExampleQuestion" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/handleExampleQuestion.html">handleExampleQuestion</a></span><span class="signature">(<wbr><span class="parameter" id="handleExampleQuestion-param-question"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">question</span>, </span><span class="parameter" id="handleExampleQuestion-param-currentUser"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatUser-class.html">ChatUser</a></span> <span class="parameter-name">currentUser</span>, </span><span class="parameter" id="handleExampleQuestion-param-aiUser"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatUser-class.html">ChatUser</a></span> <span class="parameter-name">aiUser</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Submits an example question as if the user had typed and sent it.
+  
+
+</dd>
+
+        <dt id="hideWelcomeMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/hideWelcomeMessage.html">hideWelcomeMessage</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Hides the welcome message overlay and notifies listeners.
+  
+
+</dd>
+
+        <dt id="loadMore" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/loadMore.html">loadMore</a></span><span class="signature">(<wbr><span class="parameter" id="loadMore-param-loadCallback"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>&gt;</span></span>&gt;</span></span> <span class="parameter-name">loadCallback</span>()?</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Loads more messages using the provided callback.
+  
+
+</dd>
+
+        <dt id="noSuchMethod" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Invocation-class.html">Invocation</a></span> <span class="parameter-name">invocation</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Invoked when a nonexistent method or property is accessed.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="notifyListeners" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/notifyListeners.html">notifyListeners</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Call all the registered listeners.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="removeListener" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/removeListener.html">removeListener</a></span><span class="signature">(<wbr><span class="parameter" id="removeListener-param-listener"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/VoidCallback.html">VoidCallback</a></span> <span class="parameter-name">listener</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Remove a previously registered closure from the list of closures that are
+notified when the object changes.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="resetPagination" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/resetPagination.html">resetPagination</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Resets pagination state
+  
+
+</dd>
+
+        <dt id="scrollToBottom" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/scrollToBottom.html">scrollToBottom</a></span><span class="signature">(<wbr>[<span class="parameter" id="scrollToBottom-param-duration"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">duration</span>, </span><span class="parameter" id="scrollToBottom-param-curve"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/animation/Curve-class.html">Curve</a>?</span> <span class="parameter-name">curve</span></span>])
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Scrolls to the bottom of the message list
+  
+
+</dd>
+
+        <dt id="scrollToMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/scrollToMessage.html">scrollToMessage</a></span><span class="signature">(<wbr><span class="parameter" id="scrollToMessage-param-messageId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">messageId</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Scrolls to a specific message by ID with improved position calculation
+  
+
+</dd>
+
+        <dt id="scrollToMessageObject" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/scrollToMessageObject.html">scrollToMessageObject</a></span><span class="signature">(<wbr><span class="parameter" id="scrollToMessageObject-param-message"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span> <span class="parameter-name">message</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Scrolls to a specific message directly
+  
+
+</dd>
+
+        <dt id="setMessages" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/setMessages.html">setMessages</a></span><span class="signature">(<wbr><span class="parameter" id="setMessages-param-messages"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>&gt;</span></span> <span class="parameter-name">messages</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Replaces all existing messages with a new list.
+  
+
+</dd>
+
+        <dt id="setScrollController" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/setScrollController.html">setScrollController</a></span><span class="signature">(<wbr><span class="parameter" id="setScrollController-param-controller"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/ScrollController-class.html">ScrollController</a></span> <span class="parameter-name">controller</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Wires a <a href="https://api.flutter.dev/flutter/widgets/ScrollController-class.html">ScrollController</a> up to this controller for auto-scrolling.
+  
+
+</dd>
+
+        <dt id="setStreamingMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/setStreamingMessage.html">setStreamingMessage</a></span><span class="signature">(<wbr><span class="parameter" id="setStreamingMessage-param-messageId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">messageId</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Sets which message is currently being streamed
+  
+
+</dd>
+
+        <dt id="simulateStreamingCompletion" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/simulateStreamingCompletion.html">simulateStreamingCompletion</a></span><span class="signature">(<wbr><span class="parameter" id="simulateStreamingCompletion-param-messageId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">messageId</span>, {</span><span class="parameter" id="simulateStreamingCompletion-param-delay"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a></span> <span class="parameter-name">delay</span> = <span class="default-value">const Duration(seconds: 3)</span></span>})
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Simulates streaming completion after a delay (useful for demos)
+  
+
+</dd>
+
+        <dt id="stopStreamingMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/stopStreamingMessage.html">stopStreamingMessage</a></span><span class="signature">(<wbr><span class="parameter" id="stopStreamingMessage-param-messageId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">messageId</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Stops streaming for a specific message (marks it as complete)
+  
+
+</dd>
+
+        <dt id="toString" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  A string representation of this object.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="updateMessage" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/ChatMessagesController/updateMessage.html">updateMessage</a></span><span class="signature">(<wbr><span class="parameter" id="updateMessage-param-message"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span> <span class="parameter-name">message</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Updates an existing message or adds it if not found.
+  
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor inherited"
+      id="operators">
+    <h2>Operators</h2>
+    <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  The equality operator.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+    
+    
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui</a></li>
+    <li class="self-crumb">ChatMessagesController class</li>
+</ol>
+
+    <h5>flutter_gen_ai_chat_ui library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div>
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    flutter_gen_ai_chat_ui
+      2.11.1
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

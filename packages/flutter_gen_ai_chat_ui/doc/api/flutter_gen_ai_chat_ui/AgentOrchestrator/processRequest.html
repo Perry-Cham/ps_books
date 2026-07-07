@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the processRequest method from the AgentOrchestrator class, for the Dart programming language.">
+  <title>processRequest method - AgentOrchestrator class - flutter_gen_ai_chat_ui library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui.dart</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/AgentOrchestrator-class.html">AgentOrchestrator</a></li>
+    <li class="self-crumb">processRequest method</li>
+  </ol>
+  <div class="self-name">processRequest</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="flutter_gen_ai_chat_ui&#47;AgentOrchestrator-class-sidebar.html"
+    data-below-sidebar="">
+    <div>
+<h1><span class="kind-method">processRequest</span> method 
+</h1></div>
+
+    <section class="multi-line-signature">
+      
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../flutter_gen_ai_chat_ui/AgentResponse-class.html">AgentResponse</a></span>&gt;</span></span>
+<span class="name ">processRequest</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="processRequest-param-request"><span class="type-annotation"><a href="../../flutter_gen_ai_chat_ui/AgentRequest-class.html">AgentRequest</a></span> <span class="parameter-name">request</span></span></li>
+</ol>)
+
+      
+
+    </section>
+    
+<section class="desc markdown">
+  <p>Process a request through intelligent agent routing</p>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;AgentResponse&gt; processRequest(AgentRequest request) async {
+  &#47;&#47; Find the best agent for this request
+  final routingDecision = await _routeRequest(request);
+  final targetAgent = _agents[routingDecision.targetAgentId];
+
+  if (targetAgent == null) {
+    throw AgentException(
+        &#39;Target agent ${routingDecision.targetAgentId} not found&#39;);
+  }
+
+  try {
+    final response = await targetAgent.processRequest(request);
+    _responseStreamController.add(response);
+
+    &#47;&#47; Handle delegation if needed
+    if (response.type == AgentResponseType.delegation) {
+      return await _handleDelegation(request, response);
+    }
+
+    &#47;&#47; Handle collaboration requests
+    if (response.type == AgentResponseType.collaborationRequest) {
+      return await _handleCollaborationRequest(request, response);
+    }
+
+    return response;
+  } catch (e) {
+    final errorResponse = AgentResponse(
+      id: &#39;error_${DateTime.now().millisecondsSinceEpoch}&#39;,
+      requestId: request.id,
+      agentId: targetAgent.id,
+      content: &#39;Error processing request: $e&#39;,
+      type: AgentResponseType.error,
+      timestamp: DateTime.now(),
+    );
+
+    _responseStreamController.add(errorResponse);
+    return errorResponse;
+  }
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../../flutter_gen_ai_chat_ui/AgentOrchestrator-class.html">AgentOrchestrator</a></li>
+    <li class="self-crumb">processRequest method</li>
+</ol>
+
+    <h5>AgentOrchestrator class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+</div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    flutter_gen_ai_chat_ui
+      2.11.1
+  </span>
+  
+</footer>
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

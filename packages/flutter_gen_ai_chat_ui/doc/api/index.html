@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="flutter_gen_ai_chat_ui API docs, for the Dart programming language.">
+  <title>flutter_gen_ai_chat_ui - Dart API docs</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="static-assets/github.css?v1">
+  <link rel="stylesheet" href="static-assets/styles.css?v1">
+  <link rel="icon" href="static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="https://github.com/hooshyar/flutter_gen_ai_chat_ui">flutter_gen_ai_chat_ui package</a></li>
+  </ol>
+  <div class="self-name">flutter_gen_ai_chat_ui</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+  <div id="dartdoc-main-content" class="main-content">
+      
+<section class="desc markdown">
+  <h1 id="flutter-gen-ai-chat-ui">Flutter Gen AI Chat UI</h1>
+<p><a href="https://pub.dev/packages/flutter_gen_ai_chat_ui"><img src="https://img.shields.io/pub/v/flutter_gen_ai_chat_ui.svg" alt="pub package"></a>
+<a href="https://pub.dev/packages/flutter_gen_ai_chat_ui/score"><img src="https://img.shields.io/pub/likes/flutter_gen_ai_chat_ui" alt="pub likes"></a>
+<a href="https://pub.dev/packages/flutter_gen_ai_chat_ui/score"><img src="https://img.shields.io/pub/points/flutter_gen_ai_chat_ui" alt="pub points"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+<a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.7%2B-blue.svg" alt="Flutter"></a>
+<a href="https://pub.dev/packages/flutter_gen_ai_chat_ui"><img src="https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20web%20%7C%20windows%20%7C%20macos%20%7C%20linux-lightgrey.svg" alt="Platform"></a>
+<a href="https://github.com/hooshyar/flutter_gen_ai_chat_ui"><img src="https://img.shields.io/github/stars/hooshyar/flutter_gen_ai_chat_ui.svg?style=flat&amp;logo=github&amp;colorB=deeppink&amp;label=stars" alt="GitHub stars"></a>
+<a href="https://github.com/hooshyar/flutter_gen_ai_chat_ui/issues"><img src="https://img.shields.io/github/issues/hooshyar/flutter_gen_ai_chat_ui.svg" alt="GitHub issues"></a></p>
+<p>A modern, high-performance Flutter chat UI kit for building beautiful messaging interfaces. Features streaming text animations, markdown support, file attachments, and extensive customization options. Perfect for AI assistants, customer support, team chat, social messaging, and any conversational application.</p>
+<p><strong>🚀 Production Ready</strong> | <strong>📱 Cross-Platform</strong> | <strong>⚡ High Performance</strong> | <strong>🎨 Fully Customizable</strong></p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#-performance--features">Performance &amp; Features</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#basic-usage">Quick Start</a></li>
+<li><a href="#-live-examples">Live Examples</a></li>
+<li><a href="#configuration-options">Configuration Options</a></li>
+<li><a href="#-ai-actions-system">AI Actions System</a></li>
+<li><a href="#advanced-features">Advanced Features</a></li>
+<li><a href="#-showcase">Showcase</a></li>
+</ul>
+<table>
+  <tbody><tr>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/hooshyar/flutter_gen_ai_chat_ui/main/screenshots/detailed_dark.png" alt="Dark Mode" width="300px">
+      <br>
+      <em>Dark Mode</em>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/hooshyar/flutter_gen_ai_chat_ui/main/screenshots/detailed.gif" alt="Chat Demo" width="300px">
+      <br>
+      <em>Chat Demo</em>
+    </td>
+  </tr>
+</tbody></table>
+<h2 id="features">Features</h2>
+<h3 id="core-features">Core Features</h3>
+<ul>
+<li>🎨 Dark/light mode with adaptive theming</li>
+<li>💫 Word-by-word streaming with animations (like ChatGPT and Claude)</li>
+<li>📝 Enhanced markdown support with code highlighting for technical content</li>
+<li>🎤 Optional speech-to-text integration</li>
+<li>📱 Responsive layout with customizable width</li>
+<li>🌐 RTL language support for global applications</li>
+<li>⚡ High performance message handling for large conversations</li>
+<li>📊 Improved pagination support for message history</li>
+</ul>
+<h3 id="ai-specific-features">AI-Specific Features</h3>
+<ul>
+<li>👋 Customizable welcome message similar to ChatGPT and other AI assistants</li>
+<li>❓ Example questions component for user guidance</li>
+<li>💬 Persistent example questions for better user experience</li>
+<li>🔄 AI typing indicators like modern chatbot interfaces</li>
+<li>📜 Streaming markdown rendering for code and rich content</li>
+</ul>
+<h3 id="-new-rich-widget-messages">🚀 <strong>NEW: Rich Widget Messages</strong></h3>
+<ul>
+<li>🧩 <strong><code>ChatMessage.rich()</code></strong> - Render custom widgets (cards, forms, charts) inline in chat — full-width, no bubble</li>
+<li>🎯 <strong>Result Renderer Registry</strong> - Register builders by type, AI responses auto-render matching widgets</li>
+<li>🔧 <strong><code>ChatMessage.widget()</code></strong> - One-off inline widgets without a registry</li>
+<li>📦 <strong>Zero Config Fallback</strong> - Unmatched types fall through to text rendering gracefully</li>
+</ul>
+<h3 id="-input-customization">🎤 <strong>Input Customization</strong></h3>
+<ul>
+<li>🎙️ <strong><code>sendOrMicBuilder</code></strong> - Mic/send toggle that auto-switches based on text field empty state (ChatGPT-style)</li>
+<li>📎 <strong><code>inputLeadingBuilder</code></strong> - Icons inside the input row, left of text field (attach, mic, etc.)</li>
+<li>🖼️ <strong><code>attachmentPreviewBuilder</code></strong> - File/image preview strip above the input area</li>
+<li>⬇️ <strong>Safe area support</strong> - Input respects device home indicator on all paths</li>
+</ul>
+<h3 id="-streaming-loading-states">⏳ <strong>Streaming Loading States</strong></h3>
+<ul>
+<li>💫 <strong><code>ChatMessage.loading()</code></strong> - Shimmer placeholder that morphs into rich widget via <code>controller.updateMessage()</code></li>
+<li>🏷️ <strong><code>loadingKind</code></strong> - Per-kind custom loading widgets (e.g., contract spinner, lawyer search animation)</li>
+<li>🎨 <strong><code>resultLoadingRenderers</code></strong> - Register custom loading UIs per widget type</li>
+</ul>
+<h3 id="ai-actions-system">AI Actions System</h3>
+<ul>
+<li>⚡ <strong>Function Calling Support</strong> - AI can execute predefined actions with parameters</li>
+<li>🎨 <strong>Generative UI</strong> - Actions render custom widgets showing execution status</li>
+<li>✋ <strong>Human-in-the-Loop</strong> - Automatic confirmation dialogs for sensitive operations</li>
+<li>📊 <strong>Real-time Status</strong> - Live updates of action execution progress with animations</li>
+<li>🛡️ <strong>Type-Safe Parameters</strong> - Full validation system with custom validators</li>
+<li>🎯 <strong>Event Streaming</strong> - Track action lifecycle with comprehensive event system</li>
+<li>🔧 <strong>Error Handling</strong> - Rich error management with user-friendly feedback</li>
+</ul>
+<h3 id="ui-components">UI Components</h3>
+<ul>
+<li>💬 Customizable message bubbles with modern design options</li>
+<li>🎨 <strong>Custom Bubble Builder</strong> for complete message styling control</li>
+<li>⌨️ Multiple input field styles (minimal, glassmorphic, custom)</li>
+<li>🔄 Loading indicators with shimmer effects</li>
+<li>⬇️ Smart scroll management for chat history</li>
+<li>🎨 Enhanced theme customization to match your brand</li>
+<li>📝 Better code block styling for developers</li>
+</ul>
+<h2 id="-performance--features">⚡ Performance &amp; Features</h2>
+<h3 id="key-capabilities">Key Capabilities</h3>
+<ul>
+<li><strong>✨ Unique Streaming Text</strong>: Word-by-word animations like ChatGPT and Claude</li>
+<li><strong>📁 Complete File Support</strong>: Multi-format attachments (images, documents, videos)</li>
+<li><strong>📝 Advanced Markdown</strong>: Full support with syntax highlighting for code blocks</li>
+<li><strong>🚀 High Performance</strong>: Optimized for large conversations (10K+ messages)</li>
+<li><strong>🎨 Extensive Theming</strong>: Complete customization to match your brand</li>
+<li><strong>📱 Cross-Platform</strong>: Works on all Flutter-supported platforms</li>
+<li><strong>🔗 Backend Agnostic</strong>: Compatible with any API or service</li>
+<li><strong>⚡ Real-time Ready</strong>: Built-in support for live updates</li>
+</ul>
+<h3 id="performance-benchmarks">Performance Benchmarks</h3>
+<ul>
+<li><strong>Message Rendering</strong>: 60 FPS with 1000+ messages</li>
+<li><strong>Memory Efficiency</strong>: Optimized for large conversations</li>
+<li><strong>Startup Time</strong>: &lt;100ms initialization</li>
+<li><strong>Streaming Speed</strong>: Configurable 10-100ms per word</li>
+</ul>
+<h2 id="-works-great-with">🌟 Works Great With</h2>
+<ul>
+<li><strong>AI Services</strong>: OpenAI, Anthropic Claude, Google Gemini, Llama, Mistral</li>
+<li><strong>Backends</strong>: Firebase, Supabase, REST APIs, WebSockets, GraphQL</li>
+<li><strong>Use Cases</strong>: Customer support, AI assistants, team chat, social messaging</li>
+<li><strong>Industries</strong>: SaaS, E-commerce, Healthcare, Education, Gaming</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>Add this to your package's pubspec.yaml file:</p>
+<pre class="language-yaml"><code class="language-yaml">dependencies:
+  flutter_gen_ai_chat_ui: ^2.11.1
+</code></pre>
+<p>Then run:</p>
+<pre class="language-bash"><code class="language-bash">flutter pub get
+</code></pre>
+<h2 id="why-choose-this-package">Why Choose This Package?</h2>
+<p>✅ <strong>Superior Performance</strong>: Optimized for large conversations with efficient message rendering<br>
+✅ <strong>Modern UI</strong>: Beautiful, customizable interfaces that match current design trends<br>
+✅ <strong>Streaming Text</strong>: Smooth word-by-word animations like ChatGPT and Claude<br>
+✅ <strong>File Support</strong>: Complete file attachment system with image, document, and media support<br>
+✅ <strong>Production Ready</strong>: Stable API with comprehensive testing and documentation<br>
+✅ <strong>Framework Agnostic</strong>: Works with any backend - REST APIs, WebSockets, Firebase, Supabase</p>
+<h2 id="-live-examples">🎮 Live Examples</h2>
+<p>Explore all features with our comprehensive example app:</p>
+<ul>
+<li><strong>Basic Chat</strong>: Simple ChatGPT-style interface</li>
+<li><strong>Streaming Text</strong>: Real-time word-by-word animations</li>
+<li><strong>File Attachments</strong>: Upload images, documents, videos</li>
+<li><strong>Custom Themes</strong>: Light, dark, and glassmorphic styles</li>
+<li><strong>Advanced Features</strong>: Scroll behavior, markdown, code highlighting</li>
+</ul>
+<p>To run the example app:</p>
+<pre class="language-bash"><code class="language-bash">cd example/
+flutter run
+</code></pre>
+<h2 id="quick-start">Quick Start</h2>
+<pre class="language-dart"><code class="language-dart">import 'package:flutter_gen_ai_chat_ui/flutter_gen_ai_chat_ui.dart';
+
+class ChatScreen extends StatefulWidget {
+  @override
+  _ChatScreenState createState() =&gt; _ChatScreenState();
+}
+
+class _ChatScreenState extends State&lt;ChatScreen&gt; {
+  final _controller = ChatMessagesController();
+  final _currentUser = ChatUser(id: 'user', firstName: 'User');
+  final _aiUser = ChatUser(id: 'ai', firstName: 'AI Assistant');
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('AI Chat')),
+      body: AiChatWidget(
+        // Required parameters
+        currentUser: _currentUser,
+        aiUser: _aiUser,
+        controller: _controller,
+        onSendMessage: _handleSendMessage,
+        
+        // Optional parameters
+        loadingConfig: LoadingConfig(isLoading: _isLoading),
+        inputOptions: InputOptions(
+          hintText: 'Ask me anything...',
+          sendOnEnter: true,
+        ),
+        welcomeMessageConfig: WelcomeMessageConfig(
+          title: 'Welcome to AI Chat',
+          questionsSectionTitle: 'Try asking me:',
+        ),
+        exampleQuestions: [
+          ExampleQuestion(question: "What can you help me with?"),
+          ExampleQuestion(question: "Tell me about your features"),
+        ],
+      ),
+    );
+  }
+
+  Future&lt;void&gt; _handleSendMessage(ChatMessage message) async {
+    setState(() =&gt; _isLoading = true);
+    
+    try {
+      // Your AI service logic here
+      await Future.delayed(Duration(seconds: 1)); // Simulating API call
+      
+      // Add AI response
+      _controller.addMessage(ChatMessage(
+        text: "This is a response to: ${message.text}",
+        user: _aiUser,
+        createdAt: DateTime.now(),
+      ));
+    } finally {
+      setState(() =&gt; _isLoading = false);
+    }
+  }
+}
+</code></pre>
+<h2 id="configuration-options">Configuration Options</h2>
+<h3 id="aichatwidget-parameters">AiChatWidget Parameters</h3>
+<h4 id="required-parameters">Required Parameters</h4>
+<pre class="language-dart"><code class="language-dart">AiChatWidget(
+  // Required parameters
+  currentUser: ChatUser(...),  // The current user
+  aiUser: ChatUser(...),       // The AI assistant
+  controller: ChatMessagesController(),  // Message controller
+  onSendMessage: (message) {   // Message handler
+    // Handle user messages here
+  },
+  
+  // ... optional parameters
+)
+</code></pre>
+<h4 id="optional-parameters">Optional Parameters</h4>
+<pre class="language-dart"><code class="language-dart">AiChatWidget(
+  // ... required parameters
+  
+  // Message display options
+  messages: [],                // Optional list of messages (if not using controller)
+  messageOptions: MessageOptions(...),  // Message bubble styling
+  messageListOptions: MessageListOptions(...),  // Message list behavior
+  
+  // Input field customization
+  inputOptions: InputOptions(...),  // Input field styling and behavior
+  readOnly: false,             // Whether the chat is read-only
+  
+  // AI-specific features
+  exampleQuestions: [          // Suggested questions for users
+    ExampleQuestion(question: 'What is AI?'),
+  ],
+  persistentExampleQuestions: true,  // Keep questions visible after welcome
+  enableAnimation: true,       // Enable message animations
+  enableMarkdownStreaming: true,  // Enable streaming text (FIXED in v2.4.2+)
+  streamingWordByWord: false,     // Control word-by-word vs character animation  
+  streamingDuration: Duration(milliseconds: 30),  // Stream speed
+  welcomeMessageConfig: WelcomeMessageConfig(...),  // Welcome message styling
+  
+  // Loading states
+  loadingConfig: LoadingConfig(  // Loading configuration
+    isLoading: false,
+    showCenteredIndicator: true,
+  ),
+  
+  // Pagination
+  paginationConfig: PaginationConfig(  // Pagination configuration
+    enabled: true,
+    reverseOrder: true,  // Newest messages at bottom
+  ),
+  
+  // Layout
+  maxWidth: 800,             // Maximum width
+  padding: EdgeInsets.all(16),  // Overall padding
+  
+  // Scroll behavior
+  scrollBehaviorConfig: ScrollBehaviorConfig(
+    // Control auto-scrolling behavior
+    autoScrollBehavior: AutoScrollBehavior.onUserMessageOnly,
+    // Scroll to first message of a response instead of the last (for long responses)
+    scrollToFirstResponseMessage: true,
+  ),
+  
+  // Custom bubble builder for complete styling control
+  customBubbleBuilder: (context, message, isCurrentUser, defaultBubble) {
+    // Return your custom bubble widget
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: defaultBubble, // Or create completely custom UI
+    );
+  },
+)
+</code></pre>
+<h3 id="input-field-customization">Input Field Customization</h3>
+<p>The package offers multiple ways to style the input field:</p>
+<h4 id="default-input">Default Input</h4>
+<pre class="language-dart"><code class="language-dart">InputOptions(
+  // Basic properties
+  sendOnEnter: true,
+  
+  // Focus behavior (NEW in v2.4.2+)
+  autofocus: true,          // Automatically focus the input field
+  focusNode: myFocusNode,   // Custom focus node for external control
+  
+  // Styling
+  textStyle: TextStyle(...),
+  decoration: InputDecoration(...),
+)
+</code></pre>
+<h4 id="minimal-input">Minimal Input</h4>
+<pre class="language-dart"><code class="language-dart">InputOptions.minimal(
+  hintText: 'Ask a question...',
+  textColor: Colors.black,
+  hintColor: Colors.grey,
+  backgroundColor: Colors.white,
+  borderRadius: 24.0,
+  autofocus: true,        // Available in factory constructors too
+  focusNode: myFocusNode, // Custom focus node support
+)
+</code></pre>
+<h4 id="glassmorphic-frosted-glass-input">Glassmorphic (Frosted Glass) Input</h4>
+<pre class="language-dart"><code class="language-dart">InputOptions.glassmorphic(
+  colors: [Colors.blue.withOpacityCompat(0.2), Colors.purple.withOpacityCompat(0.2)],
+  borderRadius: 24.0,
+  blurStrength: 10.0,
+  hintText: 'Ask me anything...',
+  textColor: Colors.white,
+  autofocus: false,       // Control autofocus behavior
+  focusNode: myFocusNode, // Optional custom focus node
+)
+</code></pre>
+<h4 id="custom-input">Custom Input</h4>
+<pre class="language-dart"><code class="language-dart">InputOptions.custom(
+  decoration: yourCustomDecoration,
+  textStyle: yourCustomTextStyle,
+  sendButtonBuilder: (onSend) =&gt; CustomSendButton(onSend: onSend),
+)
+</code></pre>
+<h4 id="always-visible-send-button-without-focus-issues-version-204">Always-Visible Send Button Without Focus Issues (version 2.0.4+)</h4>
+<p>The send button is now hardcoded to always be visible by design, regardless of text content. This removes the need for an explicit setting and ensures a consistent experience across the package.</p>
+<p>By default:</p>
+<ul>
+<li>The send button is always shown regardless of text input</li>
+<li>Focus is maintained when tapping outside the input field</li>
+<li>The keyboard's send button is disabled by default to prevent focus issues on mobile</li>
+</ul>
+<pre class="language-dart"><code class="language-dart">// Configure input options to ensure a consistent typing experience
+InputOptions(
+  // Prevent losing focus when tapping outside
+  unfocusOnTapOutside: false,
+  
+  // Use newline for Enter key to prevent keyboard focus issues on mobile.
+  // Hardware Enter on desktop/web still sends — see "Enter key behavior" below.
+  textInputAction: TextInputAction.newline,
+)
+</code></pre>
+<h4 id="enter-key-behavior-version-2111">Enter key behavior (version 2.11.1+)</h4>
+<p>With <code>sendOnEnter: true</code> (the default), pressing Enter on a hardware keyboard sends the message. This works on macOS, Windows, Linux, web, and on iOS/Android devices with an attached physical keyboard.</p>
+<ul>
+<li><strong>Enter</strong> — sends the current message.</li>
+<li><strong>Shift+Enter</strong> — inserts a newline (ChatGPT/Claude style).</li>
+<li><strong>Numpad Enter</strong> — sends.</li>
+<li>During CJK / IME composition, Enter commits the composition instead of sending.</li>
+<li>Set <code>sendOnEnter: false</code> to disable; Enter then always inserts a newline.</li>
+</ul>
+<h3 id="scroll-behavior-configuration">Scroll Behavior Configuration</h3>
+<p>Control how the chat widget scrolls when new messages are added:</p>
+<pre class="language-dart"><code class="language-dart">// Default configuration with manual parameters
+ScrollBehaviorConfig(
+  // When to auto-scroll (one of: always, onNewMessage, onUserMessageOnly, never)
+  autoScrollBehavior: AutoScrollBehavior.onUserMessageOnly,
+  
+  // Fix for long responses: scroll to first message of response instead of the last message
+  // This prevents the top part of long AI responses from being pushed out of view
+  scrollToFirstResponseMessage: true,
+  
+  // Customize animation
+  scrollAnimationDuration: Duration(milliseconds: 300),
+  scrollAnimationCurve: Curves.easeOut,
+)
+
+// Or use convenient preset configurations:
+ScrollBehaviorConfig.smooth() // Smooth easeInOutCubic curve
+ScrollBehaviorConfig.bouncy() // Bouncy elasticOut curve
+ScrollBehaviorConfig.fast()   // Quick scrolling with minimal animation
+ScrollBehaviorConfig.decelerate() // Starts fast, slows down
+ScrollBehaviorConfig.accelerate() // Starts slow, speeds up
+</code></pre>
+<h4 id="use-case-preventing-long-responses-from-auto-scrolling">Use Case: Preventing Long Responses from Auto-Scrolling</h4>
+<p>When an AI returns a long response in multiple parts, scrollToFirstResponseMessage ensures users see the beginning of the response rather than being automatically scrolled to the end. This is crucial for readability, especially with complex information.</p>
+<p><strong>For optimal scroll behavior with long responses:</strong></p>
+<ol>
+<li>Mark the first message in a response with <code>'isStartOfResponse': true</code></li>
+<li>Link related messages in a chain using a shared <code>'responseId'</code> property</li>
+<li>Set <code>scrollToFirstResponseMessage: true</code> in your configuration</li>
+</ol>
+<h3 id="message-bubble-customization">Message Bubble Customization</h3>
+<pre class="language-dart"><code class="language-dart">MessageOptions(
+  // Basic options
+  showTime: true,
+  showUserName: true,
+  
+  // Styling
+  bubbleStyle: BubbleStyle(
+    userBubbleColor: Colors.blue.withOpacityCompat(0.1),
+    aiBubbleColor: Colors.white,
+    userNameColor: Colors.blue.shade700,
+    aiNameColor: Colors.purple.shade700,
+    bottomLeftRadius: 22,
+    bottomRightRadius: 22,
+    enableShadow: true,
+  ),
+)
+</code></pre>
+<h3 id="custom-bubble-builder">Custom Bubble Builder</h3>
+<p>Create completely custom message bubbles with full control over styling and behavior:</p>
+<pre class="language-dart"><code class="language-dart">AiChatWidget(
+  // ... other parameters
+  customBubbleBuilder: (context, message, isCurrentUser, defaultBubble) {
+    // Wrapper approach: enhance default bubble
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: defaultBubble,
+    );
+    
+    // Or create completely custom UI:
+    // return MyCustomBubbleWidget(message: message, isCurrentUser: isCurrentUser);
+  },
+)
+</code></pre>
+<h2 id="-ai-actions-system">🚀 AI Actions System</h2>
+<p><strong>Transform your chat into a powerful AI agent platform!</strong> The AI Actions System allows your AI to execute real functions, display rich results, and maintain human oversight - taking your chat beyond simple text exchanges.</p>
+<h3 id="-quick-start-with-ai-actions">⚡ Quick Start with AI Actions</h3>
+<pre class="language-dart"><code class="language-dart">import 'package:flutter_gen_ai_chat_ui/flutter_gen_ai_chat_ui.dart';
+
+class MyAiChat extends StatefulWidget {
+  @override
+  _MyAiChatState createState() =&gt; _MyAiChatState();
+}
+
+class _MyAiChatState extends State&lt;MyAiChat&gt; {
+  late ChatMessagesController _controller;
+  
+  @override
+  Widget build(BuildContext context) {
+    return AiActionProvider(
+      config: AiActionConfig(
+        actions: [
+          // Define what your AI can do
+          AiAction(
+            name: 'calculate',
+            description: 'Perform mathematical calculations',
+            parameters: [
+              ActionParameter.number(name: 'a', description: 'First number', required: true),
+              ActionParameter.number(name: 'b', description: 'Second number', required: true),
+              ActionParameter.string(
+                name: 'operation', 
+                description: 'Math operation',
+                required: true,
+                enumValues: ['add', 'subtract', 'multiply', 'divide']
+              ),
+            ],
+            handler: (params) async {
+              final a = params['a'] as num;
+              final b = params['b'] as num;
+              final op = params['operation'] as String;
+              
+              double result;
+              switch (op) {
+                case 'add': result = a + b; break;
+                case 'subtract': result = a - b; break;
+                case 'multiply': result = a * b; break;
+                case 'divide': result = a / b; break;
+                default: throw 'Unknown operation';
+              }
+              
+              return ActionResult.createSuccess({
+                'result': result,
+                'equation': '$a $op $b = $result'
+              });
+            },
+            // Custom UI for results
+            render: (context, status, params, {result, error}) {
+              if (status == ActionStatus.completed &amp;&amp; result?.data != null) {
+                return Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      result!.data['equation'],
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                );
+              }
+              return SizedBox.shrink();
+            },
+          ),
+        ],
+      ),
+      child: AiChatWidget(
+        // Your existing chat configuration
+        currentUser: currentUser,
+        aiUser: aiUser,
+        controller: _controller,
+        onSendMessage: _handleMessage,
+      ),
+    );
+  }
+  
+  void _handleMessage(ChatMessage message) {
+    // Add user message
+    _controller.addMessage(message);
+    
+    // Simulate AI deciding to use an action
+    if (message.text.contains('calculate')) {
+      _executeCalculation(message.text);
+    }
+  }
+  
+  void _executeCalculation(String userMessage) async {
+    final actionHook = AiActionHook.of(context);
+    
+    // AI parses user message and calls action
+    final result = await actionHook.executeAction('calculate', {
+      'a': 15,
+      'b': 3,
+      'operation': 'multiply'
+    });
+    
+    // Add AI response with result
+    _controller.addMessage(ChatMessage(
+      text: result.success ? 
+        'I calculated that for you: ${result.data['equation']}' : 
+        'Sorry, calculation failed: ${result.error}',
+      user: aiUser,
+    ));
+  }
+}
+</code></pre>
+<h3 id="-action-features">🎨 Action Features</h3>
+<h4 id="1-function-calling-with-validation"><strong>1. Function Calling with Validation</strong></h4>
+<pre class="language-dart"><code class="language-dart">AiAction(
+  name: 'send_email',
+  description: 'Send an email to a contact',
+  parameters: [
+    ActionParameter.string(
+      name: 'to',
+      description: 'Recipient email address',
+      required: true,
+      validator: (email) =&gt; email.contains('@'),  // Custom validation
+    ),
+    ActionParameter.string(
+      name: 'subject',
+      description: 'Email subject',
+      required: true,
+    ),
+    ActionParameter.string(
+      name: 'priority',
+      description: 'Email priority level',
+      enumValues: ['low', 'normal', 'high'],  // Constrained options
+      defaultValue: 'normal',
+    ),
+  ],
+  handler: (params) async {
+    // Your email sending logic
+    await sendEmailService(params);
+    return ActionResult.createSuccess({'sent': true});
+  },
+)
+</code></pre>
+<h4 id="2-human-in-the-loop-confirmations"><strong>2. Human-in-the-Loop Confirmations</strong></h4>
+<pre class="language-dart"><code class="language-dart">AiAction(
+  name: 'delete_file',
+  description: 'Delete a file from storage',
+  parameters: [...],
+  confirmationConfig: ActionConfirmationConfig(
+    title: 'Delete File',
+    message: 'This action cannot be undone. Continue?',
+    required: true,  // Always ask for confirmation
+  ),
+  handler: (params) async {
+    // Only executed after user confirms
+    await deleteFile(params['filename']);
+    return ActionResult.createSuccess();
+  },
+)
+</code></pre>
+<h4 id="3-real-time-status-updates"><strong>3. Real-time Status Updates</strong></h4>
+<pre class="language-dart"><code class="language-dart">AiAction(
+  name: 'generate_report',
+  description: 'Generate a comprehensive report',
+  render: (context, status, params, {result, error}) {
+    switch (status) {
+      case ActionStatus.executing:
+        return Card(
+          child: Row(children: [
+            CircularProgressIndicator(),
+            Text('Generating report...'),
+          ]),
+        );
+      case ActionStatus.completed:
+        return ReportWidget(data: result!.data);
+      case ActionStatus.failed:
+        return ErrorWidget(error: error!);
+      default:
+        return SizedBox.shrink();
+    }
+  },
+  handler: (params) async {
+    // Long-running operation with progress updates
+    return await generateComplexReport(params);
+  },
+)
+</code></pre>
+<h4 id="4-event-streaming--monitoring"><strong>4. Event Streaming &amp; Monitoring</strong></h4>
+<pre class="language-dart"><code class="language-dart">class MyAiChat extends StatefulWidget {
+  @override
+  _MyAiChatState createState() =&gt; _MyAiChatState();
+}
+
+class _MyAiChatState extends State&lt;MyAiChat&gt; {
+  late StreamSubscription&lt;ActionEvent&gt; _actionSubscription;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    // Listen to all action events
+    _actionSubscription = AiActionProvider.of(context).events.listen((event) {
+      switch (event.type) {
+        case ActionEventType.started:
+          print('Action ${event.actionName} started');
+          break;
+        case ActionEventType.completed:
+          print('Action ${event.actionName} completed: ${event.result?.data}');
+          break;
+        case ActionEventType.failed:
+          print('Action ${event.actionName} failed: ${event.error}');
+          break;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _actionSubscription.cancel();
+    super.dispose();
+  }
+}
+</code></pre>
+<h3 id="-integration-with-ai-providers">💡 Integration with AI Providers</h3>
+<h4 id="openai-function-calling"><strong>OpenAI Function Calling</strong></h4>
+<pre class="language-dart"><code class="language-dart">// Convert actions to OpenAI function format
+final actionHook = AiActionHook.of(context);
+final functions = actionHook.getActionsForFunctionCalling();
+
+// Send to OpenAI with functions
+final response = await openAI.createChatCompletion(
+  messages: messages,
+  functions: functions,
+  functionCall: 'auto',
+);
+
+// Execute function if AI wants to call one
+if (response.functionCall != null) {
+  final result = await actionHook.handleFunctionCall(
+    response.functionCall.name,
+    json.decode(response.functionCall.arguments),
+  );
+}
+</code></pre>
+<h4 id="custom-ai-integration"><strong>Custom AI Integration</strong></h4>
+<pre class="language-dart"><code class="language-dart">void _processAIMessage(String userMessage) async {
+  // Your AI logic decides which action to call
+  if (_shouldCalculate(userMessage)) {
+    final actionHook = AiActionHook.of(context);
+    
+    // Extract parameters from user message
+    final params = _parseCalculationParams(userMessage);
+    
+    // Execute action
+    final result = await actionHook.executeAction('calculate', params);
+    
+    // Show result in chat
+    _controller.addMessage(ChatMessage(
+      text: 'Result: ${result.data}',
+      user: aiUser,
+    ));
+  }
+}
+</code></pre>
+<h3 id="-security--best-practices">🛡️ Security &amp; Best Practices</h3>
+<ul>
+<li><strong>Parameter Validation</strong>: All inputs are validated before execution</li>
+<li><strong>User Confirmation</strong>: Sensitive actions require explicit user approval</li>
+<li><strong>Error Isolation</strong>: Failed actions don't crash your app</li>
+<li><strong>Timeout Protection</strong>: Long-running actions can be cancelled</li>
+<li><strong>Type Safety</strong>: Full Dart type checking for all parameters</li>
+<li><strong>Event Auditing</strong>: Complete log of all action executions</li>
+</ul>
+<h3 id="-examples-included">📚 Examples Included</h3>
+<p>The package includes complete working examples:</p>
+<ul>
+<li><strong>Weather Actions</strong> - API calls with rich UI display</li>
+<li><strong>Calculator Actions</strong> - Mathematical operations with validation</li>
+<li><strong>Unit Converter</strong> - Type conversions with error handling</li>
+<li><strong>AI Integration</strong> - Pattern matching and function calling</li>
+</ul>
+<p>Run the example app to see AI Actions in action:</p>
+<pre class="language-bash"><code class="language-bash">cd example/
+flutter run
+</code></pre>
+<hr>
+<h2 id="-showcase">🎯 Showcase</h2>
+<h3 id="featured-apps-using-this-package">Featured Apps Using This Package</h3>
+<ul>
+<li><strong>AI Customer Support Bot</strong> - SaaS company with 10K+ daily conversations</li>
+<li><strong>Educational Tutor App</strong> - Language learning with interactive chat</li>
+<li><strong>Healthcare Assistant</strong> - HIPAA-compliant patient communication</li>
+<li><strong>E-commerce Support</strong> - Real-time shopping assistance</li>
+<li><strong>Gaming Guild Chat</strong> - Team communication with file sharing</li>
+</ul>
+<p><em>Want your app featured? <a href="https://github.com/hooshyar/flutter_gen_ai_chat_ui/issues/new?template=showcase.md">Submit a showcase request</a></em></p>
+<h3 id="community--support">Community &amp; Support</h3>
+<ul>
+<li><strong>🐛 <a href="https://github.com/hooshyar/flutter_gen_ai_chat_ui/issues">Issue Tracker</a></strong> - Report bugs and request features</li>
+<li><strong>⭐ <a href="https://github.com/hooshyar/flutter_gen_ai_chat_ui">Star on GitHub</a></strong> - Show your support!</li>
+</ul>
+<h2 id="recent-updates-v242">Recent Updates (v2.4.2+)</h2>
+<h3 id="-bug-fixes--improvements">🔧 Bug Fixes &amp; Improvements</h3>
+<ul>
+<li>
+<p><strong>Fixed Streaming Animation Disable</strong>: The <code>enableAnimation: false</code>, <code>enableMarkdownStreaming: false</code>, and <code>streamingWordByWord: false</code> parameters now work correctly. Previously, markdown messages would always stream regardless of these settings.</p>
+</li>
+<li>
+<p><strong>Added Focus Control</strong>: New <code>autofocus</code> and <code>focusNode</code> support in <code>InputOptions</code> for better input field control.</p>
+<pre class="language-dart"><code class="language-dart">InputOptions(
+  autofocus: true,          // Auto-focus input on widget load
+  focusNode: myFocusNode,   // External focus control
+)
+</code></pre>
+</li>
+<li>
+<p><strong>Enhanced Factory Constructors</strong>: <code>InputOptions.minimal()</code> and <code>InputOptions.glassmorphic()</code> now support the new focus parameters.</p>
+</li>
+</ul>
+<h3 id="what-developers-say">What Developers Say</h3>
+<blockquote>
+<p><em>"The streaming text animation is incredibly smooth and the file attachment system saved us weeks of development."</em> - <strong>Sarah Chen, Senior Flutter Developer</strong></p>
+</blockquote>
+<blockquote>
+<p><em>"Best chat UI package I've used. The performance with large message lists is outstanding."</em> - <strong>Ahmed Hassan, Mobile Team Lead</strong></p>
+</blockquote>
+<blockquote>
+<p><em>"Finally, a chat package that actually works well for AI applications. The streaming feature is exactly what we needed."</em> - <strong>Maria Rodriguez, Product Manager</strong></p>
+</blockquote>
+<hr>
+<p><strong>Made with ❤️ by the Flutter community</strong> | <strong>Star ⭐ this repo if it helped you!</strong></p>
+</section>
+
+
+      <section class="summary">
+          <h2>Libraries</h2>
+        <dl>
+          <dt id="flutter_gen_ai_chat_ui">
+  <span class="name"><a href="flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui</a></span> 
+
+</dt>
+<dd>A Flutter package that provides a customizable chat UI for AI applications,
+featuring streaming responses, code highlighting, and markdown support.
+</dd>
+
+        </dl>
+      </section>
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="https://github.com/hooshyar/flutter_gen_ai_chat_ui">flutter_gen_ai_chat_ui package</a></li>
+</ol>
+
+    <h5 class="hidden-xs"><span class="package-name">flutter_gen_ai_chat_ui</span> <span class="package-kind">package</span></h5>
+    <ol>
+      <li class="section-title">Libraries</li>
+      <li><a href="flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui</a></li>
+</ol>
+
+  </div>
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div>
+</main>
+<footer>
+  <span class="no-break">
+    flutter_gen_ai_chat_ui
+      2.11.1
+  </span>
+  
+</footer>
+
+
+<script src="static-assets/highlight.pack.js?v1"></script>
+<script src="static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

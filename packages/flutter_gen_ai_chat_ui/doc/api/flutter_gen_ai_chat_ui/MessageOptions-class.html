@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the MessageOptions class from the flutter_gen_ai_chat_ui library, for the Dart programming language.">
+  <title>MessageOptions class - flutter_gen_ai_chat_ui library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui.dart</a></li>
+    <li class="self-crumb">MessageOptions class</li>
+  </ol>
+  <div class="self-name">MessageOptions</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="flutter_gen_ai_chat_ui&#47;flutter_gen_ai_chat_ui-library-sidebar.html"
+    data-below-sidebar="flutter_gen_ai_chat_ui&#47;MessageOptions-class-sidebar.html">
+    <div>
+<h1><span class="kind-class">MessageOptions</span> class 
+ 
+</h1></div>
+
+    
+<section class="desc markdown">
+  <p>Options for customizing message appearance and behavior</p>
+</section>
+
+
+
+    
+  <section class="summary offset-anchor" id="constructors">
+    <h2>Constructors</h2>
+    <dl class="constructor-summary-list">
+        <dt id="MessageOptions.new" class="callable">
+          <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/MessageOptions.html">MessageOptions</a></span><span class="signature">({<span class="parameter" id="-param-textStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span> <span class="parameter-name">textStyle</span>, </span><span class="parameter" id="-param-padding"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/EdgeInsets-class.html">EdgeInsets</a>?</span> <span class="parameter-name">padding</span>, </span><span class="parameter" id="-param-containerMargin"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/EdgeInsets-class.html">EdgeInsets</a>?</span> <span class="parameter-name">containerMargin</span>, </span><span class="parameter" id="-param-decoration"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/BoxDecoration-class.html">BoxDecoration</a>?</span> <span class="parameter-name">decoration</span>, </span><span class="parameter" id="-param-containerDecoration"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/BoxDecoration-class.html">BoxDecoration</a>?</span> <span class="parameter-name">containerDecoration</span>, </span><span class="parameter" id="-param-containerColor"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span> <span class="parameter-name">containerColor</span>, </span><span class="parameter" id="-param-showTime"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">showTime</span> = <span class="default-value">true</span>, </span><span class="parameter" id="-param-timeTextStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span> <span class="parameter-name">timeTextStyle</span>, </span><span class="parameter" id="-param-timeFormat"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">timeFormat</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/DateTime-class.html">DateTime</a></span></span>)?, </span><span class="parameter" id="-param-timestampSpacing"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a>?</span> <span class="parameter-name">timestampSpacing</span>, </span><span class="parameter" id="-param-maxReactions"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">maxReactions</span> = <span class="default-value">5</span>, </span><span class="parameter" id="-param-reactionSize"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">reactionSize</span> = <span class="default-value">24.0</span>, </span><span class="parameter" id="-param-enableQuickReply"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">enableQuickReply</span> = <span class="default-value">true</span>, </span><span class="parameter" id="-param-bubbleStyle"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/BubbleStyle-class.html">BubbleStyle</a>?</span> <span class="parameter-name">bubbleStyle</span>, </span><span class="parameter" id="-param-showUserName"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">showUserName</span> = <span class="default-value">true</span>, </span><span class="parameter" id="-param-userNameStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span> <span class="parameter-name">userNameStyle</span>, </span><span class="parameter" id="-param-markdownStyleSheet"><span class="type-annotation"><a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownStyleSheet-class.html">MarkdownStyleSheet</a>?</span> <span class="parameter-name">markdownStyleSheet</span>, </span><span class="parameter" id="-param-onTapLink"><span class="type-annotation"><a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownTapLinkCallback.html">MarkdownTapLinkCallback</a>?</span> <span class="parameter-name">onTapLink</span>, </span><span class="parameter" id="-param-aiNameIcon"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span> <span class="parameter-name">aiNameIcon</span>, </span><span class="parameter" id="-param-showCopyButton"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">showCopyButton</span> = <span class="default-value">false</span>, </span><span class="parameter" id="-param-onCopy"><span class="type-annotation">void</span> <span class="parameter-name">onCopy</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span></span>)?, </span><span class="parameter" id="-param-userTextColor"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span> <span class="parameter-name">userTextColor</span>, </span><span class="parameter" id="-param-aiTextColor"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span> <span class="parameter-name">aiTextColor</span>, </span><span class="parameter" id="-param-onMediaTap"><span class="type-annotation">void</span> <span class="parameter-name">onMediaTap</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMedia-class.html">ChatMedia</a></span></span>)?, </span><span class="parameter" id="-param-enableImageTaps"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">enableImageTaps</span> = <span class="default-value">false</span>, </span><span class="parameter" id="-param-onImageTap"><span class="type-annotation">void</span> <span class="parameter-name">onImageTap</span>(<span class="parameter" id="param-url"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">url</span>, </span><span class="parameter" id="param-title"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">title</span>, </span><span class="parameter" id="param-alt"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">alt</span></span>)?, </span><span class="parameter" id="-param-textBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span> <span class="parameter-name">textBuilder</span>(<span class="parameter" id="param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span>, </span><span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span>, </span><span class="parameter" id="param-effectiveTextStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a></span> <span class="parameter-name">effectiveTextStyle</span>, </span><span class="parameter" id="param-isUser"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">isUser</span></span>)?, </span><span class="parameter" id="-param-markdownBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span> <span class="parameter-name">markdownBuilder</span>(<span class="parameter" id="param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span>, </span><span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span>, </span><span class="parameter" id="param-effectiveStyleSheet"><span class="type-annotation"><a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownStyleSheet-class.html">MarkdownStyleSheet</a></span> <span class="parameter-name">effectiveStyleSheet</span>, </span><span class="parameter" id="param-isUser"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">isUser</span></span>)?, </span><span class="parameter" id="-param-customBubbleBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span> <span class="parameter-name">customBubbleBuilder</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)?, </span><span class="parameter" id="-param-footerBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span> <span class="parameter-name">footerBuilder</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)?, </span><span class="parameter" id="-param-onCitationTap"><span class="type-annotation">void</span> <span class="parameter-name">onCitationTap</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatCitation-class.html">ChatCitation</a></span></span>)?</span>})</span>
+        </dt>
+        <dd>
+          Creates an instance of <a href="../flutter_gen_ai_chat_ui/MessageOptions-class.html">MessageOptions</a>.
+            <div class="constructor-modifier features">const</div>
+        </dd>
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-properties">
+    <h2>Properties</h2>
+    <dl class="properties">
+        <dt id="aiNameIcon" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/aiNameIcon.html">aiNameIcon</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span>
+  
+
+</dt>
+<dd>
+  Custom icon widget shown next to the AI name.
+Defaults to <a href="https://api.flutter.dev/flutter/material/Icons/smart_toy_outlined-constant.html">Icons.smart_toy_outlined</a> when null.
+Set to a <a href="https://api.flutter.dev/flutter/widgets/SizedBox/SizedBox.shrink.html">SizedBox.shrink</a> to hide the icon entirely.
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="aiTextColor" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/aiTextColor.html">aiTextColor</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span>
+  
+
+</dt>
+<dd>
+  Color for AI message text
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="bubbleStyle" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/bubbleStyle.html">bubbleStyle</a></span>
+  <span class="signature">&#8594; <a href="../flutter_gen_ai_chat_ui/BubbleStyle-class.html">BubbleStyle</a>?</span>
+  
+
+</dt>
+<dd>
+  Style options for message bubbles
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="containerColor" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/containerColor.html">containerColor</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span>
+  
+
+</dt>
+<dd>
+  Color for the message bubble background
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="containerDecoration" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/containerDecoration.html">containerDecoration</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/BoxDecoration-class.html">BoxDecoration</a>?</span>
+  
+
+</dt>
+<dd>
+  Decoration for the message bubble (containerDecoration is the new name)
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="containerMargin" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/containerMargin.html">containerMargin</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/EdgeInsets-class.html">EdgeInsets</a>?</span>
+  
+
+</dt>
+<dd>
+  Margin around the message bubble
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="customBubbleBuilder" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/customBubbleBuilder.html">customBubbleBuilder</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a> Function<span class="signature">(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Custom builder for message bubbles
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="decoration" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/decoration.html">decoration</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/BoxDecoration-class.html">BoxDecoration</a>?</span>
+  
+
+</dt>
+<dd>
+  Decoration for the message bubble
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="effectiveDecoration" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/effectiveDecoration.html">effectiveDecoration</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/BoxDecoration-class.html">BoxDecoration</a>?</span>
+  
+
+</dt>
+<dd>
+  Get effective decoration with fallback to containerColor
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="enableImageTaps" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/enableImageTaps.html">enableImageTaps</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether to enable tapping on images in markdown content
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="enableQuickReply" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/enableQuickReply.html">enableQuickReply</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether to enable quick replies
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="footerBuilder" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/footerBuilder.html">footerBuilder</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>? Function<span class="signature">(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Custom builder for footer content after message text (e.g., citations)
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="hashCode" class="property inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  The hash code for this object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="markdownBuilder" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/markdownBuilder.html">markdownBuilder</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a> Function<span class="signature">(<span class="parameter" id="param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span>, </span><span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span>, </span><span class="parameter" id="param-effectiveStyleSheet"><span class="type-annotation"><a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownStyleSheet-class.html">MarkdownStyleSheet</a></span> <span class="parameter-name">effectiveStyleSheet</span>, </span><span class="parameter" id="param-isUser"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">isUser</span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Custom builder for markdown content inside the bubble
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="markdownStyleSheet" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/markdownStyleSheet.html">markdownStyleSheet</a></span>
+  <span class="signature">&#8594; <a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownStyleSheet-class.html">MarkdownStyleSheet</a>?</span>
+  
+
+</dt>
+<dd>
+  Style sheet for markdown content
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="maxReactions" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/maxReactions.html">maxReactions</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd>
+  Maximum number of reactions to show
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="onCitationTap" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/onCitationTap.html">onCitationTap</a></span>
+  <span class="signature">&#8594; void Function<span class="signature">(<span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatCitation-class.html">ChatCitation</a></span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Callback when a citation is tapped
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="onCopy" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/onCopy.html">onCopy</a></span>
+  <span class="signature">&#8594; void Function<span class="signature">(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Callback when message is copied
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="onImageTap" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/onImageTap.html">onImageTap</a></span>
+  <span class="signature">&#8594; void Function<span class="signature">(<span class="parameter" id="param-url"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">url</span>, </span><span class="parameter" id="param-title"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">title</span>, </span><span class="parameter" id="param-alt"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">alt</span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Callback when an image in markdown content is tapped
+Provides the image URL, title, and alt text
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="onMediaTap" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/onMediaTap.html">onMediaTap</a></span>
+  <span class="signature">&#8594; void Function<span class="signature">(<span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMedia-class.html">ChatMedia</a></span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Callback when media is tapped in a message
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="onTapLink" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/onTapLink.html">onTapLink</a></span>
+  <span class="signature">&#8594; <a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownTapLinkCallback.html">MarkdownTapLinkCallback</a>?</span>
+  
+
+</dt>
+<dd>
+  Callback when link is clicked
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="padding" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/padding.html">padding</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/EdgeInsets-class.html">EdgeInsets</a>?</span>
+  
+
+</dt>
+<dd>
+  Padding around the message bubble
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="reactionSize" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/reactionSize.html">reactionSize</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>
+  
+
+</dt>
+<dd>
+  Size of reaction bubbles
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="runtimeType" class="property inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Type-class.html">Type</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  A representation of the runtime type of the object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="showCopyButton" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/showCopyButton.html">showCopyButton</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span>
+  
+
+</dt>
+<dd>
+  Whether to show copy button for AI messages
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="showTime" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/showTime.html">showTime</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  Whether to show message timestamp
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="showUserName" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/showUserName.html">showUserName</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span>
+  
+
+</dt>
+<dd>
+  Whether to show user name
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="textBuilder" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/textBuilder.html">textBuilder</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a> Function<span class="signature">(<span class="parameter" id="param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span>, </span><span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span>, </span><span class="parameter" id="param-effectiveTextStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a></span> <span class="parameter-name">effectiveTextStyle</span>, </span><span class="parameter" id="param-isUser"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">isUser</span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Custom builder for plain text content inside the bubble
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="textStyle" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/textStyle.html">textStyle</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span>
+  
+
+</dt>
+<dd>
+  Style for the message text
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="timeFormat" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/timeFormat.html">timeFormat</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a> Function<span class="signature">(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/DateTime-class.html">DateTime</a></span></span>)</span>?</span>
+  
+
+</dt>
+<dd>
+  Function to format the timestamp
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="timestampSpacing" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/timestampSpacing.html">timestampSpacing</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a>?</span>
+  
+
+</dt>
+<dd>
+  Spacing between message bubble and timestamp
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="timeTextStyle" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/timeTextStyle.html">timeTextStyle</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span>
+  
+
+</dt>
+<dd>
+  Style for the timestamp text
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="userNameStyle" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/userNameStyle.html">userNameStyle</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span>
+  
+
+</dt>
+<dd>
+  Style for user names
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="userTextColor" class="property">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/userTextColor.html">userTextColor</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span>
+  
+
+</dt>
+<dd>
+  Color for user message text
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-methods">
+    <h2>Methods</h2>
+    <dl class="callables">
+        <dt id="copyWith" class="callable">
+  <span class="name"><a href="../flutter_gen_ai_chat_ui/MessageOptions/copyWith.html">copyWith</a></span><span class="signature">(<wbr>{<span class="parameter" id="copyWith-param-textStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span> <span class="parameter-name">textStyle</span>, </span><span class="parameter" id="copyWith-param-padding"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/EdgeInsets-class.html">EdgeInsets</a>?</span> <span class="parameter-name">padding</span>, </span><span class="parameter" id="copyWith-param-containerMargin"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/EdgeInsets-class.html">EdgeInsets</a>?</span> <span class="parameter-name">containerMargin</span>, </span><span class="parameter" id="copyWith-param-decoration"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/BoxDecoration-class.html">BoxDecoration</a>?</span> <span class="parameter-name">decoration</span>, </span><span class="parameter" id="copyWith-param-containerDecoration"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/BoxDecoration-class.html">BoxDecoration</a>?</span> <span class="parameter-name">containerDecoration</span>, </span><span class="parameter" id="copyWith-param-containerColor"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span> <span class="parameter-name">containerColor</span>, </span><span class="parameter" id="copyWith-param-showTime"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">showTime</span>, </span><span class="parameter" id="copyWith-param-timeTextStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span> <span class="parameter-name">timeTextStyle</span>, </span><span class="parameter" id="copyWith-param-timeFormat"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">timeFormat</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/DateTime-class.html">DateTime</a></span></span>)?, </span><span class="parameter" id="copyWith-param-timestampSpacing"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a>?</span> <span class="parameter-name">timestampSpacing</span>, </span><span class="parameter" id="copyWith-param-maxReactions"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">maxReactions</span>, </span><span class="parameter" id="copyWith-param-reactionSize"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a>?</span> <span class="parameter-name">reactionSize</span>, </span><span class="parameter" id="copyWith-param-enableQuickReply"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">enableQuickReply</span>, </span><span class="parameter" id="copyWith-param-bubbleStyle"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/BubbleStyle-class.html">BubbleStyle</a>?</span> <span class="parameter-name">bubbleStyle</span>, </span><span class="parameter" id="copyWith-param-showUserName"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">showUserName</span>, </span><span class="parameter" id="copyWith-param-userNameStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a>?</span> <span class="parameter-name">userNameStyle</span>, </span><span class="parameter" id="copyWith-param-markdownStyleSheet"><span class="type-annotation"><a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownStyleSheet-class.html">MarkdownStyleSheet</a>?</span> <span class="parameter-name">markdownStyleSheet</span>, </span><span class="parameter" id="copyWith-param-onTapLink"><span class="type-annotation"><a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownTapLinkCallback.html">MarkdownTapLinkCallback</a>?</span> <span class="parameter-name">onTapLink</span>, </span><span class="parameter" id="copyWith-param-aiNameIcon"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span> <span class="parameter-name">aiNameIcon</span>, </span><span class="parameter" id="copyWith-param-showCopyButton"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">showCopyButton</span>, </span><span class="parameter" id="copyWith-param-onCopy"><span class="type-annotation">void</span> <span class="parameter-name">onCopy</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span></span>)?, </span><span class="parameter" id="copyWith-param-userTextColor"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span> <span class="parameter-name">userTextColor</span>, </span><span class="parameter" id="copyWith-param-aiTextColor"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/Color-class.html">Color</a>?</span> <span class="parameter-name">aiTextColor</span>, </span><span class="parameter" id="copyWith-param-onMediaTap"><span class="type-annotation">void</span> <span class="parameter-name">onMediaTap</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMedia-class.html">ChatMedia</a></span></span>)?, </span><span class="parameter" id="copyWith-param-enableImageTaps"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">enableImageTaps</span>, </span><span class="parameter" id="copyWith-param-onImageTap"><span class="type-annotation">void</span> <span class="parameter-name">onImageTap</span>(<span class="parameter" id="param-url"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">url</span>, </span><span class="parameter" id="param-title"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">title</span>, </span><span class="parameter" id="param-alt"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">alt</span></span>)?, </span><span class="parameter" id="copyWith-param-textBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span> <span class="parameter-name">textBuilder</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/TextStyle-class.html">TextStyle</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)?, </span><span class="parameter" id="copyWith-param-markdownBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span> <span class="parameter-name">markdownBuilder</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://pub.dev/documentation/flutter_markdown_plus/1.0.7/flutter_markdown_plus/MarkdownStyleSheet-class.html">MarkdownStyleSheet</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)?, </span><span class="parameter" id="copyWith-param-customBubbleBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span> <span class="parameter-name">customBubbleBuilder</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)?, </span><span class="parameter" id="copyWith-param-footerBuilder"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span> <span class="parameter-name">footerBuilder</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatMessage-class.html">ChatMessage</a></span>, </span><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span></span>)?, </span><span class="parameter" id="copyWith-param-onCitationTap"><span class="type-annotation">void</span> <span class="parameter-name">onCitationTap</span>(<span class="parameter" id="param-"><span class="type-annotation"><a href="../flutter_gen_ai_chat_ui/ChatCitation-class.html">ChatCitation</a></span></span>)?</span>})
+    <span class="returntype parameter">&#8594; <a href="../flutter_gen_ai_chat_ui/MessageOptions-class.html">MessageOptions</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="noSuchMethod" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Invocation-class.html">Invocation</a></span> <span class="parameter-name">invocation</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Invoked when a nonexistent method or property is accessed.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="toString" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  A string representation of this object.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor inherited"
+      id="operators">
+    <h2>Operators</h2>
+    <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  The equality operator.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+    
+    
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">flutter_gen_ai_chat_ui</a></li>
+    <li><a href="../flutter_gen_ai_chat_ui/">flutter_gen_ai_chat_ui</a></li>
+    <li class="self-crumb">MessageOptions class</li>
+</ol>
+
+    <h5>flutter_gen_ai_chat_ui library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div>
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    flutter_gen_ai_chat_ui
+      2.11.1
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

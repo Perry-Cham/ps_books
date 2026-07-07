@@ -1,0 +1,129 @@
+part of 'stream_filter.dart';
+
+class FlateDecodeFilter extends StreamFilter {
+  const FlateDecodeFilter._() : super._();
+
+  @override
+  Uint8List decode(
+    Uint8List bytes,
+    PDFObject? params,
+    PDFDictionary streamDictionary,
+  ) {
+    final decoded = const ZLibDecoder().decodeBytes(bytes).asUint8List();
+    if (params is PDFDictionary) return _decodeWithPredictor(decoded, params);
+    return decoded;
+  }
+
+  // From iTextPDF 7
+  static Uint8List _decodeWithPredictor(Uint8List bytes, PDFDictionary params) {
+    final predictor = params[PDFNames.predictor];
+    if (predictor is! PDFNumber) return bytes;
+
+    final predictorInt = predictor.toInt();
+    if (predictorInt < 10 && predictorInt != 2) return bytes;
+
+    final width = params[PDFNames.columns]?.toIntOrNull() ?? 1;
+    final colors = params[PDFNames.colors]?.toIntOrNull() ?? 1;
+    final bitsPerComponent =
+        params[PDFNames.bitsPerComponent]?.toIntOrNull() ?? 8;
+    final bytesPerPixel = (colors * bitsPerComponent) ~/ 8;
+    final bytesPerRow = (colors * width * bitsPerComponent + 7) ~/ 8;
+
+    if (predictorInt == 2) {
+      if (bitsPerComponent == 8) {
+        final numRows = bytes.length ~/ bytesPerRow;
+        for (var row = 0; row < numRows; ++row) {
+          final rowStart = row * bytesPerRow;
+          for (var col = bytesPerPixel; col < bytesPerRow; ++col) {
+            bytes[rowStart + col] = (bytes[rowStart + col] +
+                    bytes[rowStart + col - bytesPerPixel]) &
+                0xFF;
+          }
+        }
+      }
+      return bytes;
+    }
+
+    var current = Uint8List(bytesPerRow);
+    var prior = Uint8List(bytesPerRow);
+    final dataStream = ByteInputStream(bytes);
+    final fout = ByteOutputStream(bytes.length);
+
+    while (true) {
+      final int filter;
+      try {
+        filter = dataStream.readByte();
+        if (filter < 0) return fout.getBytes();
+        dataStream.readFully(current, 0, bytesPerRow);
+      } catch (ignored) {
+        return fout.getBytes();
+      }
+
+      switch (filter) {
+        case 0: // PNG_FILTER_NONE
+          break;
+        case 1: //PNG_FILTER_SUB
+          for (var i = bytesPerPixel; i < bytesPerRow; ++i) {
+            current[i] += current[i - bytesPerPixel];
+          }
+          break;
+        case 2: //PNG_FILTER_UP
+          for (var i = 0; i < bytesPerRow; ++i) {
+            current[i] += prior[i];
+          }
+          break;
+        case 3: //PNG_FILTER_AVERAGE
+          for (var i = 0; i < bytesPerPixel; ++i) {
+            current[i] += (prior[i] ~/ 2) & 0xFF;
+          }
+          for (var i = bytesPerPixel; i < bytesPerRow; ++i) {
+            current[i] +=
+                (((current[i - bytesPerPixel] & 0xff) + (prior[i] & 0xff)) ~/
+                        2) &
+                    0xFF;
+          }
+          break;
+        case 4: //PNG_FILTER_PAETH
+          for (var i = 0; i < bytesPerPixel; ++i) {
+            current[i] += prior[i];
+          }
+
+          for (var i = bytesPerPixel; i < bytesPerRow; ++i) {
+            final a = current[i - bytesPerPixel] & 0xff;
+            final b = prior[i] & 0xff;
+            final c = prior[i - bytesPerPixel] & 0xff;
+
+            final p = a + b - c;
+            final pa = (p - a).abs();
+            final pb = (p - b).abs();
+            final pc = (p - c).abs();
+
+            final int ret;
+
+            if (pa <= pb && pa <= pc) {
+              ret = a;
+            } else if (pb <= pc) {
+              ret = b;
+            } else {
+              ret = c;
+            }
+            current[i] += ret & 0xFF;
+          }
+          break;
+        default:
+          throw const ParseException('Unknown png filter');
+      }
+      fout.writeAll(current);
+      final tmp = prior;
+      prior = current;
+      current = tmp;
+    }
+  }
+}
+
+extension _ObjectExtension on PDFObject {
+  int? toIntOrNull() {
+    if (this is PDFNumber) return (this as PDFNumber).toInt();
+    return null;
+  }
+}

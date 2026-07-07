@@ -1,0 +1,35 @@
+name: comic_reader
+description: A Flutter package for reading and parsing comic book archives (CBZ, CBT, etc.).
+version: 0.4.0
+homepage: https://github.com/lkrjangid1/comic_reader
+issue_tracker: https://github.com/lkrjangid1/comic_reader/issues
+
+resolution: workspace
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  archive: ^4.0.4
+  path: ^1.8.0
+  path_provider: ^2.0.10
+  photo_view: ^0.15.0
+  file_picker: ^8.3.2
+  xml: ^6.5.0
+  unrar:
+    path: ../unrar
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  # No assets included in the package
+
+screenshots:
+  - description: 'Ui of the comic reader'
+    path: example/screenshots/exe.png
