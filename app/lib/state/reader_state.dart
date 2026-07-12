@@ -5,11 +5,13 @@ class ReaderState {
   final bool showPomodoroTimer;
   final bool showAiChat;
   final int? secondBookId;
+  final bool showNotes;
   ReaderState({
     this.isReading = false,
     this.showPomodoroTimer = false,
     this.showAiChat = false,
     this.secondBookId,
+    this.showNotes = false,
   });
 
   ReaderState copyWith({
@@ -17,12 +19,14 @@ class ReaderState {
     bool? showPomodoroTimer,
     bool? showAiChat,
     int? secondBookId,
+    bool? showNotes
   }) {
     return ReaderState(
       isReading: isReading ?? this.isReading,
       showPomodoroTimer: showPomodoroTimer ?? this.showPomodoroTimer,
       showAiChat: showAiChat ?? this.showAiChat,
       secondBookId: secondBookId,
+      showNotes:showNotes ?? this.showNotes
     );
   }
 }
@@ -48,7 +52,7 @@ class ReaderStateNotifier extends Notifier<ReaderState> {
   }
 
   void setShowAiChatTrue() {
-    state = state.copyWith(showAiChat: true, secondBookId: null);
+    state = state.copyWith(showAiChat: true, secondBookId: null, showNotes: false);
   }
 
   void setShowAiChatFalse() {
@@ -56,11 +60,18 @@ class ReaderStateNotifier extends Notifier<ReaderState> {
   }
 
   void setSecondBook(int id) {
-    state = state.copyWith(secondBookId: id, showAiChat: false);
+    state = state.copyWith(secondBookId: id, showAiChat: false, showNotes: false);
   }
 
   void clearSecondBook() {
     state = state.copyWith(secondBookId: null);
+  }
+
+  void setShowNotesTrue(){
+    state = state.copyWith(showNotes: true, showAiChat: false, secondBookId: null);
+  }
+  void setShowNotesFalse(){
+    state = state.copyWith(showNotes: false);
   }
 }
 

@@ -19,7 +19,7 @@ class Books extends Table {
   RealColumn get progress => real().withDefault(Constant(0.0))();
   //Collections
   IntColumn get collection =>
-      integer().references(Collections, #id).nullable()();
+  integer().references(Collections, #id).nullable()();
   //Is set to true if it was the last read book,
   BoolColumn get lastRead => boolean().withDefault(Constant(false))();
   //Image cover path
@@ -31,10 +31,11 @@ class Collections extends Table {
   TextColumn get name => text()();
   BoolColumn get isSavedCollection => boolean().withDefault(Constant(false))();
 }
-class Timetables extends Table{
+
+class Timetables extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get version => integer()();
-  DateTimeColumn get last_modified => dateTime()();
+  DateTimeColumn get lastModified => dateTime()();
 }
 
 class TimetableDays extends Table {
@@ -73,7 +74,16 @@ class SavedBooks extends Table {
   TextColumn get title => text()();
   TextColumn get author => text()();
   IntColumn get collection =>
-      integer().references(Collections, #id).nullable()();
+  integer().references(Collections, #id).nullable()();
+}
+
+class Notes extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  TextColumn get content => text()();
+  IntColumn get bookId => integer().references(Books, #id).nullable()();
+  IntColumn get collection =>
+  integer().references(Collections, #id).nullable()();
 }
 
 @DriftDatabase(
@@ -86,12 +96,10 @@ class SavedBooks extends Table {
     TargetSubjects,
     TargetTopics,
     SavedBooks,
+    Notes, // Added Notes table
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  // After generating code, this class needs to define a `schemaVersion` getter
-  // and a constructor telling drift where the database should be stored.
-  // These are described in the getting started guide: https://drift.simonbinder.eu/setup/
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
@@ -105,10 +113,10 @@ class AppDatabase extends _$AppDatabase {
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
-          await m.addColumn(targetSubjects, targetSubjects.uuid);
-          await m.addColumn(targetSubjects, targetSubjects.syncedAt);
-          await m.addColumn(targetTopics, targetTopics.uuid);
-          await m.addColumn(targetTopics, targetTopics.lastModified);
+          // Rename last_modified to lastModified in Timetables table
+          await m.renameColumn(timetables, 'last_modified', timetables.lastModified);
+          // Create Notes table (didn't exist in v1)
+          await m.createTable(notes);
         }
       },
     );
@@ -118,73 +126,9 @@ class AppDatabase extends _$AppDatabase {
     return driftDatabase(
       name: 'ps_books',
       native: const DriftNativeOptions(
-        // By default, `driftDatabase` from `package:drift_flutter` stores the
-        // database files in `getApplicationDocumentsDirectory()`.
         databaseDirectory: getApplicationSupportDirectory,
       ),
-      // If you need web support, see https://drift.simonbinder.eu/platforms/web/
     );
   }
 
-  // Or as a reactive Stream (recommended for Flutter UI)
-  Stream<List<Book>> watchAllBooks() {
-    return select(books).watch(); // Auto-updates when data changes
-  }
-
-  // Watch all saved books
-  Stream<List<SavedBook>> watchAllSavedBooks() {
-    return select(savedBooks).watch();
-  }
-
-  //Get single Book
-  Future<Book> getBookById(int id) {
-    return (select(books)..where((t) => t.id.equals(id))).getSingle();
-  }
-
-  //Insert Single Book returns the generated id
-  Future<int> addBook(Book entry) {
-    return into(books).insert(entry);
-  }
-
-  //deleteBook
-  Future deleteBook(int id) {
-    return (delete(books)..where((b) => b.id.equals(id))).go();
-  }
-  
-
-  //Update Page
-  Future updatePage(int id, int page) {
-    return (update(
-      books,
-    )..where((b) => b.id.equals(id))).write(BooksCompanion(page: Value(page)));
-  }
-
-  //Update Epub Position
-  Future updatePositionAndProgress(int id, String position) {
-    return (update(books)..where((b) => b.id.equals(id))).write(
-      BooksCompanion(cfi: Value(position)),
-    );
-  }
-
-  //Update Epub Position
-  Future updateProgress(int id, double progress) {
-    return (update(books)..where((b) => b.id.equals(id))).write(
-      BooksCompanion(progress: Value(progress)),
-    );
-  }
-
-  // Add saved book
-  Future<int> addSavedBook(SavedBooksCompanion entry) {
-    return into(savedBooks).insert(entry);
-  }
-
-  // Delete saved book
-  Future deleteSavedBook(int id) {
-    return (delete(savedBooks)..where((b) => b.id.equals(id))).go();
-  }
-
-  // Get saved book by id
-  Future<SavedBook> getSavedBookById(int id) {
-    return (select(savedBooks)..where((t) => t.id.equals(id))).getSingle();
-  }
 }

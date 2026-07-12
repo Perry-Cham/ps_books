@@ -15,7 +15,6 @@ import 'package:ps_books/routes/download.dart';
 import 'package:ps_books/routes/settings.dart' as settings_route;
 import 'package:ps_books/routes/bookshelf.dart';
 import 'package:ps_books/routes/login.dart';
-import 'package:ps_books/state/prefs.dart';
 import './layout.dart';
 
 import 'package:ps_books/state/global_settings.dart';
@@ -68,7 +67,7 @@ class MyApp extends ConsumerWidget {
     final settingsAsync = ref.watch(settingsProvider);
 
     //routes
-    final GoRouter _router = GoRouter(
+    final GoRouter router = GoRouter(
       initialLocation: '/',
       routes: [
         ShellRoute(
@@ -98,14 +97,14 @@ class MyApp extends ConsumerWidget {
       themeMode: settingsAsync.when(
         data: (settings) => settings.appTheme == AppTheme.dark ? ThemeMode.dark : ThemeMode.light,
         loading: () => ThemeMode.dark,
-        error: (_, __) => ThemeMode.dark,
+        error: (_, _) => ThemeMode.dark,
       ),
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: _router,
+      routerConfig: router,
     );
   }
 
@@ -161,7 +160,7 @@ class MyApp extends ConsumerWidget {
       ),
 
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: isDark ? const Color(0xFF110D17).withOpacity(0.9) : Colors.white.withOpacity(0.9),
+        backgroundColor: isDark ? const Color(0xFF110D17).withValues(alpha: 0.9) : Colors.white.withValues(alpha: 0.9),
         selectedItemColor: const Color(0xFF7C3AED),
         unselectedItemColor: isDark ? const Color(0xFF737373) : const Color(0xFF94A3B8),
         elevation: 0,

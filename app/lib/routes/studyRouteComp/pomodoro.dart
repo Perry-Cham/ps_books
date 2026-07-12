@@ -1,10 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/state/pomodoro_timer.dart';
 
 
 class Pomodoro extends StatelessWidget {
+  const Pomodoro({super.key});
+
   @override
   Widget build(BuildContext context) {
    return Scaffold(
@@ -17,6 +18,8 @@ class Pomodoro extends StatelessWidget {
 
 }
 class Page extends ConsumerStatefulWidget{
+  const Page({super.key});
+
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {

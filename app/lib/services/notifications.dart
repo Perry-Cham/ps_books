@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:ps_books/dbs/database.dart';
-import 'package:ps_books/services/DB services/timetableToDB.dart';
+import 'package:ps_books/services/dbServices/timetableToDB.dart';
 import 'package:ps_books/state/pomodoro_timer.dart';
 import 'package:timezone/timezone.dart';
 import 'package:workmanager/workmanager.dart';

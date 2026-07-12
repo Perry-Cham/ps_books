@@ -254,9 +254,7 @@ class DesktopAuthService implements AuthService {
     }
 
     // Preserve the old refresh token if the server didn't return a new one
-    if (refreshedResponse.refreshToken == null) {
-      refreshedResponse.refreshToken = oldRefreshToken;
-    }
+    refreshedResponse.refreshToken ??= oldRefreshToken;
 
     // Persist the refreshed token
     await _saveTokenToStorage(refreshedResponse);

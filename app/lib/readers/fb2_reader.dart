@@ -37,7 +37,7 @@ class FB2Binary {
 }
 
 class FB2Reader extends StatefulWidget {
-  FB2Reader({
+  const FB2Reader({
     super.key,
     required this.filePath,
     this.onPositionChanged,
@@ -472,7 +472,7 @@ class FB2ReaderState extends State<FB2Reader> implements DestinationCapable {
 
     if (widget.onPositionChanged != null) {
       double progress =
-          index / (indexedItems.length > 0 ? indexedItems.length : 1);
+          index / (indexedItems.isNotEmpty ? indexedItems.length : 1);
       widget.onPositionChanged!(index, progress);
     }
   }

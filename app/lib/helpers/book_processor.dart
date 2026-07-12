@@ -4,9 +4,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:dart_pdf_engine/dart_pdf_engine_viewer.dart';
 import 'package:image/image.dart';
-import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdfrx/pdfrx.dart' as pdf;
 import 'package:pdf_engine_core/pdf_engine_core.dart';
 import 'package:pdf_renderer_bridge/pdf_renderer_bridge.dart';
 import 'package:epub_pro/epub_pro.dart';
@@ -71,15 +69,13 @@ Future<BookData> processBook({
         final img = pageImage?.createImageNF();
         final coverImage = img != null ? encodePng(img) : null; */
         final coverImage = page.pngBytes;
-        if (coverImage != null) {
-          // Sanitize title for filename
-          String sanitizedTitle = bookTitle.replaceAll(
-            RegExp(r'[<>:"/\\|?*]'),
-            '_',
-          );
-          coverPath = "${coversDir.path}/$sanitizedTitle.png";
-          await File(coverPath).writeAsBytes(coverImage);
-        }
+        // Sanitize title for filename
+        String sanitizedTitle = bookTitle.replaceAll(
+          RegExp(r'[<>:"/\\|?*]'),
+          '_',
+        );
+        coverPath = "${coversDir.path}/$sanitizedTitle.png";
+        await File(coverPath).writeAsBytes(coverImage);
         doc.dispose();
       } catch (e) {
         print("Error processing PDF: $e");
@@ -225,7 +221,7 @@ String _proccessTitle(String filename){
   List<String> splitTitle = filename.split('.');
   splitTitle.removeLast();
   if(splitTitle.length > 1){
-    final result = splitTitle.reduce((a, b) => a + " " + b);
+    final result = splitTitle.reduce((a, b) => "$a $b");
     print(result);
     return result;
   }

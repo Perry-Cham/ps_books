@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ps_books/dbs/database.dart';
-import 'package:ps_books/routes/study%20route%20comp/pomodoro.dart';
-import 'package:ps_books/routes/study%20route%20comp/timetable.dart';
-import 'package:ps_books/services/DB%20services/timetableToDB.dart';
-import 'package:ps_books/routes/study route comp/forms.dart';
+import 'package:ps_books/routes/studyRouteComp/pomodoro.dart';
+import 'package:ps_books/routes/studyRouteComp/timetable.dart';
+import 'package:ps_books/services/dbServices/timetableToDB.dart';
+import 'package:ps_books/routes/studyRouteComp/forms.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ps_books/state/google_auth.dart';
@@ -280,7 +280,7 @@ class DisplayState extends ConsumerState<Display>
 }
 
 class _TimetableAndroidMenu extends StatefulWidget {
-  _TimetableAndroidMenu({required this.timetable, required this.controller});
+  const _TimetableAndroidMenu({required this.timetable, required this.controller});
 
   final List<TimeTable> timetable;
   final TabController controller;

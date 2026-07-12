@@ -129,7 +129,7 @@ class _SheetScaffold extends StatelessWidget {
 /// expand/collapse state is local to each tile and the scroll controller
 /// drives the whole sheet uniformly.
 class DestinationTree extends StatefulWidget {
-  const DestinationTree({
+  const DestinationTree({super.key, 
     required this.destinations,
     this.controller,
     required this.onSelected,

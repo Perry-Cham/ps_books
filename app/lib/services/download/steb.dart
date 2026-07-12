@@ -16,12 +16,11 @@ class _DownloadBook {
     required this.title,
     required this.href,
     this.image,
-    this.year = "",
-    this.extension = "epub",
-    this.size = "",
-    this.language = "English",
-    this.isbn,
-  });
+  })  : year = '',
+        extension = 'epub',
+        size = '',
+        language = 'English',
+        isbn = null;
 
   DownloadBook toDownloadBook() => DownloadBook(
     title: title,
@@ -107,7 +106,7 @@ class StandardEbooksScraper {
       );
       if (link != null) {
         final href = link.attributes['href'];
-        return href!.startsWith("http") ? href : "$baseUrl${href}?source=download";
+        return href!.startsWith("http") ? href : "$baseUrl$href?source=download";
       }
       print("No epubs found on detail page");
     } catch (e) {

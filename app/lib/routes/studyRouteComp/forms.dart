@@ -1,12 +1,12 @@
 
 // Forms
 import 'package:flutter/material.dart';
-import 'package:ps_books/services/DB%20services/timetableToDB.dart';
+import 'package:ps_books/services/dbServices/timetableToDB.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/services/study/timetable_sync.dart';
 
 class AddSessionForm extends StatefulWidget{
-  const AddSessionForm({required this.dayId});
+  const AddSessionForm({super.key, required this.dayId});
   final int dayId;
 
   @override
@@ -123,7 +123,7 @@ class AddSessionFormState extends State<AddSessionForm> {
 // Edit Session
 
 class EditSessionForm extends StatefulWidget {
-  const EditSessionForm({
+  const EditSessionForm({super.key, 
     required this.sessionId,
     required this.session,
   });

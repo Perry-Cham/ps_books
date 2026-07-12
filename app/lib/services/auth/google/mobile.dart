@@ -60,7 +60,7 @@ class MobileAuthService implements AuthService {
   @override
   Future<bool> get isSignedIn async {
     if (_currentUser != null) return true;
-    _currentUser = await _googleSignIn.attemptLightweightAuthentication();;
+    _currentUser = await _googleSignIn.attemptLightweightAuthentication();
     return _currentUser != null;
   }
 

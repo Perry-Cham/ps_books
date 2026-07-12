@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ps_books/services/auth/google/abstract.dart';
-import 'package:ps_books/state/google_auth.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:flutter/material.dart';
 import 'package:ps_books/helpers/book_processor.dart';
-import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/services/dbServices/bookToDb.dart';
 import 'package:path/path.dart' as p;
 
 class DriveBookService {

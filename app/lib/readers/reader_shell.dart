@@ -12,7 +12,8 @@ import '../reader_utils/immersive_mode.dart';
 import '../reader_utils/reader_destination.dart';
 import '../reader_utils/theme.dart';
 import '../routes/ai_chat.dart';
-import '../services/DB%20services/bookToDb.dart';
+import '../tools/notes/notes.dart' as note;
+import '../services/dbServices/bookToDb.dart';
 import '../state/pomodoro_timer.dart';
 import '../state/reader_state.dart';
 import 'reader.dart';
@@ -72,7 +73,6 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
   late final AnimationController _appBarSlideController;
   late final Animation<Offset> _appBarSlide;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
 
   final BookToDb _db = BookToDb();
 
@@ -284,6 +284,15 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                     ),
                   if (!isMobilePlatform)
                     PopupMenuItem(
+                      onTap: () {
+                        ref
+                            .read(readerStateProvider.notifier)
+                            .setShowNotesTrue();
+                      },
+                      child: Row(spacing: 8, children: [Text("Open Notes")]),
+                    ),
+                  if (!isMobilePlatform)
+                    PopupMenuItem(
                       onTap: _showBookSelector,
                       child: Row(
                         spacing: 8,
@@ -345,7 +354,8 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
     final readerState = ref.watch(readerStateProvider);
     final showAi = readerState.showAiChat;
     final secondBookId = readerState.secondBookId;
- print(_readerTheme);
+    final showNotes = readerState.showNotes;
+    print(_readerTheme);
     return LayoutBuilder(
       builder: (context, constraints) {
         // Top padding leaves room for the AppBar. When immersive mode is
@@ -398,7 +408,9 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                         .read(readerStateProvider.notifier)
                         .clearSecondBook(),
                   ),
-                ),
+                )
+              else if (showNotes && !isMobilePlatform)
+                Expanded(flex: 3, child: note.Notes()),
             ],
           ),
         );
@@ -412,7 +424,6 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
 
   @override
   Widget build(BuildContext context) {
-
     final scaffold = PopScope(
       onPopInvokedWithResult: (didPop, result) async {
         // Best-effort persist of the primary reader's PDF progress on pop.
@@ -474,43 +485,40 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
       ),
     );
 
-
-
     final globalTheme = ref.watch(settingsProvider);
 
     globalTheme.when(
-            data: (data){
-      final chromeTheme = _readerTheme == ReaderTheme.dark
-          ? null
-          : _buildChromeTheme(context);
+      data: (data) {
+        final chromeTheme = _readerTheme == ReaderTheme.dark
+            ? null
+            : _buildChromeTheme(context);
 
-      if(data.appTheme.name == "dark"){
-        setState(() {
-          _readerTheme = ReaderTheme.dark;
-        });
-        print(_readerTheme);
+        if (data.appTheme.name == "dark") {
+          setState(() {
+            _readerTheme = ReaderTheme.dark;
+          });
+          print(_readerTheme);
 
-        return chromeTheme != null
-            ? Theme(data: chromeTheme, child: scaffold)
-            : scaffold;
-      }else{
-        setState(() {
-          _readerTheme = ReaderTheme.dark;
-        });
-        print(_readerTheme);
-        return chromeTheme != null
-            ? Theme(data: chromeTheme, child: scaffold)
-            : scaffold;
-      }
-    },
-        loading: () =>  CircularProgressIndicator(),
-    error: (e,h){
-          return scaffold;
-    }
+          return chromeTheme != null
+              ? Theme(data: chromeTheme, child: scaffold)
+              : scaffold;
+        } else {
+          setState(() {
+            _readerTheme = ReaderTheme.dark;
+          });
+          print(_readerTheme);
+          return chromeTheme != null
+              ? Theme(data: chromeTheme, child: scaffold)
+              : scaffold;
+        }
+      },
+      loading: () => CircularProgressIndicator(),
+      error: (e, h) {
+        return scaffold;
+      },
     );
 
     return scaffold;
-
   }
 
   ThemeData _buildChromeTheme(BuildContext context) {
@@ -652,7 +660,7 @@ class _ImmersiveHatchButton extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: FloatingActionButton.small(
-        backgroundColor: Colors.white.withOpacity(0.85),
+        backgroundColor: Colors.white.withValues(alpha: 0.85),
         onPressed: onTap,
         tooltip: 'Exit immersive mode',
         child: const Icon(Icons.fullscreen_exit, color: Colors.black87),
@@ -732,7 +740,7 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: phaseColor.withOpacity(0.12),
+                    color: phaseColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -817,7 +825,7 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
 
 //BOOKMARKS DRAWER
 class _BookmarksDrawer extends StatefulWidget {
-  _BookmarksDrawer({required this.readerKey});
+  const _BookmarksDrawer({required this.readerKey});
   final GlobalKey<ReaderWidgetState> readerKey;
 
   @override

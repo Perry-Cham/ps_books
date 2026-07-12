@@ -1,8 +1,5 @@
 import 'package:ps_books/helpers/book_processor.dart';
-import 'package:ps_books/models/book_data.dart';
-import 'package:kindle_unpack/kindle_unpack.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -89,7 +86,7 @@ class Pick_Books {
               fileName: fileName,
               extension: extension,
               coversDir: CoversDir,
-            );;
+            );
             await database
                 .into(database.books)
                 .insert(

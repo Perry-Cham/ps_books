@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
-import 'package:ps_books/routes/study%20route%20comp/timetable.dart';
+import 'package:ps_books/routes/studyRouteComp/timetable.dart';
 
 class TimetableToDb {
   final _db = DBProvider().db;
@@ -18,7 +18,7 @@ class TimetableToDb {
       final timetableId = await _db.into(_db.timetables).insert(
         TimetablesCompanion(
           version: Value(version ?? 1),
-          last_modified: Value(lastModified ?? DateTime.now()),
+          lastModified: Value(lastModified ?? DateTime.now()),
         ),
       );
 
@@ -90,7 +90,7 @@ class TimetableToDb {
           .write(
             TimetablesCompanion(
               version: Value(t.version + 1),
-              last_modified: Value(DateTime.now()),
+              lastModified: Value(DateTime.now()),
             ),
           );
     }

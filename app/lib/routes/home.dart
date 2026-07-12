@@ -2,19 +2,20 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ps_books/readers/mobiReader.dart';
 import 'package:ps_books/routes/ai_chat.dart';
-import 'package:ps_books/routes/home%20comp/currently_reading.dart';
-import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/routes/homeComp/currently_reading.dart';
+import 'package:ps_books/services/dbServices/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/state/reader_state.dart';
 import '../readers/reader_shell.dart';
 import '../helpers/pickBooks.dart';
-import 'home comp/control_bars.dart';
+import 'homeComp/control_bars.dart';
 import 'package:ps_books/dbs/database.dart';
 
 BookToDb bookService = BookToDb();
 class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget{
+  const HomeAppBar({super.key});
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -149,7 +150,7 @@ class BooksContainer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(LibraryStateProvider.select((state) => state.filter));
     return StreamBuilder<List<Book>>(
-      stream: database.watchAllBooks(),
+      stream: bookService.watchAllBooks(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SliverToBoxAdapter(
@@ -290,9 +291,9 @@ class BookCardState extends ConsumerState<BookCard> {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withOpacity(0.1),
-                            Colors.black.withOpacity(0.5),
-                            Colors.black.withOpacity(0.95),
+                            Colors.black.withValues(alpha: 0.1),
+                            Colors.black.withValues(alpha: 0.5),
+                            Colors.black.withValues(alpha: 0.95),
                           ],
                           stops: const [0.0, 0.4, 0.85],
                         ),
@@ -389,7 +390,7 @@ class _CardFallbackBackground extends StatelessWidget {
         child: Icon(
           Icons.book_outlined,
           size: 48,
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
         ),
       ),
     );

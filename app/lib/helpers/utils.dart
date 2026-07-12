@@ -3,11 +3,10 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../dbs/initdb.dart';
 import 'package:charset_converter/charset_converter.dart';
+import 'package:ps_books/services/dbServices/bookToDb.dart';
 
-final _db = DBProvider().db;
+final _db = BookToDb();
 
 Future<Uint8List> convertEpubToBytes({required String path}) async {
   File file = File(path);

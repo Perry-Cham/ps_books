@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ps_books/routes/study%20route%20comp/display.dart';
-import 'package:ps_books/routes/study%20route%20comp/targets.dart';
+import 'package:ps_books/routes/studyRouteComp/display.dart';
+import 'package:ps_books/routes/studyRouteComp/targets.dart';
 
 //Finish session logic
 

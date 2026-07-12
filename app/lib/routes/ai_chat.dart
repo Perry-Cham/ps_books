@@ -1,7 +1,5 @@
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_gen_ai_chat_ui/flutter_gen_ai_chat_ui.dart';
 
 import '../helpers/utils.dart';
@@ -38,7 +36,7 @@ class _AiChatPanelState extends State<AiChatPanel> {
   final _controller = ChatMessagesController();
   final _currentUser = ChatUser(id: 'user', firstName: 'User');
   final _aiUser = ChatUser(id: 'ai', firstName: 'AI Assistant');
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void dispose() {

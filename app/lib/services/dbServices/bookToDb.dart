@@ -74,6 +74,16 @@ class BookToDb {
     return (_db.delete(_db.books)..where((b) => b.id.equals(id))).go();
   }
 
+  //deleteSavedBook
+  Future deleteSavedBook(int id) {
+    return (_db.delete(_db.savedBooks)..where((b) => b.id.equals(id))).go();
+  }
+
+  // Watch all saved books
+  Stream<List<SavedBook>> watchAllSavedBooks() {
+    return _db.select(_db.savedBooks).watch();
+  }
+
   //Update Page
   Future updatePage(int id, int page) {
     return (_db.update(
