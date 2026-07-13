@@ -17,14 +17,14 @@ class KatbookEpubController extends ChangeNotifier {
   Map<String, Uint8List> _imageData = {};
   ReadingPosition? _currentPosition;
   EpubCssParser? _cssParser;
-  
+
   final _positionController = StreamController<ReadingPosition>.broadcast();
-  
+
   bool _isLoaded = false;
   String? _loadingError;
 
   // ===== Getters =====
-  
+
   epub.EpubBook? get book => _book;
   bool get isLoaded => _isLoaded;
   String? get loadingError => _loadingError;
@@ -38,6 +38,9 @@ class KatbookEpubController extends ChangeNotifier {
   String? get author => _book?.author;
   Map<String, Uint8List> get imageData => _imageData;
   EpubCssParser? get cssParser => _cssParser;
+
+  // Custom
+  void Function(int)? chapterJumpFromWidget;
 
   // ===== Loading =====
 
@@ -66,7 +69,7 @@ class KatbookEpubController extends ChangeNotifier {
       // Parse content
       final parser = EpubContentParser(_book!);
       final result = parser.parse();
-      
+
       _tableOfContents = result.tableOfContents;
       _flatChapters = result.flatChapters;
       _paragraphs = result.paragraphs;
@@ -93,11 +96,15 @@ class KatbookEpubController extends ChangeNotifier {
 
   /// Jump to a paragraph index.
   void jumpToIndex(int index, {double offset = 0.0}) {
-    if (index < 0 || index >= _paragraphs.length) return;
+    if (index < 0 || index >= _paragraphs.length) {
+      print("invalid index");
+      return;
+    }
+    print("the index is valid");
 
     final paragraph = _paragraphs[index];
     final chapter = _findChapterForIndex(index);
-
+    print("a chapter was found");
     _currentPosition = ReadingPosition(
       chapterIndex: paragraph.chapterIndex,
       paragraphIndex: index,
@@ -106,7 +113,11 @@ class KatbookEpubController extends ChangeNotifier {
       paragraphOffset: offset,
     );
 
+    print("it comes this far");
     _positionController.add(_currentPosition!);
+    if (chapterJumpFromWidget != null) {
+      chapterJumpFromWidget!(index);
+    }
     notifyListeners();
   }
 

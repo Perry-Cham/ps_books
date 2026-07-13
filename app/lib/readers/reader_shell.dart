@@ -835,6 +835,7 @@ class _BookmarksDrawerState extends State<_BookmarksDrawer> {
           if (destinations.isEmpty) {
             return const Center(child: Text('No Bookmarks'));
           }
+          debugPrint(destinations.toString());
           return DestinationTree(
             destinations: destinations,
             onSelected: onDestinationSelected ?? (_) {},

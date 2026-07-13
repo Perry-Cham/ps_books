@@ -126,10 +126,10 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_markdown_plus
-      sha256: "3893b00caa52ce75cf9212f2c159ea517b9d64a641fc2226811bf5f218b5b77e"
+      sha256: fce641d6c2106cc495de1cd603f97a4f9d615a97a64011928ded380dbdade935
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.9"
+    version: "1.0.12"
   flutter_math_fork:
     dependency: transitive
     description:
@@ -142,10 +142,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_streaming_text_markdown
-      sha256: ccb9f98b2ee93a43551065c49c810e306620fa6ec00400a6ec7c9a18bcdd69c7
+      sha256: "4358850cbc339bd1d7c0d2ea942de0b389885c06e3f0fbfb1264c8f4c1cc5a3f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.9.0"
+    version: "1.9.1"
   flutter_svg:
     dependency: transitive
     description:

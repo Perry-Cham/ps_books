@@ -177,6 +177,7 @@ class KatbookEpubReaderState extends State<KatbookEpubReader> {
     _currentLocale = widget.locale;
 
     widget.controller.addListener(_onControllerChanged);
+
     _itemPositionsListener.itemPositions.addListener(_onScrollPositionChanged);
 
     // Restore initial position if provided
@@ -196,7 +197,8 @@ class KatbookEpubReaderState extends State<KatbookEpubReader> {
   }
 
   void _onControllerChanged() {
-    setState(() {});
+ //jumpToParagraph(widget.controller.currentPosition!.paragraphIndex);
+    //setState(() {});
   }
 
   void _onScrollPositionChanged() {

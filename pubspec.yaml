@@ -29,6 +29,9 @@ dependency_overrides:
   archive: ^4.0.7
   file_picker: ^10.3.10
   cli_util: ^0.4.2
+  sqlparser: ^0.45.0
+  analyzer: ^13.0.0
+  dart_style: 3.1.9
 
 melos:
   name: ps_books
