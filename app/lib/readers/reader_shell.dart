@@ -11,7 +11,8 @@ import '../reader_utils/destinations_sheet.dart';
 import '../reader_utils/immersive_mode.dart';
 import '../reader_utils/reader_destination.dart';
 import '../reader_utils/theme.dart';
-import '../routes/ai_chat.dart';
+import '../tools/ai_chat.dart';
+import '../tools/secondary_reader_host.dart';
 import '../tools/notes/notes.dart' as note;
 import '../services/dbServices/bookToDb.dart';
 import '../state/pomodoro_timer.dart';
@@ -231,6 +232,7 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
     );
   }
 
+  //====== APP BAR BUILDER  =====//
   Widget _buildAppBar() {
     final chromeColor = _readerTheme == ReaderTheme.dark
         ? Theme.of(context).colorScheme.surface
@@ -282,6 +284,8 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                         ],
                       ),
                     ),
+
+                  // Opens The Notes Widget
                   if (!isMobilePlatform)
                     PopupMenuItem(
                       onTap: () {
@@ -291,6 +295,8 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                       },
                       child: Row(spacing: 8, children: [Text("Open Notes")]),
                     ),
+
+                  //Adds A Second Reader
                   if (!isMobilePlatform)
                     PopupMenuItem(
                       onTap: _showBookSelector,
@@ -306,6 +312,7 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                         ],
                       ),
                     ),
+
                   // Immersive mode toggle — visible on all platforms, but on
                   // mobile the user will typically rely on the auto-engage +
                   // centre-tap-to-exit flow. Provided here as a manual override.
@@ -350,6 +357,7 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
     );
   }
 
+  //=== Builds The Reader Body
   Widget _buildBody() {
     final readerState = ref.watch(readerStateProvider);
     final showAi = readerState.showAiChat;
@@ -393,24 +401,43 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                   child: AiChatPanel(
                     onClose: () => ref
                         .read(readerStateProvider.notifier)
-                        .setShowAiChatFalse(),
+                        .closeSecondScreen,
                   ),
                 )
               else if (secondBookId != null && !isMobilePlatform)
                 Expanded(
                   flex: 5,
-                  child: _SecondaryReaderHost(
+                  child: SecondaryReaderHost(
                     key: ValueKey(secondBookId),
                     bookId: secondBookId,
                     secondaryKey: _secondaryReaderKey,
                     immersiveController: _immersiveController,
                     onClose: () => ref
                         .read(readerStateProvider.notifier)
-                        .clearSecondBook(),
+                        .closeSecondScreen(),
                   ),
                 )
               else if (showNotes && !isMobilePlatform)
-                Expanded(flex: 3, child: note.Notes()),
+                Stack(
+                  children: [
+                    Positioned(
+                      right: 5,
+                      top: 5,
+                      child: MouseRegion(
+                        child: IconButton.filled(
+                          icon: Icon(Icons.close),
+                          mouseCursor: SystemMouseCursors.click,
+                          onPressed: () {
+                            ref
+                                .read(readerStateProvider.notifier)
+                                .closeSecondScreen();
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 700, child: note.Notes()),
+                  ],
+                ),
             ],
           ),
         );
@@ -419,7 +446,7 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
   }
 
   // ---------------------------------------------------------------------------
-  // Build
+  // Actual Build Method
   // ---------------------------------------------------------------------------
 
   @override
@@ -529,71 +556,6 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
       colorScheme: base.colorScheme.copyWith(surface: data.appBarColor),
       cardColor: data.appBarColor,
       popupMenuTheme: PopupMenuThemeData(color: data.appBarColor),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Secondary reader host — async-loads the Book row then renders a secondary
-// Reader. Replaces the old _SecondBookReader class.
-// -----------------------------------------------------------------------------
-
-class _SecondaryReaderHost extends StatefulWidget {
-  const _SecondaryReaderHost({
-    super.key,
-    required this.bookId,
-    required this.secondaryKey,
-    required this.immersiveController,
-    required this.onClose,
-  });
-
-  final int bookId;
-  final GlobalKey<ReaderWidgetState> secondaryKey;
-  final ValueListenable<bool> immersiveController;
-  final VoidCallback onClose;
-
-  @override
-  State<_SecondaryReaderHost> createState() => _SecondaryReaderHostState();
-}
-
-class _SecondaryReaderHostState extends State<_SecondaryReaderHost> {
-  Book? _book;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBook();
-  }
-
-  Future<void> _loadBook() async {
-    final book = await BookToDb().getBookById(widget.bookId);
-    if (mounted) {
-      setState(() {
-        _book = book;
-        _loading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_book == null) {
-      return const Center(child: Text('Book not found'));
-    }
-    return Reader(
-      key: widget.secondaryKey,
-      type: _book!.extension,
-      path: _book!.path,
-      id: _book!.id,
-      page: _book!.page,
-      position: _book!.cfi,
-      isSecondary: true,
-      immersiveController: widget.immersiveController,
-      onCloseSecondary: widget.onClose,
     );
   }
 }

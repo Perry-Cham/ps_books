@@ -90,33 +90,29 @@ class NotesEditorState extends State<NotesEditor> {
           ),
           onChanged: (_) => _save(),
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Save',
-            icon: Icon(Icons.save_outlined),
-            onPressed: _save,
-          ),
-        ],
       ),
-      body: SmoothMarkdownEditor(
-        controller: editorController,
-        mode: MarkdownEditorMode.formatted,
-        wikilinkSuggestions: const ['Daily Notes', 'Project Plan'],
-        toolbarCommands: const [
-          MarkdownEditorCommand.bold,
-          MarkdownEditorCommand.italic,
-          MarkdownEditorCommand.link,
-          MarkdownEditorCommand.image,
-          MarkdownEditorCommand.codeBlock,
-          MarkdownEditorCommand.table,
-        ],
-        toolbarTrailing: [
-          IconButton(
-            tooltip: 'Save',
-            icon: Icon(Icons.save_outlined),
-            onPressed: _save,
-          ),
-        ],
+      body: SizedBox.expand(
+        child: SmoothMarkdownEditor(
+          controller: editorController,
+          mode: MarkdownEditorMode.formatted,
+          wikilinkSuggestions: const ['Daily Notes', 'Project Plan'],
+          toolbarCommands: const [
+            MarkdownEditorCommand.bold,
+            MarkdownEditorCommand.italic,
+            MarkdownEditorCommand.link,
+            MarkdownEditorCommand.image,
+            MarkdownEditorCommand.codeBlock,
+            MarkdownEditorCommand.table,
+        MarkdownEditorCommand.unorderedList,
+          ],
+          toolbarTrailing: [
+            IconButton(
+              tooltip: 'Save',
+              icon: Icon(Icons.save_outlined),
+              onPressed: _save,
+            ),
+          ],
+        ),
       ),
     );
   }

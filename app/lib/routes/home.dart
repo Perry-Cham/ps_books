@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ps_books/routes/ai_chat.dart';
+import 'package:ps_books/tools/ai_chat.dart';
 import 'package:ps_books/routes/homeComp/currently_reading.dart';
 import 'package:ps_books/services/dbServices/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
