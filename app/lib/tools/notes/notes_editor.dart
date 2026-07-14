@@ -22,11 +22,8 @@ class NotesEditorState extends State<NotesEditor> {
   @override
   void initState() {
     super.initState();
-    editorController = MarkdownEditorController(
-      text: '',
-      historyLimit: 200,
-    );
-    if(widget.noteId == null){
+    editorController = MarkdownEditorController(text: '', historyLimit: 200);
+    if (widget.noteId == null) {
       setState(() => _loaded = true);
       return;
     }
@@ -49,8 +46,11 @@ class NotesEditorState extends State<NotesEditor> {
   }
 
   void _save() {
-    if(widget.noteId == null){
-    _notesDb.createNewNote(title: titleController.text, content: editorController.text);
+    if (widget.noteId == null) {
+      _notesDb.createNewNote(
+        title: titleController.text,
+        content: editorController.text,
+      );
     }
     _notesDb.editTitle(widget.noteId!, titleController.text);
     _notesDb.editContent(widget.noteId!, editorController.text);
@@ -59,6 +59,7 @@ class NotesEditorState extends State<NotesEditor> {
 
   @override
   Widget build(BuildContext context) {
+final height = MediaQuery.of(context).size.height * 0.8;
     if (!_loaded) {
       return Scaffold(
         appBar: AppBar(
@@ -82,7 +83,11 @@ class NotesEditorState extends State<NotesEditor> {
         ),
         title: TextField(
           controller: titleController,
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
           decoration: InputDecoration(
             border: InputBorder.none,
             hintText: 'Title',
@@ -93,8 +98,9 @@ class NotesEditorState extends State<NotesEditor> {
       ),
       body: SizedBox.expand(
         child: SmoothMarkdownEditor(
+          height: height,
           controller: editorController,
-          mode: MarkdownEditorMode.formatted,
+          mode: MarkdownEditorMode.source,
           wikilinkSuggestions: const ['Daily Notes', 'Project Plan'],
           toolbarCommands: const [
             MarkdownEditorCommand.bold,
@@ -103,7 +109,8 @@ class NotesEditorState extends State<NotesEditor> {
             MarkdownEditorCommand.image,
             MarkdownEditorCommand.codeBlock,
             MarkdownEditorCommand.table,
-        MarkdownEditorCommand.unorderedList,
+            MarkdownEditorCommand.unorderedList,
+            MarkdownEditorCommand.orderedList,
           ],
           toolbarTrailing: [
             IconButton(

@@ -66,7 +66,7 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
                   },
                 );
               }).toList(),
-            )
+            ),
           );
         },
       ),
@@ -110,6 +110,9 @@ class _DeleteCollectionDialogState extends State<DeleteCollectionDialog> {
   }
 }
 
+
+enum DialogView { main, existing }
+
 class AddToCollectionDialog extends ConsumerStatefulWidget {
   const AddToCollectionDialog({
     super.key,
@@ -121,13 +124,13 @@ class AddToCollectionDialog extends ConsumerStatefulWidget {
   final bool wishlist;
 
   @override
-  ConsumerState<AddToCollectionDialog> createState() =>
-      _AddToCollectionDialogState();
+  ConsumerState<AddToCollectionDialog> createState() => _AddToCollectionDialogState();
 }
 
 class _AddToCollectionDialogState extends ConsumerState<AddToCollectionDialog> {
   final _categoryController = TextEditingController();
   bool _isLoading = false;
+  DialogView _currentView = DialogView.main; // Tracks which layout view we are on
 
   @override
   void dispose() {
@@ -135,129 +138,183 @@ class _AddToCollectionDialogState extends ConsumerState<AddToCollectionDialog> {
     super.dispose();
   }
 
-  Future<void> _submitForm() async {
-    final selectedBookIds = ref.read(
-      widget.provider.select((state) => state.selectedBookIds),
-    );
+  // --- Submits the New Category Creation ---
+  Future<void> _submitNewCategory() async {
+    final selectedBookIds = ref.read(widget.provider.select((state) => state.selectedBookIds)) as Set<int>;
     final category = _categoryController.text.trim();
 
-    if (category.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a category name')),
-      );
-      return;
-    }
-
-    if (selectedBookIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select books first')),
-      );
-      return;
-    }
+    if (category.isEmpty || selectedBookIds.isEmpty) return;
 
     setState(() => _isLoading = true);
-
     try {
-      Collection? collection = await BookToDb().getCollection(category);
-      int collectionId;
-      if (collection != null) {
-        collectionId = collection.id;
-      } else {
-        collectionId = await BookToDb().addCollection(
-          category,
-          isSavedCollection: widget.wishlist,
-        );
-      }
-
-      for (var id in selectedBookIds) {
-        if (widget.wishlist) {
-          await BookToDb().setSavedBookCollection(id, collectionId);
-        } else {
-          await BookToDb().setBookCollection(id, collectionId);
-        }
-      }
-
-      if (widget.wishlist) {
-        ref.read(WishlistStateProvider.notifier).clearSelected();
-      } else {
-        ref.read(LibraryStateProvider.notifier).clearSelected();
-      }
-
-      if (mounted) {
-        Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Success'),
-            content: const Text('Books added to collection successfully!'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        );
-      }
+      int collectionId = await BookToDb().addCollection(
+        category,
+        isSavedCollection: widget.wishlist,
+      );
+      await _updateBooksAndClose(selectedBookIds, collectionId);
     } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to add books: $e'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        );
-      }
+      _showError(e.toString());
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // --- Submits to an Existing Category Selection ---
+  Future<void> _selectExistingCategory(Set<int> books, int collectionId) async {
+    setState(() => _isLoading = true);
+    try {
+      await _updateBooksAndClose(books, collectionId);
+    } catch (e) {
+      _showError(e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // --- Common Logic helper to finish database update and close dialog ---
+  Future<void> _updateBooksAndClose(Set<int> selectedBookIds, int collectionId) async {
+    for (var id in selectedBookIds) {
+      if (widget.wishlist) {
+        await BookToDb().setSavedBookCollection(id, collectionId);
+      } else {
+        await BookToDb().setBookCollection(id, collectionId);
       }
     }
+
+    if (widget.wishlist) {
+      ref.read(WishlistStateProvider.notifier).clearSelected();
+    } else {
+      ref.read(LibraryStateProvider.notifier).clearSelected();
+    }
+
+    if (mounted) {
+      Navigator.pop(context); // Closes the single modal cleanly
+      _showSuccess();
+    }
+  }
+
+  void _showSuccess() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Success'),
+        content: const Text('Books added to collection successfully!'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+        ],
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text('Failed to add books: $message'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final books = ref.read(widget.provider.select((s) => s.selectedBookIds)) as Set<int>;
+
     return AlertDialog(
-      title: const Text('Add to Collection'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _categoryController,
-            decoration: InputDecoration(
-              hintText: 'Enter collection name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            enabled: !_isLoading,
-          ),
-        ],
+      // Dynmically switch titles based on the view state
+      title: Text(_currentView == DialogView.main ? 'Add to Collection' : 'Select Existing Collection'),
+      content: SizedBox(
+        width: 500,
+        height: 280, // Explicit layout bounds for our list view switcher
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250), // Smooth transition animation
+          child: _currentView == DialogView.main
+          ? _buildMainView()
+          : _buildExistingView(books),
+        ),
       ),
       actions: [
+        // Dynamic back or cancel button setup
         TextButton(
-          onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          onPressed: () {
+            if (_currentView == DialogView.existing) {
+              setState(() => _currentView = DialogView.main); // Just step backwards inline
+            } else {
+              Navigator.pop(context);
+            }
+          },
+          child: Text(_currentView == DialogView.existing ? 'Back' : 'Cancel'),
         ),
-        FilledButton(
-          onPressed: _isLoading ? null : _submitForm,
-          child: _isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Add'),
+        if (_currentView == DialogView.main)
+          FilledButton(
+            onPressed: _isLoading ? null : _submitNewCategory,
+            child: _isLoading
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+            : const Text('Add'),
+          ),
+      ],
+    );
+  }
+
+  // VIEW 1: Input text panel for generating new tags
+  Widget _buildMainView() {
+    return Column(
+      key: const ValueKey('MainView'), // Essential key for AnimatedSwitcher tracking
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton.icon(
+          icon: const Icon(Icons.folder_open),
+          label: const Text("Choose from existing"),
+          onPressed: () => setState(() => _currentView = DialogView.existing),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: _categoryController,
+          decoration: InputDecoration(
+            hintText: 'Enter new collection name',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          enabled: !_isLoading,
         ),
       ],
+    );
+  }
+
+  // VIEW 2: Streams existing categories into a selection view
+  Widget _buildExistingView(Set<int> books) {
+    return StreamBuilder<List<Collection>>(
+      key: const ValueKey('ExistingView'),
+      stream: BookToDb().getCategories(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final data = snapshot.data ?? [];
+        if (data.isEmpty) {
+          return const Center(child: Text("No collections found. Create a new one!"));
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          itemCount: data.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(data[index].name),
+              contentPadding: EdgeInsets.zero,
+              trailing: _isLoading
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+              : IconButton.filled(
+                icon: const Icon(Icons.add),
+                onPressed: () => _selectExistingCategory(books, data[index].id),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -113,10 +113,16 @@ class BookToDb {
     );
   }
 
-  // Set Collections for all books
+  // Set Collections for single book
   Future<int> setBookCollection(int bookId, int collectionId) async {
     return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(collection: Value(collectionId)));
+  }
+
+  //Set Collection for Multiple Books
+  Future<int> batchUpdateCollection(Set<int> bookIds, int collectionId) async {
+    return await (_db.update(_db.books)..where((t) => t.id.isIn(bookIds)))
+    .write(BooksCompanion(collection: Value(collectionId)));
   }
 
   // Remove Collection on a single book

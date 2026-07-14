@@ -57,13 +57,14 @@ class NotesRendererState extends State<NotesRenderer> {
         ),
         title: Text(_title ?? ''),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
+        child:Padding(
         padding: EdgeInsets.all(16),
         child: SmoothMarkdown(
           data: _content ?? '',
           selectable: true,
         ),
       ),
-    );
+    ));
   }
 }
