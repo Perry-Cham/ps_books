@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:ps_books/models/timetable.dart';
-import 'package:ps_books/services/DB%20services/timetableToDB.dart';
+import 'package:ps_books/services/dbServices/timetableToDB.dart';
 import 'package:ps_books/state/connectivity_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ps_books/routes/study%20route%20comp/timetable.dart' as tt;
+import 'package:ps_books/routes/studyRouteComp/timetable.dart' as tt;
 
 Future<void> syncTimetableIfSignedIn() async {
   if (!await hasInternet()) return;
@@ -29,7 +29,7 @@ class TimetableSyncingService {
       final t = await (db.select(db.timetables)..limit(1)).getSingleOrNull();
 
       final version = t?.version ?? 0;
-      final lastModified = t?.last_modified ?? DateTime.now();
+      final lastModified = t?.lastModified ?? DateTime.now();
 
       final timetableModel = TimetableModel(
         version: version,
@@ -69,7 +69,7 @@ class TimetableSyncingService {
         final t = await (db.select(db.timetables)..limit(1)).getSingleOrNull();
 
         final localVersion = t?.version ?? 0;
-        final localLastModified = t?.last_modified ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final localLastModified = t?.lastModified ?? DateTime.fromMillisecondsSinceEpoch(0);
 
         if (received.version > localVersion ||
             (received.version == localVersion &&

@@ -12,7 +12,7 @@ class LibraryState {
 
   LibraryState updateState({bool? multi_select_value, int? filter, Set<int>? selectedBookIds}) {
     return LibraryState(
-      multi_select: multi_select_value ?? this.multi_select,
+      multi_select: multi_select_value ?? multi_select,
       filter: filter,
       selectedBookIds: selectedBookIds ?? this.selectedBookIds,
     );

@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ps_books/routes/bookshelf%20comp/uploaded_books.dart';
-import 'package:ps_books/routes/bookshelf%20comp/wishlist.dart';
+import 'package:ps_books/routes/bookshelfComp/uploaded_books.dart';
+import 'package:ps_books/routes/bookshelfComp/wishlist.dart';
 import 'package:ps_books/state/wishlist.dart';
-import 'package:ps_books/routes/home%20comp/control_bars.dart';
+import 'package:ps_books/routes/homeComp/control_bars.dart';
 
 
 class Bookshelf extends ConsumerWidget {

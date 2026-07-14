@@ -8,7 +8,7 @@ import 'package:kindle_unpack/kindle_unpack.dart';
 import 'package:path/path.dart' as p;
 import 'package:ps_books/helpers/book_processor.dart';
 import 'package:ps_books/models/book_data.dart';
-import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/services/dbServices/bookToDb.dart';
 
 final String url = "https://libgen.li";
 final List<String> mirrors = [

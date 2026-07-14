@@ -74,6 +74,16 @@ class BookToDb {
     return (_db.delete(_db.books)..where((b) => b.id.equals(id))).go();
   }
 
+  //deleteSavedBook
+  Future deleteSavedBook(int id) {
+    return (_db.delete(_db.savedBooks)..where((b) => b.id.equals(id))).go();
+  }
+
+  // Watch all saved books
+  Stream<List<SavedBook>> watchAllSavedBooks() {
+    return _db.select(_db.savedBooks).watch();
+  }
+
   //Update Page
   Future updatePage(int id, int page) {
     return (_db.update(
@@ -103,10 +113,16 @@ class BookToDb {
     );
   }
 
-  // Set Collections for all books
+  // Set Collections for single book
   Future<int> setBookCollection(int bookId, int collectionId) async {
     return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(collection: Value(collectionId)));
+  }
+
+  //Set Collection for Multiple Books
+  Future<int> batchUpdateCollection(Set<int> bookIds, int collectionId) async {
+    return await (_db.update(_db.books)..where((t) => t.id.isIn(bookIds)))
+    .write(BooksCompanion(collection: Value(collectionId)));
   }
 
   // Remove Collection on a single book

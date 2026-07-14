@@ -3,16 +3,14 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:go_router/go_router.dart';
 import 'package:ps_books/dbs/database.dart';
-import 'package:ps_books/dbs/initdb.dart';
-import 'package:ps_books/routes/home%20comp/control_bars.dart';
-import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/routes/homeComp/control_bars.dart';
+import 'package:ps_books/services/dbServices/bookToDb.dart';
 import 'package:ps_books/state/wishlist.dart';
 import 'package:ps_books/state/library_state.dart';
 
-final _db = DBProvider().db;
+final _db = BookToDb();
 
 class WishlistPage extends ConsumerWidget {
   const WishlistPage({super.key});
@@ -81,7 +79,7 @@ class WishlistPage extends ConsumerWidget {
                 labelText: 'Title',
                 labelStyle: TextStyle(color: Colors.white70),
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.05),
+                fillColor: Colors.white.withValues(alpha: 0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.blueGrey),
@@ -104,7 +102,7 @@ class WishlistPage extends ConsumerWidget {
                 labelText: 'Author',
                 labelStyle: TextStyle(color: Colors.white70),
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.05),
+                fillColor: Colors.white.withValues(alpha: 0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.blueGrey),
@@ -134,14 +132,10 @@ class WishlistPage extends ConsumerWidget {
             onPressed: () async {
               if (titleController.text.isNotEmpty &&
                   authorController.text.isNotEmpty) {
-                await _db
-                    .into(_db.savedBooks)
-                    .insert(
-                      SavedBooksCompanion(
-                        title: Value(titleController.text),
-                        author: Value(authorController.text),
-                      ),
-                    );
+                await _db.addWishBook(
+                  titleController.text,
+                  authorController.text,
+                );
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Book added to wishlist')),
@@ -161,7 +155,7 @@ class WishlistPage extends ConsumerWidget {
 }
 
 class _FilterBar extends ConsumerWidget {
-  const _FilterBar({super.key});
+  const _FilterBar();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wishlist = ref.watch(WishlistStateProvider);
@@ -300,7 +294,7 @@ class SavedBooksTable extends ConsumerWidget {
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.blue.withOpacity(0.1) : null,
+                        color: isSelected ? Colors.blue.withValues(alpha: 0.1) : null,
                         border: Border(
                           bottom: BorderSide(color: Colors.white12, width: 0.5),
                         ),

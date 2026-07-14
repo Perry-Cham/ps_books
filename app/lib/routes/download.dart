@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ps_books/models/book_data.dart';
 import '../services/download/downloader.dart';
-import '../services/download/steb.dart';
 import '../state/download_state.dart';
 
 class DownloadSearch extends ConsumerStatefulWidget {
@@ -245,11 +244,11 @@ class BookGrid extends ConsumerWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.1),
+                          Colors.black.withValues(alpha: 0.1),
                           // Soft tint at the top
-                          Colors.black.withOpacity(0.5),
+                          Colors.black.withValues(alpha: 0.5),
                           // Medium transition
-                          Colors.black.withOpacity(0.95),
+                          Colors.black.withValues(alpha: 0.95),
                           // Deep dark mask at the bottom for text
                         ],
                         stops: const [0.0, 0.4, 0.85],
@@ -320,33 +319,31 @@ class BookGrid extends ConsumerWidget {
                   right: 8,
                   child: IconButton.filled(
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.black.withOpacity(0.5),
+                      backgroundColor: Colors.black.withValues(alpha: 0.5),
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () async {
-                      if (book.href != null) {
-                        try {
+                      try {
 print(book.href);
-                          String fileName = await getFileName(book.href);
-                          ref
-                              .read(downloadProgressProvider.notifier)
-                              .setFileName(fileName);
+                        String fileName = await getFileName(book.href);
+                        ref
+                            .read(downloadProgressProvider.notifier)
+                            .setFileName(fileName);
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Download has started"),
-                            ),
-                          );
-                          ref
-                              .read(downloadProgressProvider.notifier)
-                              .startDownload(book.href, fileName);
-                        } catch (e, h) {
-                          print(e);
-                          print(h);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Download failed: $e')),
-                          );
-                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Download has started"),
+                          ),
+                        );
+                        ref
+                            .read(downloadProgressProvider.notifier)
+                            .startDownload(book.href, fileName);
+                      } catch (e, h) {
+                        print(e);
+                        print(h);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Download failed: $e')),
+                        );
                       }
                     },
                     icon: const Icon(Icons.file_download_outlined, size: 20),
@@ -499,7 +496,7 @@ class _CardFallbackBackground extends StatelessWidget {
         child: Icon(
           Icons.book_outlined,
           size: 48,
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
         ),
       ),
     );

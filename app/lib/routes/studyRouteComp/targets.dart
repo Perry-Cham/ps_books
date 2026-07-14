@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ps_books/services/DB%20services/target.dart';
+import 'package:ps_books/services/dbServices/target.dart';
 import 'package:ps_books/dbs/database.dart';
 
 class Targets extends StatelessWidget {
@@ -325,7 +325,7 @@ class TopicRow extends StatelessWidget {
               ? TextDecoration.lineThrough
               : TextDecoration.none,
           color: topic.isCompleted
-              ? Theme.of(context).colorScheme.onSurface.withOpacity(0.4)
+              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)
               : Theme.of(context).colorScheme.onSurface,
         ),
       ),

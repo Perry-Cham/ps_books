@@ -11,8 +11,10 @@ import '../reader_utils/destinations_sheet.dart';
 import '../reader_utils/immersive_mode.dart';
 import '../reader_utils/reader_destination.dart';
 import '../reader_utils/theme.dart';
-import '../routes/ai_chat.dart';
-import '../services/DB%20services/bookToDb.dart';
+import '../tools/ai_chat.dart';
+import '../tools/secondary_reader_host.dart';
+import '../tools/notes/notes.dart' as note;
+import '../services/dbServices/bookToDb.dart';
 import '../state/pomodoro_timer.dart';
 import '../state/reader_state.dart';
 import 'reader.dart';
@@ -72,7 +74,6 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
   late final AnimationController _appBarSlideController;
   late final Animation<Offset> _appBarSlide;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
 
   final BookToDb _db = BookToDb();
 
@@ -231,6 +232,7 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
     );
   }
 
+  //====== APP BAR BUILDER  =====//
   Widget _buildAppBar() {
     final chromeColor = _readerTheme == ReaderTheme.dark
         ? Theme.of(context).colorScheme.surface
@@ -282,6 +284,19 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                         ],
                       ),
                     ),
+
+                  // Opens The Notes Widget
+                  if (!isMobilePlatform)
+                    PopupMenuItem(
+                      onTap: () {
+                        ref
+                            .read(readerStateProvider.notifier)
+                            .setShowNotesTrue();
+                      },
+                      child: Row(spacing: 8, children: [Text("Open Notes")]),
+                    ),
+
+                  //Adds A Second Reader
                   if (!isMobilePlatform)
                     PopupMenuItem(
                       onTap: _showBookSelector,
@@ -297,6 +312,7 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                         ],
                       ),
                     ),
+
                   // Immersive mode toggle — visible on all platforms, but on
                   // mobile the user will typically rely on the auto-engage +
                   // centre-tap-to-exit flow. Provided here as a manual override.
@@ -341,11 +357,13 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
     );
   }
 
+  //=== Builds The Reader Body
   Widget _buildBody() {
     final readerState = ref.watch(readerStateProvider);
     final showAi = readerState.showAiChat;
     final secondBookId = readerState.secondBookId;
- print(_readerTheme);
+    final showNotes = readerState.showNotes;
+    print(_readerTheme);
     return LayoutBuilder(
       builder: (context, constraints) {
         // Top padding leaves room for the AppBar. When immersive mode is
@@ -383,21 +401,42 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
                   child: AiChatPanel(
                     onClose: () => ref
                         .read(readerStateProvider.notifier)
-                        .setShowAiChatFalse(),
+                        .closeSecondScreen,
                   ),
                 )
               else if (secondBookId != null && !isMobilePlatform)
                 Expanded(
                   flex: 5,
-                  child: _SecondaryReaderHost(
+                  child: SecondaryReaderHost(
                     key: ValueKey(secondBookId),
                     bookId: secondBookId,
                     secondaryKey: _secondaryReaderKey,
                     immersiveController: _immersiveController,
                     onClose: () => ref
                         .read(readerStateProvider.notifier)
-                        .clearSecondBook(),
+                        .closeSecondScreen(),
                   ),
+                )
+              else if (showNotes && !isMobilePlatform)
+                Stack(
+                  children: [
+                    Positioned(
+                      right: 5,
+                      top: 5,
+                      child: MouseRegion(
+                        child: IconButton.filled(
+                          icon: Icon(Icons.close),
+                          mouseCursor: SystemMouseCursors.click,
+                          onPressed: () {
+                            ref
+                                .read(readerStateProvider.notifier)
+                                .closeSecondScreen();
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 700, child: note.Notes()),
+                  ],
                 ),
             ],
           ),
@@ -407,12 +446,11 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
   }
 
   // ---------------------------------------------------------------------------
-  // Build
+  // Actual Build Method
   // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-
     final scaffold = PopScope(
       onPopInvokedWithResult: (didPop, result) async {
         // Best-effort persist of the primary reader's PDF progress on pop.
@@ -474,43 +512,40 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
       ),
     );
 
-
-
     final globalTheme = ref.watch(settingsProvider);
 
     globalTheme.when(
-            data: (data){
-      final chromeTheme = _readerTheme == ReaderTheme.dark
-          ? null
-          : _buildChromeTheme(context);
+      data: (data) {
+        final chromeTheme = _readerTheme == ReaderTheme.dark
+            ? null
+            : _buildChromeTheme(context);
 
-      if(data.appTheme.name == "dark"){
-        setState(() {
-          _readerTheme = ReaderTheme.dark;
-        });
-        print(_readerTheme);
+        if (data.appTheme.name == "dark") {
+          setState(() {
+            _readerTheme = ReaderTheme.dark;
+          });
+          print(_readerTheme);
 
-        return chromeTheme != null
-            ? Theme(data: chromeTheme, child: scaffold)
-            : scaffold;
-      }else{
-        setState(() {
-          _readerTheme = ReaderTheme.dark;
-        });
-        print(_readerTheme);
-        return chromeTheme != null
-            ? Theme(data: chromeTheme, child: scaffold)
-            : scaffold;
-      }
-    },
-        loading: () =>  CircularProgressIndicator(),
-    error: (e,h){
-          return scaffold;
-    }
+          return chromeTheme != null
+              ? Theme(data: chromeTheme, child: scaffold)
+              : scaffold;
+        } else {
+          setState(() {
+            _readerTheme = ReaderTheme.dark;
+          });
+          print(_readerTheme);
+          return chromeTheme != null
+              ? Theme(data: chromeTheme, child: scaffold)
+              : scaffold;
+        }
+      },
+      loading: () => CircularProgressIndicator(),
+      error: (e, h) {
+        return scaffold;
+      },
     );
 
     return scaffold;
-
   }
 
   ThemeData _buildChromeTheme(BuildContext context) {
@@ -521,71 +556,6 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
       colorScheme: base.colorScheme.copyWith(surface: data.appBarColor),
       cardColor: data.appBarColor,
       popupMenuTheme: PopupMenuThemeData(color: data.appBarColor),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Secondary reader host — async-loads the Book row then renders a secondary
-// Reader. Replaces the old _SecondBookReader class.
-// -----------------------------------------------------------------------------
-
-class _SecondaryReaderHost extends StatefulWidget {
-  const _SecondaryReaderHost({
-    super.key,
-    required this.bookId,
-    required this.secondaryKey,
-    required this.immersiveController,
-    required this.onClose,
-  });
-
-  final int bookId;
-  final GlobalKey<ReaderWidgetState> secondaryKey;
-  final ValueListenable<bool> immersiveController;
-  final VoidCallback onClose;
-
-  @override
-  State<_SecondaryReaderHost> createState() => _SecondaryReaderHostState();
-}
-
-class _SecondaryReaderHostState extends State<_SecondaryReaderHost> {
-  Book? _book;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBook();
-  }
-
-  Future<void> _loadBook() async {
-    final book = await BookToDb().getBookById(widget.bookId);
-    if (mounted) {
-      setState(() {
-        _book = book;
-        _loading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_book == null) {
-      return const Center(child: Text('Book not found'));
-    }
-    return Reader(
-      key: widget.secondaryKey,
-      type: _book!.extension,
-      path: _book!.path,
-      id: _book!.id,
-      page: _book!.page,
-      position: _book!.cfi,
-      isSecondary: true,
-      immersiveController: widget.immersiveController,
-      onCloseSecondary: widget.onClose,
     );
   }
 }
@@ -652,7 +622,7 @@ class _ImmersiveHatchButton extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: FloatingActionButton.small(
-        backgroundColor: Colors.white.withOpacity(0.85),
+        backgroundColor: Colors.white.withValues(alpha: 0.85),
         onPressed: onTap,
         tooltip: 'Exit immersive mode',
         child: const Icon(Icons.fullscreen_exit, color: Colors.black87),
@@ -732,7 +702,7 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: phaseColor.withOpacity(0.12),
+                    color: phaseColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -817,7 +787,7 @@ class FloatingDesktopClockOverlay extends ConsumerWidget {
 
 //BOOKMARKS DRAWER
 class _BookmarksDrawer extends StatefulWidget {
-  _BookmarksDrawer({required this.readerKey});
+  const _BookmarksDrawer({required this.readerKey});
   final GlobalKey<ReaderWidgetState> readerKey;
 
   @override
@@ -865,6 +835,7 @@ class _BookmarksDrawerState extends State<_BookmarksDrawer> {
           if (destinations.isEmpty) {
             return const Center(child: Text('No Bookmarks'));
           }
+          debugPrint(destinations.toString());
           return DestinationTree(
             destinations: destinations,
             onSelected: onDestinationSelected ?? (_) {},

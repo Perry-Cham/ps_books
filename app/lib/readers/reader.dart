@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:katbook_epub_reader/katbook_epub_reader.dart' hide ReaderTheme;
 import 'package:katbook_epub_reader/src/models/reader_theme.dart' as katbook;
 import 'package:pdfrx/pdfrx.dart';
 
-import '../helpers/pickBooks.dart';
 import '../helpers/utils.dart';
 import '../readers/comic_reader.dart';
 import '../readers/epubReader.dart';

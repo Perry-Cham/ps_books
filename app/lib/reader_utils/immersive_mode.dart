@@ -19,7 +19,7 @@ import 'package:flutter/foundation.dart';
 /// The [ReaderShell] is responsible for those entry/exit triggers; this
 /// class is purely the state-holder + notifier.
 class ImmersiveModeController extends ValueNotifier<bool> {
-  ImmersiveModeController([bool initial = false]) : super(initial);
+  ImmersiveModeController([super.initial = false]);
 
   /// Whether immersive mode is currently engaged.
   bool get isImmersive => value;

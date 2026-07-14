@@ -133,7 +133,7 @@ class MobiReader {
 
         this.view.addEventListener('load', this.#onLoad.bind(this));
         this.view.addEventListener('relocate', this.#onRelocate.bind(this));
-
+this.view.goTo("epubcfi(/6/2!/4,/2,/4/20/58/1:12)");
         book.transformTarget?.addEventListener('data', ({ detail }) => {
             detail.data = Promise.resolve(detail.data).catch(e => {
                 console.error(new Error(`Failed to load ${detail.name}`, { cause: e }));

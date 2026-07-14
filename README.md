@@ -36,6 +36,8 @@ ps_books/
     └── webview_all_windows/      # Windows WebView implementation
 ```
 
+### Architectural Breakdown 
+The app directory contains the main reader application while the packages directory contains slightly customized third party packages.
 ## Features
 
 ### Supported Formats

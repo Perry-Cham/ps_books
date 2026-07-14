@@ -13,7 +13,7 @@ import 'package:webview_all/webview_all.dart';
 import 'package:ps_books/reader_utils/reader_destination.dart';
 import 'package:ps_books/reader_utils/reader_utils.dart';
 import 'package:ps_books/reader_utils/theme.dart';
-import 'package:ps_books/services/DB%20services/bookToDb.dart';
+import 'package:ps_books/services/dbServices/bookToDb.dart';
 
 final _database = BookToDb();
 

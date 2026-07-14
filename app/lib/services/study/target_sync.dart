@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/dbs/database.dart';
-import 'package:ps_books/services/DB%20services/target.dart';
+import 'package:ps_books/services/dbServices/target.dart';
 import 'package:ps_books/state/connectivity_provider.dart';
 import 'package:ps_books/models/target.dart';
 import 'package:shared_preferences/shared_preferences.dart';

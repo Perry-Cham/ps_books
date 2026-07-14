@@ -145,13 +145,15 @@ class pptViewer {
   // Wire up the hamburger / close-button / click-outside to show/hide the sidebar
   setupMenuToggle() {
     this.menuButton.addEventListener("click", () => {
-      this.sidebar.classList.add("open");
-      this.closeButton.style.display = "flex";
+      this.sidebar.classList.toggle("open");
+      this.menuButton.classList.toggle("hide");
+      this.closeButton.classList.toggle("hide");
     });
 
     this.closeButton.addEventListener("click", () => {
       this.sidebar.classList.remove("open");
-      this.closeButton.style.display = "none";
+      this.menuButton.classList.toggle("hide");
+      this.closeButton.classList.toggle("hide");
     });
 
     // Clicking outside the sidebar or menu button also closes it

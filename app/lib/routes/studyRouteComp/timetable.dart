@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ps_books/services/DB%20services/timetableToDB.dart';
+import 'package:ps_books/services/dbServices/timetableToDB.dart';
 import 'package:ps_books/services/study/timetable_sync.dart';
 import 'package:ps_books/state/connectivity_provider.dart';
 

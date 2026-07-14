@@ -7,7 +7,6 @@ import 'package:ps_books/helpers/pickBooks.dart';
 import 'package:ps_books/state/global_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:ps_books/routes/login.dart';
 import '../state/google_auth.dart';
@@ -102,7 +101,7 @@ class Settings extends ConsumerWidget {
                                   : Icons.light_mode,
                               title: "Dark Mode",
                               trailing: Switch(
-                                activeColor: primaryAccent,
+                                activeThumbColor: primaryAccent,
                                 value: settings.appTheme == AppTheme.dark,
                                 onChanged: (v) {
                                   ref
@@ -124,7 +123,7 @@ class Settings extends ConsumerWidget {
                               icon: Icons.sync,
                               title: "Syncing",
                               trailing: Switch(
-                                activeColor: primaryAccent,
+                                activeThumbColor: primaryAccent,
                                 value: false,
                                 onChanged: (v) => print('syncing enabled'),
                               ),
@@ -140,7 +139,7 @@ class Settings extends ConsumerWidget {
                               icon: Icons.alarm,
                               title: "Enable Timetable alarms",
                               trailing: Switch(
-                                activeColor: primaryAccent,
+                                activeThumbColor: primaryAccent,
                                 value: settings.enableTimetableAlarms,
                                 onChanged: (v) {
                                   ref
@@ -222,7 +221,7 @@ class Settings extends ConsumerWidget {
                         _SettingsSection(
                           title: "Danger Zone",
                           titleColor: Colors.redAccent,
-                          borderColor: Colors.red.withOpacity(0.3),
+                          borderColor: Colors.red.withValues(alpha: 0.3),
                           children: [
                             _SettingsTile(
                               icon: Icons.delete_forever,
@@ -233,8 +232,8 @@ class Settings extends ConsumerWidget {
                                   "Clears all local books and preferences",
                               trailing: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.redAccent.withOpacity(
-                                    0.2,
+                                  backgroundColor: Colors.redAccent.withValues(
+                                    alpha: 0.2,
                                   ),
                                   foregroundColor: Colors.redAccent,
                                   elevation: 0,
@@ -255,7 +254,7 @@ class Settings extends ConsumerWidget {
                               trailing: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.purpleAccent
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                   foregroundColor: Colors.purpleAccent,
                                   elevation: 0,
                                   side: const BorderSide(
@@ -503,7 +502,7 @@ class _SettingsSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -551,7 +550,7 @@ class _SettingsTile extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: iconColor ?? theme.iconTheme.color?.withOpacity(0.7),
+          color: iconColor ?? theme.iconTheme.color?.withValues(alpha: 0.7),
           size: 22,
         ),
       ),

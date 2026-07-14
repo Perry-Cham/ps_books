@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -177,7 +178,7 @@ class EpubReaderScreenState extends ConsumerState<EpubReaderScreen>
   static ReaderDestination _chapterToDestination(ChapterNode chapter) {
     return ReaderDestination(
       label: chapter.title,
-      locator: chapter.startIndex.toString(),
+      locator: jsonEncode(chapter.toJson()),
       level: chapter.depth,
       children: chapter.children.map(_chapterToDestination).toList(),
     );
@@ -185,9 +186,11 @@ class EpubReaderScreenState extends ConsumerState<EpubReaderScreen>
 
   @override
   Future<void> goToDestination(ReaderDestination destination) async {
-    final index = int.tryParse(destination.locator);
-    if (index == null) return;
-    _controller.jumpToIndex(index);
+final decoded = jsonDecode(destination.locator);
+  final node = ChapterNode(title: decoded['title'], startIndex: decoded['startIndex']);
+
+  //  if (index == null) return;
+    readerKey.currentState?.jumpToChapter(node);
   }
 
   @override
@@ -360,4 +363,3 @@ class EpubReaderScreenState extends ConsumerState<EpubReaderScreen>
 }
 
 
-//initialize Epub reader preferences
