@@ -11,6 +11,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:ps_books/routes/login.dart';
 import '../state/google_auth.dart';
 import 'package:ps_books/routes/settings_comp/user_cards.dart';
+import 'package:ps_books/services/data_handler.dart';
+import 'package:file_picker/file_picker.dart';
 
 // --- Theme Colors ---
 const Color bgColor = Color(0xFF1B1227);
@@ -217,6 +219,134 @@ class Settings extends ConsumerWidget {
                           ],
                         ),
 
+                        // --- Export Section ---
+                        _SettingsSection(
+                          title: "Export",
+                          children: [
+                            _SettingsTile(
+                              icon: Icons.import_export_outlined,
+                              iconColor: Colors.purpleAccent,
+                              title: "Export Books",
+                              subtitle: "Copies book files to a chosen folder",
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ElevatedButton(
+                                    style: _exportButtonStyle(),
+                                    onPressed: () =>
+                                        _handleExportBooks(context, ref),
+                                    child: const Text("Export"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    style: _importButtonStyle(),
+                                    onPressed: () =>
+                                        _handleImportBooks(context, ref),
+                                    child: const Text("Import"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 1),
+                            _SettingsTile(
+                              icon: Icons.backup_outlined,
+                              iconColor: Colors.purpleAccent,
+                              title: "Export AppData",
+                              subtitle: "Full backup as .pbf file",
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ElevatedButton(
+                                    style: _exportButtonStyle(),
+                                    onPressed: () =>
+                                        _handleExportAppData(context, ref),
+                                    child: const Text("Export"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    style: _importButtonStyle(),
+                                    onPressed: () =>
+                                        _handleImportAppData(context, ref),
+                                    child: const Text("Import"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 1),
+                            _SettingsTile(
+                              icon: Icons.calendar_month_outlined,
+                              iconColor: Colors.blueAccent,
+                              title: "Export Timetable",
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ElevatedButton(
+                                    style: _exportButtonStyle(),
+                                    onPressed: () =>
+                                        _handleExportTimetable(context, ref),
+                                    child: const Text("Export"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    style: _importButtonStyle(),
+                                    onPressed: () =>
+                                        _handleImportTimetable(context, ref),
+                                    child: const Text("Import"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 1),
+                            _SettingsTile(
+                              icon: Icons.ads_click_outlined,
+                              iconColor: Colors.orangeAccent,
+                              title: "Export Targets",
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ElevatedButton(
+                                    style: _exportButtonStyle(),
+                                    onPressed: () =>
+                                        _handleExportTargets(context, ref),
+                                    child: const Text("Export"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    style: _importButtonStyle(),
+                                    onPressed: () =>
+                                        _handleImportTargets(context, ref),
+                                    child: const Text("Import"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 1),
+                            _SettingsTile(
+                              icon: Icons.sticky_note_2_outlined,
+                              iconColor: Colors.tealAccent,
+                              title: "Export Notes",
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ElevatedButton(
+                                    style: _exportButtonStyle(),
+                                    onPressed: () =>
+                                        _handleExportNotes(context, ref),
+                                    child: const Text("Export"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    style: _importButtonStyle(),
+                                    onPressed: () =>
+                                        _handleImportNotes(context, ref),
+                                    child: const Text("Import"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
                         // --- Danger Section ---
                         _SettingsSection(
                           title: "Danger Zone",
@@ -244,61 +374,6 @@ class Settings extends ConsumerWidget {
                                 onPressed: () =>
                                     _handleDeleteAppData(context, ref),
                                 child: const Text("Delete"),
-                              ),
-                            ),
-                            _SettingsTile(
-                              icon: Icons.import_export_outlined,
-                              iconColor: Colors.purpleAccent,
-                              title: "Export Books",
-                              subtitle: "Exports all books to a chosen folder",
-                              trailing: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.purpleAccent
-                                      .withValues(alpha: 0.2),
-                                  foregroundColor: Colors.purpleAccent,
-                                  elevation: 0,
-                                  side: const BorderSide(
-                                    color: Colors.purpleAccent,
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  try {
-                                    final success = await Pick_Books()
-                                        .exportBooks();
-                                    if (success) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            "Your books have been exported to your chosen directory.",
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            "There was an error exporting your books.",
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  } catch (e, h) {
-                                    print(e);
-                                    print(h);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          "There was an error exporting your books.",
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: const Text("Export"),
                               ),
                             ),
                           ],
@@ -457,6 +532,240 @@ Future<void> _handleDeleteAppData(BuildContext context, WidgetRef ref) async {
       ).showSnackBar(const SnackBar(content: Text('Failed to clear app data')));
     }
   }
+}
+
+// ── Export / Import Handlers ──
+
+Future<void> _handleExportBooks(BuildContext context, WidgetRef ref) async {
+  try {
+    final success = await DataHandler().exportBooks();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "Books exported successfully." : "Failed to export books.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error exporting books.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleImportBooks(BuildContext context, WidgetRef ref) async {
+  try {
+    final msg = await Pick_Books().pickbooks();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg.state == "Success" ? "Books imported successfully." : msg.message)),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error importing books.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleExportAppData(BuildContext context, WidgetRef ref) async {
+  try {
+    final success = await DataHandler().exportPBF();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "App data exported successfully." : "Export cancelled or failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error exporting app data.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleImportAppData(BuildContext context, WidgetRef ref) async {
+  try {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final filePath = result.files.single.path;
+    if (filePath == null) return;
+    final success = await DataHandler().importPBF(filePath);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "App data imported successfully." : "Import failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error importing app data.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleExportTimetable(BuildContext context, WidgetRef ref) async {
+  try {
+    final success = await DataHandler().exportTimetable();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "Timetable exported successfully." : "Export cancelled or failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error exporting timetable.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleImportTimetable(BuildContext context, WidgetRef ref) async {
+  try {
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result == null || result.files.isEmpty) return;
+    final filePath = result.files.single.path;
+    if (filePath == null) return;
+    final success = await DataHandler().importPBF(filePath);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "Timetable imported successfully." : "Import failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error importing timetable.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleExportTargets(BuildContext context, WidgetRef ref) async {
+  try {
+    final success = await DataHandler().exportTargets();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "Targets exported successfully." : "Export cancelled or failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error exporting targets.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleImportTargets(BuildContext context, WidgetRef ref) async {
+  try {
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result == null || result.files.isEmpty) return;
+    final filePath = result.files.single.path;
+    if (filePath == null) return;
+    final success = await DataHandler().importPBF(filePath);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "Targets imported successfully." : "Import failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error importing targets.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleExportNotes(BuildContext context, WidgetRef ref) async {
+  try {
+    final success = await DataHandler().exportNotes();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "Notes exported successfully." : "Export cancelled or failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error exporting notes.")),
+      );
+    }
+  }
+}
+
+Future<void> _handleImportNotes(BuildContext context, WidgetRef ref) async {
+  try {
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result == null || result.files.isEmpty) return;
+    final filePath = result.files.single.path;
+    if (filePath == null) return;
+    final success = await DataHandler().importPBF(filePath);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? "Notes imported successfully." : "Import failed.")),
+      );
+    }
+  } catch (e, st) {
+    print(e);
+    print(st);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error importing notes.")),
+      );
+    }
+  }
+}
+
+// ── Button Style Helpers ──
+
+ButtonStyle _exportButtonStyle() {
+  return ElevatedButton.styleFrom(
+    backgroundColor: Colors.purpleAccent.withValues(alpha: 0.2),
+    foregroundColor: Colors.purpleAccent,
+    elevation: 0,
+    side: const BorderSide(color: Colors.purpleAccent),
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    textStyle: const TextStyle(fontSize: 12),
+  );
+}
+
+ButtonStyle _importButtonStyle() {
+  return ElevatedButton.styleFrom(
+    backgroundColor: Colors.blueAccent.withValues(alpha: 0.2),
+    foregroundColor: Colors.blueAccent,
+    elevation: 0,
+    side: const BorderSide(color: Colors.blueAccent),
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    textStyle: const TextStyle(fontSize: 12),
+  );
 }
 
 // ============================================================================

@@ -79,8 +79,10 @@ class SavedBooks extends Table {
 
 class Notes extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get uuid => text()();
   TextColumn get title => text()();
   TextColumn get content => text()();
+  DateTimeColumn get lastModified => dateTime()();
   IntColumn get bookId => integer().references(Books, #id).nullable()();
   IntColumn get collection =>
   integer().references(Collections, #id).nullable()();
@@ -103,7 +105,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -113,10 +115,27 @@ class AppDatabase extends _$AppDatabase {
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
-          // Rename last_modified to lastModified in Timetables table
+          // Type-safe column rename
           await m.renameColumn(timetables, 'last_modified', timetables.lastModified);
-          // Create Notes table (didn't exist in v1)
+          // Type-safe table creation
           await m.createTable(notes);
+        }
+        if (from < 3) {
+          // 1. Add new columns in a type-safe way using the Migrator API
+          await m.addColumn(notes, notes.uuid);
+          await m.addColumn(notes, notes.lastModified);
+
+          // 2. Populate defaults for existing rows (since Dart can't easily execute hex(randomblob) natively)
+          await transaction(() async {
+            await customStatement(
+              'UPDATE notes SET uuid = hex(randomblob(16)), last_modified = CAST(strftime("%s", "now") AS INTEGER)'
+            );
+          });
+
+          // 3. Create the unique index on uuid in a type-safe way
+          await m.createIndex(
+            Index('idx_notes_uuid', 'CREATE UNIQUE INDEX idx_notes_uuid ON notes(uuid)')
+          );
         }
       },
     );

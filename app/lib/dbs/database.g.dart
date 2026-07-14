@@ -2841,6 +2841,15 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -2859,6 +2868,17 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     aliasedName,
     false,
     type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
+    'lastModified',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+    'last_modified',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
@@ -2890,8 +2910,10 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    uuid,
     title,
     content,
+    lastModified,
     bookId,
     collection,
   ];
@@ -2910,6 +2932,14 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
     if (data.containsKey('title')) {
       context.handle(
         _titleMeta,
@@ -2925,6 +2955,17 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
       );
     } else if (isInserting) {
       context.missing(_contentMeta);
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+        _lastModifiedMeta,
+        lastModified.isAcceptableOrUnknown(
+          data['last_modified']!,
+          _lastModifiedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastModifiedMeta);
     }
     if (data.containsKey('book_id')) {
       context.handle(
@@ -2951,6 +2992,10 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
       title: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}title'],
@@ -2958,6 +3003,10 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
       content: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}content'],
+      )!,
+      lastModified: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_modified'],
       )!,
       bookId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -2978,14 +3027,18 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
 
 class Note extends DataClass implements Insertable<Note> {
   final int id;
+  final String uuid;
   final String title;
   final String content;
+  final DateTime lastModified;
   final int? bookId;
   final int? collection;
   const Note({
     required this.id,
+    required this.uuid,
     required this.title,
     required this.content,
+    required this.lastModified,
     this.bookId,
     this.collection,
   });
@@ -2993,8 +3046,10 @@ class Note extends DataClass implements Insertable<Note> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['uuid'] = Variable<String>(uuid);
     map['title'] = Variable<String>(title);
     map['content'] = Variable<String>(content);
+    map['last_modified'] = Variable<DateTime>(lastModified);
     if (!nullToAbsent || bookId != null) {
       map['book_id'] = Variable<int>(bookId);
     }
@@ -3007,8 +3062,10 @@ class Note extends DataClass implements Insertable<Note> {
   NotesCompanion toCompanion(bool nullToAbsent) {
     return NotesCompanion(
       id: Value(id),
+      uuid: Value(uuid),
       title: Value(title),
       content: Value(content),
+      lastModified: Value(lastModified),
       bookId: bookId == null && nullToAbsent
           ? const Value.absent()
           : Value(bookId),
@@ -3025,8 +3082,10 @@ class Note extends DataClass implements Insertable<Note> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Note(
       id: serializer.fromJson<int>(json['id']),
+      uuid: serializer.fromJson<String>(json['uuid']),
       title: serializer.fromJson<String>(json['title']),
       content: serializer.fromJson<String>(json['content']),
+      lastModified: serializer.fromJson<DateTime>(json['lastModified']),
       bookId: serializer.fromJson<int?>(json['bookId']),
       collection: serializer.fromJson<int?>(json['collection']),
     );
@@ -3036,8 +3095,10 @@ class Note extends DataClass implements Insertable<Note> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'uuid': serializer.toJson<String>(uuid),
       'title': serializer.toJson<String>(title),
       'content': serializer.toJson<String>(content),
+      'lastModified': serializer.toJson<DateTime>(lastModified),
       'bookId': serializer.toJson<int?>(bookId),
       'collection': serializer.toJson<int?>(collection),
     };
@@ -3045,22 +3106,30 @@ class Note extends DataClass implements Insertable<Note> {
 
   Note copyWith({
     int? id,
+    String? uuid,
     String? title,
     String? content,
+    DateTime? lastModified,
     Value<int?> bookId = const Value.absent(),
     Value<int?> collection = const Value.absent(),
   }) => Note(
     id: id ?? this.id,
+    uuid: uuid ?? this.uuid,
     title: title ?? this.title,
     content: content ?? this.content,
+    lastModified: lastModified ?? this.lastModified,
     bookId: bookId.present ? bookId.value : this.bookId,
     collection: collection.present ? collection.value : this.collection,
   );
   Note copyWithCompanion(NotesCompanion data) {
     return Note(
       id: data.id.present ? data.id.value : this.id,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
       title: data.title.present ? data.title.value : this.title,
       content: data.content.present ? data.content.value : this.content,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
       bookId: data.bookId.present ? data.bookId.value : this.bookId,
       collection: data.collection.present
           ? data.collection.value
@@ -3072,8 +3141,10 @@ class Note extends DataClass implements Insertable<Note> {
   String toString() {
     return (StringBuffer('Note(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
           ..write('title: $title, ')
           ..write('content: $content, ')
+          ..write('lastModified: $lastModified, ')
           ..write('bookId: $bookId, ')
           ..write('collection: $collection')
           ..write(')'))
@@ -3081,50 +3152,65 @@ class Note extends DataClass implements Insertable<Note> {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, content, bookId, collection);
+  int get hashCode =>
+      Object.hash(id, uuid, title, content, lastModified, bookId, collection);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Note &&
           other.id == this.id &&
+          other.uuid == this.uuid &&
           other.title == this.title &&
           other.content == this.content &&
+          other.lastModified == this.lastModified &&
           other.bookId == this.bookId &&
           other.collection == this.collection);
 }
 
 class NotesCompanion extends UpdateCompanion<Note> {
   final Value<int> id;
+  final Value<String> uuid;
   final Value<String> title;
   final Value<String> content;
+  final Value<DateTime> lastModified;
   final Value<int?> bookId;
   final Value<int?> collection;
   const NotesCompanion({
     this.id = const Value.absent(),
+    this.uuid = const Value.absent(),
     this.title = const Value.absent(),
     this.content = const Value.absent(),
+    this.lastModified = const Value.absent(),
     this.bookId = const Value.absent(),
     this.collection = const Value.absent(),
   });
   NotesCompanion.insert({
     this.id = const Value.absent(),
+    required String uuid,
     required String title,
     required String content,
+    required DateTime lastModified,
     this.bookId = const Value.absent(),
     this.collection = const Value.absent(),
-  }) : title = Value(title),
-       content = Value(content);
+  }) : uuid = Value(uuid),
+       title = Value(title),
+       content = Value(content),
+       lastModified = Value(lastModified);
   static Insertable<Note> custom({
     Expression<int>? id,
+    Expression<String>? uuid,
     Expression<String>? title,
     Expression<String>? content,
+    Expression<DateTime>? lastModified,
     Expression<int>? bookId,
     Expression<int>? collection,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (uuid != null) 'uuid': uuid,
       if (title != null) 'title': title,
       if (content != null) 'content': content,
+      if (lastModified != null) 'last_modified': lastModified,
       if (bookId != null) 'book_id': bookId,
       if (collection != null) 'collection': collection,
     });
@@ -3132,15 +3218,19 @@ class NotesCompanion extends UpdateCompanion<Note> {
 
   NotesCompanion copyWith({
     Value<int>? id,
+    Value<String>? uuid,
     Value<String>? title,
     Value<String>? content,
+    Value<DateTime>? lastModified,
     Value<int?>? bookId,
     Value<int?>? collection,
   }) {
     return NotesCompanion(
       id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
       title: title ?? this.title,
       content: content ?? this.content,
+      lastModified: lastModified ?? this.lastModified,
       bookId: bookId ?? this.bookId,
       collection: collection ?? this.collection,
     );
@@ -3152,11 +3242,17 @@ class NotesCompanion extends UpdateCompanion<Note> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
     if (content.present) {
       map['content'] = Variable<String>(content.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
     }
     if (bookId.present) {
       map['book_id'] = Variable<int>(bookId.value);
@@ -3171,8 +3267,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
   String toString() {
     return (StringBuffer('NotesCompanion(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
           ..write('title: $title, ')
           ..write('content: $content, ')
+          ..write('lastModified: $lastModified, ')
           ..write('bookId: $bookId, ')
           ..write('collection: $collection')
           ..write(')'))
@@ -6067,16 +6165,20 @@ typedef $$SavedBooksTableProcessedTableManager =
 typedef $$NotesTableCreateCompanionBuilder =
     NotesCompanion Function({
       Value<int> id,
+      required String uuid,
       required String title,
       required String content,
+      required DateTime lastModified,
       Value<int?> bookId,
       Value<int?> collection,
     });
 typedef $$NotesTableUpdateCompanionBuilder =
     NotesCompanion Function({
       Value<int> id,
+      Value<String> uuid,
       Value<String> title,
       Value<String> content,
+      Value<DateTime> lastModified,
       Value<int?> bookId,
       Value<int?> collection,
     });
@@ -6133,6 +6235,11 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnFilters(column),
@@ -6140,6 +6247,11 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
 
   ColumnFilters<String> get content => $composableBuilder(
     column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6204,6 +6316,11 @@ class $$NotesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnOrderings(column),
@@ -6211,6 +6328,11 @@ class $$NotesTableOrderingComposer
 
   ColumnOrderings<String> get content => $composableBuilder(
     column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6273,11 +6395,19 @@ class $$NotesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
+    builder: (column) => column,
+  );
 
   $$BooksTableAnnotationComposer get bookId {
     final $$BooksTableAnnotationComposer composer = $composerBuilder(
@@ -6355,28 +6485,36 @@ class $$NotesTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String> uuid = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String> content = const Value.absent(),
+                Value<DateTime> lastModified = const Value.absent(),
                 Value<int?> bookId = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
               }) => NotesCompanion(
                 id: id,
+                uuid: uuid,
                 title: title,
                 content: content,
+                lastModified: lastModified,
                 bookId: bookId,
                 collection: collection,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required String uuid,
                 required String title,
                 required String content,
+                required DateTime lastModified,
                 Value<int?> bookId = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
               }) => NotesCompanion.insert(
                 id: id,
+                uuid: uuid,
                 title: title,
                 content: content,
+                lastModified: lastModified,
                 bookId: bookId,
                 collection: collection,
               ),

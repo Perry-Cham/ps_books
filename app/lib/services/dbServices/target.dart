@@ -15,11 +15,80 @@ Stream<List<TargetSubject>> watchAllSubjects() {
   return db.select(db.targetSubjects).watch();
 }
 
+// Get all subjects as a one-shot list
+Future<List<TargetSubject>> getAllSubjects() {
+  return db.select(db.targetSubjects).get();
+}
+
+// Find a subject by uuid
+Future<TargetSubject?> getSubjectByUuid(String uuid) {
+  return (db.select(db.targetSubjects)
+        ..where((t) => t.uuid.equals(uuid)))
+      .getSingleOrNull();
+}
+
+// Insert a subject with a given uuid
+Future<int> insertSubject({required String uuid, required String name, DateTime? syncedAt}) async {
+  return db.into(db.targetSubjects).insert(
+    TargetSubjectsCompanion(
+      uuid: Value(uuid),
+      name: Value(name),
+      syncedAt: Value(syncedAt),
+    ),
+  );
+}
+
+// Update a subject's name and syncedAt
+Future<void> updateSubject(int id, String name, DateTime? syncedAt) async {
+  await (db.update(db.targetSubjects)..where((s) => s.id.equals(id)))
+    .write(TargetSubjectsCompanion(
+      name: Value(name),
+      syncedAt: Value(syncedAt),
+    ));
+}
+
 // watch topics for a specific subject
 Stream<List<TargetTopic>> watchTopicsForSubject(int subjectId) {
   return (db.select(db.targetTopics)
         ..where((t) => t.subjectId.equals(subjectId)))
       .watch();
+}
+
+// Get topics for a subject as a one-shot list
+Future<List<TargetTopic>> getTopicsForSubject(int subjectId) {
+  return (db.select(db.targetTopics)
+        ..where((t) => t.subjectId.equals(subjectId)))
+      .get();
+}
+
+// Find a topic by uuid
+Future<TargetTopic?> getTopicByUuid(String uuid) {
+  return (db.select(db.targetTopics)
+        ..where((t) => t.uuid.equals(uuid)))
+      .getSingleOrNull();
+}
+
+// Insert a topic with a given uuid and options
+Future<int> insertTopic({required String uuid, required String name, required bool isCompleted, required DateTime lastModified, required int subjectId}) async {
+  return db.into(db.targetTopics).insert(
+    TargetTopicsCompanion(
+      uuid: Value(uuid),
+      name: Value(name),
+      isCompleted: Value(isCompleted),
+      lastModified: Value(lastModified),
+      subjectId: Value(subjectId),
+    ),
+  );
+}
+
+// Update a topic's name, completion status, and lastModified
+Future<void> updateTopic(int id, String name, bool isCompleted, DateTime lastModified) async {
+  await (db.update(db.targetTopics)..where((t) => t.id.equals(id)))
+    .write(TargetTopicsCompanion(
+      name: Value(name),
+      isCompleted: Value(isCompleted),
+      lastModified: Value(lastModified),
+    ));
 }
 
 // insert a subject, returns its generated id
