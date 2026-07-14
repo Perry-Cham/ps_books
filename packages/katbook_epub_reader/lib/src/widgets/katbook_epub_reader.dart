@@ -256,7 +256,7 @@ class KatbookEpubReaderState extends State<KatbookEpubReader> {
     if (!widget.controller.isLoaded) return;
 
     final paragraphIndex = position.paragraphIndex;
-    jumpToParagraph(paragraphIndex);
+    // jumpToParagraph(paragraphIndex);
   }
 
   /// Changes the current theme.
@@ -941,6 +941,7 @@ class KatbookEpubReaderState extends State<KatbookEpubReader> {
     return ScrollablePositionedList.builder(
       itemScrollController: _itemScrollController,
       itemPositionsListener: _itemPositionsListener,
+      initialScrollIndex: widget.initialPosition?.paragraphIndex ?? 0,
       itemCount: paragraphs.length,
       physics: widget.scrollPhysics ?? const ClampingScrollPhysics(),
       // Larger cache for smoother scrolling - pre-render more items
