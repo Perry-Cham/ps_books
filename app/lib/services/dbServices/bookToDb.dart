@@ -11,6 +11,36 @@ class BookToDb {
     return _db.select(_db.books).watch(); // Auto-updates when data changes
   }
 
+  //Get all books as a one-shot list
+  Future<List<Book>> getAllBooks() {
+    return _db.select(_db.books).get();
+  }
+
+  //Get books by name (for import matching)
+  Future<List<Book>> getBooksByName(String name) {
+    return (_db.select(_db.books)..where((t) => t.name.equals(name))).get();
+  }
+
+  //Get all collections as a one-shot list
+  Future<List<Collection>> getAllCollections() {
+    return _db.select(_db.collections).get();
+  }
+
+  //Get all saved books as a one-shot list
+  Future<List<SavedBook>> getAllSavedBooks() {
+    return _db.select(_db.savedBooks).get();
+  }
+
+  //Find a saved book by title and author (for import matching)
+  Future<SavedBook?> getSavedBookByTitleAndAuthor(String title, String author) async {
+    final results = await (_db.select(_db.savedBooks)
+      ..where((t) => t.title.equals(title))).get();
+    return results.cast<SavedBook?>().firstWhere(
+      (b) => b!.author == author,
+      orElse: () => null,
+    );
+  }
+
   //Get single Book
   Future<Book> getBookById(int id) {
     return (_db.select(_db.books)..where((t) => t.id.equals(id))).getSingle();
@@ -61,11 +91,15 @@ class BookToDb {
   }
 
   //Insert Wishlist Book or Saved Book
-  Future<int> addWishBook(String title, String author) async {
+  Future<int> addWishBook(String title, String author, {int? collection}) async {
     return _db
         .into(_db.savedBooks)
         .insert(
-          SavedBooksCompanion(title: Value(title), author: Value(author)),
+          SavedBooksCompanion(
+            title: Value(title),
+            author: Value(author),
+            collection: Value(collection),
+          ),
         );
   }
 

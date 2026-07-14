@@ -5,7 +5,6 @@ import 'package:ps_books/routes/studyRouteComp/timetable.dart';
 
 class TimetableToDb {
   final _db = DBProvider().db;
-  List<Day>? Timetable;
 
   AppDatabase getDb() => _db;
 
@@ -81,6 +80,11 @@ class TimetableToDb {
       await _db.delete(_db.timetableDays).go();
       await _db.delete(_db.timetableSessions).go();
     });
+  }
+
+  //Get the first timetable record (version + lastModified)
+  Future<Timetable?> getTimetableRecord() {
+    return (_db.select(_db.timetables)..limit(1)).getSingleOrNull();
   }
 
   Future<void> updateVersion() async {

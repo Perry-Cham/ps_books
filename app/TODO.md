@@ -13,6 +13,9 @@
 ### Features To Implement
 - Implement targets syncing with the p's books backend
 
+### Completed
+- Data export/import system: `.pbf` backup archives with selective export for timetable, targets, notes, and full app data; UUID-based conflict resolution on reimport
+
 ### Experiments 
 - Make the reader Widget support dual reading on desktop
 - Add a function to call AI from the reader, or perhaps wikipedia maybe both, why not.
