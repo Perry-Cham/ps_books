@@ -19,7 +19,7 @@ Future<void> syncTargetsIfSignedIn() async {
 class TargetSyncingService {
   final String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8000');
   final Dio _dio = Dio();
-  final TargetService _dbService = TargetService();
+
 
   TargetSyncingService();
 
@@ -27,8 +27,9 @@ class TargetSyncingService {
     try {
       await _pullTargets();
       await _pushTargets();
-    } catch (e) {
+    } catch (e,h) {
       print('Target sync failed: $e');
+      print(h);
     }
   }
 

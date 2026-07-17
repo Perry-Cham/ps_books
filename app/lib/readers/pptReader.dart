@@ -137,19 +137,27 @@ class _PptReaderState extends State<PptReader> {
 
   @override
   void dispose() {
+    _controller.releaseFocus();
+    _controller.dispose();
     _server?.close(force: true);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _serverReady
-        ? Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 1300),
-              child: WebViewWidget(controller: _controller),
-            ),
-          )
-        : const Center(child: CircularProgressIndicator());
+    return Listener(
+      onPointerDown: (_) => _controller.releaseFocus(),
+      child: _serverReady
+          ? Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 1300),
+                child: GestureDetector(
+                  onTap: () => _controller.requestFocus(),
+                  child: WebViewWidget(controller: _controller),
+                ),
+              ),
+            )
+          : const Center(child: CircularProgressIndicator()),
+    );
   }
 }
