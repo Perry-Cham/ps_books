@@ -18,7 +18,7 @@ ps_books/
 │       ├── reader_utils/         # Reader theming, destinations, immersive mode
 │       ├── readers/              # Reader engines for all supported formats
 │       ├── routes/               # UI pages (Library, Bookshelf, Download, Study, Settings, Login)
-│       ├── services/             # Business logic (download, auth, DB, study, audio, notifications)
+│       ├── services/             # Business logic (download, auth, DB, study, audio, notifications, data export/import)
 │       └── state/                # Riverpod state management
 └── packages/
     ├── comic_reader/             # CBR/CBZ comic reader widget
@@ -54,6 +54,7 @@ The app directory contains the main reader application while the packages direct
 - Multi-select for batch operations
 - Recently read / currently reading tracking
 - Search and add books via file picker (Google Drive or local)
+- **Data Export/Import** — Full app backup as `.pbf` archives (ZIP) or individual exports for books, timetable, targets, and notes, all with corresponding import functions
 
 ### Book Downloading
 - **LibGen scraper** — Search and download from Library Genesis mirrors with rate-limit-aware batching and automatic MOBI-to-EPUB conversion
@@ -148,6 +149,7 @@ The local SQLite database (via Drift) includes these tables:
 - **Timetables** / **TimetableDays** / **TimetableSessions** — weekly study schedule
 - **TargetSubjects** / **TargetTopics** — study target tracking with UUID-based sync
 - **SavedBooks** — wishlist/bookmark storage
+- **Notes** — id, uuid, title, content, lastModified, bookId, collection
 
 ## State Management
 
