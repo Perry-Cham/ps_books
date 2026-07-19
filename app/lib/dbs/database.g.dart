@@ -258,6 +258,366 @@ class CollectionsCompanion extends UpdateCompanion<Collection> {
   }
 }
 
+class $SeriesTable extends Series with TableInfo<$SeriesTable, Sery> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SeriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _coverMeta = const VerificationMeta('cover');
+  @override
+  late final GeneratedColumn<String> cover = GeneratedColumn<String>(
+    'cover',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _collectionMeta = const VerificationMeta(
+    'collection',
+  );
+  @override
+  late final GeneratedColumn<int> collection = GeneratedColumn<int>(
+    'collection',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES collections (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    cover,
+    description,
+    collection,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'series';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Sery> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('cover')) {
+      context.handle(
+        _coverMeta,
+        cover.isAcceptableOrUnknown(data['cover']!, _coverMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('collection')) {
+      context.handle(
+        _collectionMeta,
+        collection.isAcceptableOrUnknown(data['collection']!, _collectionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Sery map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Sery(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      cover: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      collection: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}collection'],
+      ),
+    );
+  }
+
+  @override
+  $SeriesTable createAlias(String alias) {
+    return $SeriesTable(attachedDatabase, alias);
+  }
+}
+
+class Sery extends DataClass implements Insertable<Sery> {
+  final int id;
+  final String name;
+  final String? cover;
+  final String? description;
+  final int? collection;
+  const Sery({
+    required this.id,
+    required this.name,
+    this.cover,
+    this.description,
+    this.collection,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || cover != null) {
+      map['cover'] = Variable<String>(cover);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || collection != null) {
+      map['collection'] = Variable<int>(collection);
+    }
+    return map;
+  }
+
+  SeriesCompanion toCompanion(bool nullToAbsent) {
+    return SeriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      cover: cover == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cover),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      collection: collection == null && nullToAbsent
+          ? const Value.absent()
+          : Value(collection),
+    );
+  }
+
+  factory Sery.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Sery(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      cover: serializer.fromJson<String?>(json['cover']),
+      description: serializer.fromJson<String?>(json['description']),
+      collection: serializer.fromJson<int?>(json['collection']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'cover': serializer.toJson<String?>(cover),
+      'description': serializer.toJson<String?>(description),
+      'collection': serializer.toJson<int?>(collection),
+    };
+  }
+
+  Sery copyWith({
+    int? id,
+    String? name,
+    Value<String?> cover = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+    Value<int?> collection = const Value.absent(),
+  }) => Sery(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    cover: cover.present ? cover.value : this.cover,
+    description: description.present ? description.value : this.description,
+    collection: collection.present ? collection.value : this.collection,
+  );
+  Sery copyWithCompanion(SeriesCompanion data) {
+    return Sery(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      cover: data.cover.present ? data.cover.value : this.cover,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      collection: data.collection.present
+          ? data.collection.value
+          : this.collection,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Sery(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('cover: $cover, ')
+          ..write('description: $description, ')
+          ..write('collection: $collection')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, cover, description, collection);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Sery &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.cover == this.cover &&
+          other.description == this.description &&
+          other.collection == this.collection);
+}
+
+class SeriesCompanion extends UpdateCompanion<Sery> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String?> cover;
+  final Value<String?> description;
+  final Value<int?> collection;
+  const SeriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.cover = const Value.absent(),
+    this.description = const Value.absent(),
+    this.collection = const Value.absent(),
+  });
+  SeriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.cover = const Value.absent(),
+    this.description = const Value.absent(),
+    this.collection = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<Sery> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? cover,
+    Expression<String>? description,
+    Expression<int>? collection,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (cover != null) 'cover': cover,
+      if (description != null) 'description': description,
+      if (collection != null) 'collection': collection,
+    });
+  }
+
+  SeriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String?>? cover,
+    Value<String?>? description,
+    Value<int?>? collection,
+  }) {
+    return SeriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      cover: cover ?? this.cover,
+      description: description ?? this.description,
+      collection: collection ?? this.collection,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (cover.present) {
+      map['cover'] = Variable<String>(cover.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (collection.present) {
+      map['collection'] = Variable<int>(collection.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SeriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('cover: $cover, ')
+          ..write('description: $description, ')
+          ..write('collection: $collection')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -384,6 +744,33 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _seriesMeta = const VerificationMeta('series');
+  @override
+  late final GeneratedColumn<int> series = GeneratedColumn<int>(
+    'series',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES series (id)',
+    ),
+  );
+  static const VerificationMeta _isSeriesMeta = const VerificationMeta(
+    'isSeries',
+  );
+  @override
+  late final GeneratedColumn<bool> isSeries = GeneratedColumn<bool>(
+    'is_series',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_series" IN (0, 1))',
+    ),
+    defaultValue: Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -397,6 +784,8 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     collection,
     lastRead,
     coverPath,
+    series,
+    isSeries,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -479,6 +868,18 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         coverPath.isAcceptableOrUnknown(data['cover_path']!, _coverPathMeta),
       );
     }
+    if (data.containsKey('series')) {
+      context.handle(
+        _seriesMeta,
+        series.isAcceptableOrUnknown(data['series']!, _seriesMeta),
+      );
+    }
+    if (data.containsKey('is_series')) {
+      context.handle(
+        _isSeriesMeta,
+        isSeries.isAcceptableOrUnknown(data['is_series']!, _isSeriesMeta),
+      );
+    }
     return context;
   }
 
@@ -532,6 +933,14 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         DriftSqlType.string,
         data['${effectivePrefix}cover_path'],
       ),
+      series: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}series'],
+      ),
+      isSeries: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_series'],
+      )!,
     );
   }
 
@@ -553,6 +962,8 @@ class Book extends DataClass implements Insertable<Book> {
   final int? collection;
   final bool lastRead;
   final String? coverPath;
+  final int? series;
+  final bool isSeries;
   const Book({
     required this.id,
     required this.name,
@@ -565,6 +976,8 @@ class Book extends DataClass implements Insertable<Book> {
     this.collection,
     required this.lastRead,
     this.coverPath,
+    this.series,
+    required this.isSeries,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -590,6 +1003,10 @@ class Book extends DataClass implements Insertable<Book> {
     if (!nullToAbsent || coverPath != null) {
       map['cover_path'] = Variable<String>(coverPath);
     }
+    if (!nullToAbsent || series != null) {
+      map['series'] = Variable<int>(series);
+    }
+    map['is_series'] = Variable<bool>(isSeries);
     return map;
   }
 
@@ -612,6 +1029,10 @@ class Book extends DataClass implements Insertable<Book> {
       coverPath: coverPath == null && nullToAbsent
           ? const Value.absent()
           : Value(coverPath),
+      series: series == null && nullToAbsent
+          ? const Value.absent()
+          : Value(series),
+      isSeries: Value(isSeries),
     );
   }
 
@@ -632,6 +1053,8 @@ class Book extends DataClass implements Insertable<Book> {
       collection: serializer.fromJson<int?>(json['collection']),
       lastRead: serializer.fromJson<bool>(json['lastRead']),
       coverPath: serializer.fromJson<String?>(json['coverPath']),
+      series: serializer.fromJson<int?>(json['series']),
+      isSeries: serializer.fromJson<bool>(json['isSeries']),
     );
   }
   @override
@@ -649,6 +1072,8 @@ class Book extends DataClass implements Insertable<Book> {
       'collection': serializer.toJson<int?>(collection),
       'lastRead': serializer.toJson<bool>(lastRead),
       'coverPath': serializer.toJson<String?>(coverPath),
+      'series': serializer.toJson<int?>(series),
+      'isSeries': serializer.toJson<bool>(isSeries),
     };
   }
 
@@ -664,6 +1089,8 @@ class Book extends DataClass implements Insertable<Book> {
     Value<int?> collection = const Value.absent(),
     bool? lastRead,
     Value<String?> coverPath = const Value.absent(),
+    Value<int?> series = const Value.absent(),
+    bool? isSeries,
   }) => Book(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -676,6 +1103,8 @@ class Book extends DataClass implements Insertable<Book> {
     collection: collection.present ? collection.value : this.collection,
     lastRead: lastRead ?? this.lastRead,
     coverPath: coverPath.present ? coverPath.value : this.coverPath,
+    series: series.present ? series.value : this.series,
+    isSeries: isSeries ?? this.isSeries,
   );
   Book copyWithCompanion(BooksCompanion data) {
     return Book(
@@ -692,6 +1121,8 @@ class Book extends DataClass implements Insertable<Book> {
           : this.collection,
       lastRead: data.lastRead.present ? data.lastRead.value : this.lastRead,
       coverPath: data.coverPath.present ? data.coverPath.value : this.coverPath,
+      series: data.series.present ? data.series.value : this.series,
+      isSeries: data.isSeries.present ? data.isSeries.value : this.isSeries,
     );
   }
 
@@ -708,7 +1139,9 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('progress: $progress, ')
           ..write('collection: $collection, ')
           ..write('lastRead: $lastRead, ')
-          ..write('coverPath: $coverPath')
+          ..write('coverPath: $coverPath, ')
+          ..write('series: $series, ')
+          ..write('isSeries: $isSeries')
           ..write(')'))
         .toString();
   }
@@ -726,6 +1159,8 @@ class Book extends DataClass implements Insertable<Book> {
     collection,
     lastRead,
     coverPath,
+    series,
+    isSeries,
   );
   @override
   bool operator ==(Object other) =>
@@ -741,7 +1176,9 @@ class Book extends DataClass implements Insertable<Book> {
           other.progress == this.progress &&
           other.collection == this.collection &&
           other.lastRead == this.lastRead &&
-          other.coverPath == this.coverPath);
+          other.coverPath == this.coverPath &&
+          other.series == this.series &&
+          other.isSeries == this.isSeries);
 }
 
 class BooksCompanion extends UpdateCompanion<Book> {
@@ -756,6 +1193,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<int?> collection;
   final Value<bool> lastRead;
   final Value<String?> coverPath;
+  final Value<int?> series;
+  final Value<bool> isSeries;
   const BooksCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -768,6 +1207,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.collection = const Value.absent(),
     this.lastRead = const Value.absent(),
     this.coverPath = const Value.absent(),
+    this.series = const Value.absent(),
+    this.isSeries = const Value.absent(),
   });
   BooksCompanion.insert({
     this.id = const Value.absent(),
@@ -781,6 +1222,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.collection = const Value.absent(),
     this.lastRead = const Value.absent(),
     this.coverPath = const Value.absent(),
+    this.series = const Value.absent(),
+    this.isSeries = const Value.absent(),
   }) : name = Value(name),
        path = Value(path),
        extension = Value(extension);
@@ -796,6 +1239,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<int>? collection,
     Expression<bool>? lastRead,
     Expression<String>? coverPath,
+    Expression<int>? series,
+    Expression<bool>? isSeries,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -809,6 +1254,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (collection != null) 'collection': collection,
       if (lastRead != null) 'last_read': lastRead,
       if (coverPath != null) 'cover_path': coverPath,
+      if (series != null) 'series': series,
+      if (isSeries != null) 'is_series': isSeries,
     });
   }
 
@@ -824,6 +1271,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Value<int?>? collection,
     Value<bool>? lastRead,
     Value<String?>? coverPath,
+    Value<int?>? series,
+    Value<bool>? isSeries,
   }) {
     return BooksCompanion(
       id: id ?? this.id,
@@ -837,6 +1286,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
       collection: collection ?? this.collection,
       lastRead: lastRead ?? this.lastRead,
       coverPath: coverPath ?? this.coverPath,
+      series: series ?? this.series,
+      isSeries: isSeries ?? this.isSeries,
     );
   }
 
@@ -876,6 +1327,12 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (coverPath.present) {
       map['cover_path'] = Variable<String>(coverPath.value);
     }
+    if (series.present) {
+      map['series'] = Variable<int>(series.value);
+    }
+    if (isSeries.present) {
+      map['is_series'] = Variable<bool>(isSeries.value);
+    }
     return map;
   }
 
@@ -892,7 +1349,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('progress: $progress, ')
           ..write('collection: $collection, ')
           ..write('lastRead: $lastRead, ')
-          ..write('coverPath: $coverPath')
+          ..write('coverPath: $coverPath, ')
+          ..write('series: $series, ')
+          ..write('isSeries: $isSeries')
           ..write(')'))
         .toString();
   }
@@ -2848,7 +3307,8 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: Constant(""),
   );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
@@ -2937,8 +3397,6 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         _uuidMeta,
         uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
       );
-    } else if (isInserting) {
-      context.missing(_uuidMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -3186,14 +3644,13 @@ class NotesCompanion extends UpdateCompanion<Note> {
   });
   NotesCompanion.insert({
     this.id = const Value.absent(),
-    required String uuid,
+    this.uuid = const Value.absent(),
     required String title,
     required String content,
     required DateTime lastModified,
     this.bookId = const Value.absent(),
     this.collection = const Value.absent(),
-  }) : uuid = Value(uuid),
-       title = Value(title),
+  }) : title = Value(title),
        content = Value(content),
        lastModified = Value(lastModified);
   static Insertable<Note> custom({
@@ -3282,6 +3739,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CollectionsTable collections = $CollectionsTable(this);
+  late final $SeriesTable series = $SeriesTable(this);
   late final $BooksTable books = $BooksTable(this);
   late final $TimetablesTable timetables = $TimetablesTable(this);
   late final $TimetableDaysTable timetableDays = $TimetableDaysTable(this);
@@ -3297,6 +3755,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     collections,
+    series,
     books,
     timetables,
     timetableDays,
@@ -3324,6 +3783,25 @@ typedef $$CollectionsTableUpdateCompanionBuilder =
 final class $$CollectionsTableReferences
     extends BaseReferences<_$AppDatabase, $CollectionsTable, Collection> {
   $$CollectionsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$SeriesTable, List<Sery>> _seriesRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.series,
+    aliasName: 'collections__id__series__collection',
+  );
+
+  $$SeriesTableProcessedTableManager get seriesRefs {
+    final manager = $$SeriesTableTableManager(
+      $_db,
+      $_db.series,
+    ).filter((f) => f.collection.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_seriesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 
   static MultiTypedResultKey<$BooksTable, List<Book>> _booksRefsTable(
     _$AppDatabase db,
@@ -3405,6 +3883,31 @@ class $$CollectionsTableFilterComposer
     column: $table.isSavedCollection,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> seriesRefs(
+    Expression<bool> Function($$SeriesTableFilterComposer f) f,
+  ) {
+    final $$SeriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.series,
+      getReferencedColumn: (t) => t.collection,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SeriesTableFilterComposer(
+            $db: $db,
+            $table: $db.series,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 
   Expression<bool> booksRefs(
     Expression<bool> Function($$BooksTableFilterComposer f) f,
@@ -3527,6 +4030,31 @@ class $$CollectionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  Expression<T> seriesRefs<T extends Object>(
+    Expression<T> Function($$SeriesTableAnnotationComposer a) f,
+  ) {
+    final $$SeriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.series,
+      getReferencedColumn: (t) => t.collection,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SeriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.series,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> booksRefs<T extends Object>(
     Expression<T> Function($$BooksTableAnnotationComposer a) f,
   ) {
@@ -3617,6 +4145,7 @@ class $$CollectionsTableTableManager
           (Collection, $$CollectionsTableReferences),
           Collection,
           PrefetchHooks Function({
+            bool seriesRefs,
             bool booksRefs,
             bool savedBooksRefs,
             bool notesRefs,
@@ -3662,10 +4191,16 @@ class $$CollectionsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({booksRefs = false, savedBooksRefs = false, notesRefs = false}) {
+              ({
+                seriesRefs = false,
+                booksRefs = false,
+                savedBooksRefs = false,
+                notesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
+                    if (seriesRefs) db.series,
                     if (booksRefs) db.books,
                     if (savedBooksRefs) db.savedBooks,
                     if (notesRefs) db.notes,
@@ -3673,6 +4208,27 @@ class $$CollectionsTableTableManager
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
+                      if (seriesRefs)
+                        await $_getPrefetchedData<
+                          Collection,
+                          $CollectionsTable,
+                          Sery
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CollectionsTableReferences
+                              ._seriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CollectionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).seriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.collection == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (booksRefs)
                         await $_getPrefetchedData<
                           Collection,
@@ -3757,10 +4313,404 @@ typedef $$CollectionsTableProcessedTableManager =
       (Collection, $$CollectionsTableReferences),
       Collection,
       PrefetchHooks Function({
+        bool seriesRefs,
         bool booksRefs,
         bool savedBooksRefs,
         bool notesRefs,
       })
+    >;
+typedef $$SeriesTableCreateCompanionBuilder =
+    SeriesCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<String?> cover,
+      Value<String?> description,
+      Value<int?> collection,
+    });
+typedef $$SeriesTableUpdateCompanionBuilder =
+    SeriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String?> cover,
+      Value<String?> description,
+      Value<int?> collection,
+    });
+
+final class $$SeriesTableReferences
+    extends BaseReferences<_$AppDatabase, $SeriesTable, Sery> {
+  $$SeriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CollectionsTable _collectionTable(_$AppDatabase db) =>
+      db.collections.createAlias('series__collection__collections__id');
+
+  $$CollectionsTableProcessedTableManager? get collection {
+    final $_column = $_itemColumn<int>('collection');
+    if ($_column == null) return null;
+    final manager = $$CollectionsTableTableManager(
+      $_db,
+      $_db.collections,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectionTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$BooksTable, List<Book>> _booksRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.books,
+    aliasName: 'series__id__books__series',
+  );
+
+  $$BooksTableProcessedTableManager get booksRefs {
+    final manager = $$BooksTableTableManager(
+      $_db,
+      $_db.books,
+    ).filter((f) => f.series.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_booksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SeriesTableFilterComposer
+    extends Composer<_$AppDatabase, $SeriesTable> {
+  $$SeriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cover => $composableBuilder(
+    column: $table.cover,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CollectionsTableFilterComposer get collection {
+    final $$CollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collection,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> booksRefs(
+    Expression<bool> Function($$BooksTableFilterComposer f) f,
+  ) {
+    final $$BooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.series,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableFilterComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SeriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SeriesTable> {
+  $$SeriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cover => $composableBuilder(
+    column: $table.cover,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CollectionsTableOrderingComposer get collection {
+    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collection,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SeriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SeriesTable> {
+  $$SeriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get cover =>
+      $composableBuilder(column: $table.cover, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  $$CollectionsTableAnnotationComposer get collection {
+    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collection,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> booksRefs<T extends Object>(
+    Expression<T> Function($$BooksTableAnnotationComposer a) f,
+  ) {
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.series,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SeriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SeriesTable,
+          Sery,
+          $$SeriesTableFilterComposer,
+          $$SeriesTableOrderingComposer,
+          $$SeriesTableAnnotationComposer,
+          $$SeriesTableCreateCompanionBuilder,
+          $$SeriesTableUpdateCompanionBuilder,
+          (Sery, $$SeriesTableReferences),
+          Sery,
+          PrefetchHooks Function({bool collection, bool booksRefs})
+        > {
+  $$SeriesTableTableManager(_$AppDatabase db, $SeriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SeriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SeriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SeriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> cover = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<int?> collection = const Value.absent(),
+              }) => SeriesCompanion(
+                id: id,
+                name: name,
+                cover: cover,
+                description: description,
+                collection: collection,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<String?> cover = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<int?> collection = const Value.absent(),
+              }) => SeriesCompanion.insert(
+                id: id,
+                name: name,
+                cover: cover,
+                description: description,
+                collection: collection,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$SeriesTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({collection = false, booksRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (booksRefs) db.books],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (collection) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.collection,
+                                referencedTable: $$SeriesTableReferences
+                                    ._collectionTable(db),
+                                referencedColumn: $$SeriesTableReferences
+                                    ._collectionTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (booksRefs)
+                    await $_getPrefetchedData<Sery, $SeriesTable, Book>(
+                      currentTable: table,
+                      referencedTable: $$SeriesTableReferences._booksRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$SeriesTableReferences(db, table, p0).booksRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.series == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SeriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SeriesTable,
+      Sery,
+      $$SeriesTableFilterComposer,
+      $$SeriesTableOrderingComposer,
+      $$SeriesTableAnnotationComposer,
+      $$SeriesTableCreateCompanionBuilder,
+      $$SeriesTableUpdateCompanionBuilder,
+      (Sery, $$SeriesTableReferences),
+      Sery,
+      PrefetchHooks Function({bool collection, bool booksRefs})
     >;
 typedef $$BooksTableCreateCompanionBuilder =
     BooksCompanion Function({
@@ -3775,6 +4725,8 @@ typedef $$BooksTableCreateCompanionBuilder =
       Value<int?> collection,
       Value<bool> lastRead,
       Value<String?> coverPath,
+      Value<int?> series,
+      Value<bool> isSeries,
     });
 typedef $$BooksTableUpdateCompanionBuilder =
     BooksCompanion Function({
@@ -3789,6 +4741,8 @@ typedef $$BooksTableUpdateCompanionBuilder =
       Value<int?> collection,
       Value<bool> lastRead,
       Value<String?> coverPath,
+      Value<int?> series,
+      Value<bool> isSeries,
     });
 
 final class $$BooksTableReferences
@@ -3806,6 +4760,23 @@ final class $$BooksTableReferences
       $_db.collections,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_collectionTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $SeriesTable _seriesTable(_$AppDatabase db) =>
+      db.series.createAlias('books__series__series__id');
+
+  $$SeriesTableProcessedTableManager? get series {
+    final $_column = $_itemColumn<int>('series');
+    if ($_column == null) return null;
+    final manager = $$SeriesTableTableManager(
+      $_db,
+      $_db.series,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_seriesTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -3890,6 +4861,11 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isSeries => $composableBuilder(
+    column: $table.isSeries,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$CollectionsTableFilterComposer get collection {
     final $$CollectionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -3904,6 +4880,29 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
           }) => $$CollectionsTableFilterComposer(
             $db: $db,
             $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SeriesTableFilterComposer get series {
+    final $$SeriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.series,
+      referencedTable: $db.series,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SeriesTableFilterComposer(
+            $db: $db,
+            $table: $db.series,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3998,6 +4997,11 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isSeries => $composableBuilder(
+    column: $table.isSeries,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CollectionsTableOrderingComposer get collection {
     final $$CollectionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4012,6 +5016,29 @@ class $$BooksTableOrderingComposer
           }) => $$CollectionsTableOrderingComposer(
             $db: $db,
             $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SeriesTableOrderingComposer get series {
+    final $$SeriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.series,
+      referencedTable: $db.series,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SeriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.series,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4061,6 +5088,9 @@ class $$BooksTableAnnotationComposer
   GeneratedColumn<String> get coverPath =>
       $composableBuilder(column: $table.coverPath, builder: (column) => column);
 
+  GeneratedColumn<bool> get isSeries =>
+      $composableBuilder(column: $table.isSeries, builder: (column) => column);
+
   $$CollectionsTableAnnotationComposer get collection {
     final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -4075,6 +5105,29 @@ class $$BooksTableAnnotationComposer
           }) => $$CollectionsTableAnnotationComposer(
             $db: $db,
             $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SeriesTableAnnotationComposer get series {
+    final $$SeriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.series,
+      referencedTable: $db.series,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SeriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.series,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4123,7 +5176,7 @@ class $$BooksTableTableManager
           $$BooksTableUpdateCompanionBuilder,
           (Book, $$BooksTableReferences),
           Book,
-          PrefetchHooks Function({bool collection, bool notesRefs})
+          PrefetchHooks Function({bool collection, bool series, bool notesRefs})
         > {
   $$BooksTableTableManager(_$AppDatabase db, $BooksTable table)
     : super(
@@ -4149,6 +5202,8 @@ class $$BooksTableTableManager
                 Value<int?> collection = const Value.absent(),
                 Value<bool> lastRead = const Value.absent(),
                 Value<String?> coverPath = const Value.absent(),
+                Value<int?> series = const Value.absent(),
+                Value<bool> isSeries = const Value.absent(),
               }) => BooksCompanion(
                 id: id,
                 name: name,
@@ -4161,6 +5216,8 @@ class $$BooksTableTableManager
                 collection: collection,
                 lastRead: lastRead,
                 coverPath: coverPath,
+                series: series,
+                isSeries: isSeries,
               ),
           createCompanionCallback:
               ({
@@ -4175,6 +5232,8 @@ class $$BooksTableTableManager
                 Value<int?> collection = const Value.absent(),
                 Value<bool> lastRead = const Value.absent(),
                 Value<String?> coverPath = const Value.absent(),
+                Value<int?> series = const Value.absent(),
+                Value<bool> isSeries = const Value.absent(),
               }) => BooksCompanion.insert(
                 id: id,
                 name: name,
@@ -4187,6 +5246,8 @@ class $$BooksTableTableManager
                 collection: collection,
                 lastRead: lastRead,
                 coverPath: coverPath,
+                series: series,
+                isSeries: isSeries,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4194,60 +5255,75 @@ class $$BooksTableTableManager
                     (e.readTable(table), $$BooksTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({collection = false, notesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (notesRefs) db.notes],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (collection) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.collection,
-                                referencedTable: $$BooksTableReferences
-                                    ._collectionTable(db),
-                                referencedColumn: $$BooksTableReferences
-                                    ._collectionTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({collection = false, series = false, notesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (notesRefs) db.notes],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (collection) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.collection,
+                                    referencedTable: $$BooksTableReferences
+                                        ._collectionTable(db),
+                                    referencedColumn: $$BooksTableReferences
+                                        ._collectionTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (series) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.series,
+                                    referencedTable: $$BooksTableReferences
+                                        ._seriesTable(db),
+                                    referencedColumn: $$BooksTableReferences
+                                        ._seriesTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (notesRefs)
+                        await $_getPrefetchedData<Book, $BooksTable, Note>(
+                          currentTable: table,
+                          referencedTable: $$BooksTableReferences
+                              ._notesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BooksTableReferences(db, table, p0).notesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (notesRefs)
-                    await $_getPrefetchedData<Book, $BooksTable, Note>(
-                      currentTable: table,
-                      referencedTable: $$BooksTableReferences._notesRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$BooksTableReferences(db, table, p0).notesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.bookId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4264,7 +5340,7 @@ typedef $$BooksTableProcessedTableManager =
       $$BooksTableUpdateCompanionBuilder,
       (Book, $$BooksTableReferences),
       Book,
-      PrefetchHooks Function({bool collection, bool notesRefs})
+      PrefetchHooks Function({bool collection, bool series, bool notesRefs})
     >;
 typedef $$TimetablesTableCreateCompanionBuilder =
     TimetablesCompanion Function({
@@ -6165,7 +7241,7 @@ typedef $$SavedBooksTableProcessedTableManager =
 typedef $$NotesTableCreateCompanionBuilder =
     NotesCompanion Function({
       Value<int> id,
-      required String uuid,
+      Value<String> uuid,
       required String title,
       required String content,
       required DateTime lastModified,
@@ -6503,7 +7579,7 @@ class $$NotesTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required String uuid,
+                Value<String> uuid = const Value.absent(),
                 required String title,
                 required String content,
                 required DateTime lastModified,
@@ -6602,6 +7678,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$CollectionsTableTableManager get collections =>
       $$CollectionsTableTableManager(_db, _db.collections);
+  $$SeriesTableTableManager get series =>
+      $$SeriesTableTableManager(_db, _db.series);
   $$BooksTableTableManager get books =>
       $$BooksTableTableManager(_db, _db.books);
   $$TimetablesTableTableManager get timetables =>

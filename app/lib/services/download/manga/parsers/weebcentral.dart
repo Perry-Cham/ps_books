@@ -51,7 +51,7 @@ class WeebCentralParser extends BaseParser {
   }
 
   @override
-  Future<List<ChapterInfo>> getChapters(MangaSearchResult manga) async {
+  Future<List<ChapterInfo>> getChapters({required String detailUrl}) async {
     // The series detail page only shows ~9 chapters. The "Show All
     // Chapters" button hits a separate htmx endpoint that returns
     // every chapter in one fragment. We call that endpoint directly.
@@ -59,9 +59,9 @@ class WeebCentralParser extends BaseParser {
     // manga.detailUrl is like:
     //   https://weebcentral.com/series/01J76XY7E9FNDZ1DBBM6PBJPFK/One-Piece
     // We strip the slug and append /full-chapter-list.
-    final base = manga.detailUrl.replaceAll(RegExp(r'/[^/]+$'), '');
+    final base = detailUrl.replaceAll(RegExp(r'/[^/]+$'), '');
     final url = '$base/full-chapter-list';
-    final html = await _httpGet(url, referer: manga.detailUrl, extraHeaders: {
+    final html = await _httpGet(url, referer: detailUrl, extraHeaders: {
       'HX-Request': 'true',
     });
     return parseChapterList(html);

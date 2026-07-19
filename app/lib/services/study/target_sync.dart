@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/dbs/database.dart';
-import 'package:ps_books/services/dbServices/target.dart';
 import 'package:ps_books/state/connectivity_provider.dart';
 import 'package:ps_books/models/target.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +18,7 @@ Future<void> syncTargetsIfSignedIn() async {
 class TargetSyncingService {
   final String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8000');
   final Dio _dio = Dio();
-  final TargetService _dbService = TargetService();
+
 
   TargetSyncingService();
 
@@ -27,8 +26,9 @@ class TargetSyncingService {
     try {
       await _pullTargets();
       await _pushTargets();
-    } catch (e) {
+    } catch (e,h) {
       print('Target sync failed: $e');
+      print(h);
     }
   }
 

@@ -6,32 +6,30 @@ class BookToDb {
   final _db = DBProvider().db;
 
   /* === BOOKS === */
-  // Or as a reactive Stream (recommended for Flutter UI)
   Stream<List<Book>> watchAllBooks() {
-    return _db.select(_db.books).watch(); // Auto-updates when data changes
+    return _db.select(_db.books).watch();
   }
 
-  //Get all books as a one-shot list
   Future<List<Book>> getAllBooks() {
     return _db.select(_db.books).get();
   }
 
-  //Get books by name (for import matching)
   Future<List<Book>> getBooksByName(String name) {
     return (_db.select(_db.books)..where((t) => t.name.equals(name))).get();
   }
 
-  //Get all collections as a one-shot list
+  Future<List<Book>> getBooksBySeries(int seriesId) {
+    return (_db.select(_db.books)..where((t) => t.series.equals(seriesId))).get();
+  }
+
   Future<List<Collection>> getAllCollections() {
     return _db.select(_db.collections).get();
   }
 
-  //Get all saved books as a one-shot list
   Future<List<SavedBook>> getAllSavedBooks() {
     return _db.select(_db.savedBooks).get();
   }
 
-  //Find a saved book by title and author (for import matching)
   Future<SavedBook?> getSavedBookByTitleAndAuthor(String title, String author) async {
     final results = await (_db.select(_db.savedBooks)
       ..where((t) => t.title.equals(title))).get();
@@ -41,19 +39,16 @@ class BookToDb {
     );
   }
 
-  //Get single Book
   Future<Book> getBookById(int id) {
     return (_db.select(_db.books)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  //get a book with currently reading set to true
   Stream<Book?> getCurrentlyReading() {
     return (_db.select(_db.books)..where((t) => t.lastRead.equals(true)))
         .watch()
         .map((list) => list.isNotEmpty ? list.first : null);
   }
 
-  //set a books currently reading attribute
   Future<void> setCurrentlyReading(int id) async {
     final book = await getBookById(id);
     if (book.lastRead) return;
@@ -67,7 +62,6 @@ class BookToDb {
     });
   }
 
-  //Insert Single Book
   Future<int> addBook({
     required String name,
     String? author,
@@ -75,6 +69,8 @@ class BookToDb {
     required String extension,
     int? page,
     String? coverPath,
+    int? series,
+    bool isSeries = false,
   }) {
     return _db
         .into(_db.books)
@@ -86,11 +82,12 @@ class BookToDb {
             extension: Value(extension),
             page: Value(page),
             coverPath: Value(coverPath),
+            series: Value(series),
+            isSeries: Value(isSeries),
           ),
         );
   }
 
-  //Insert Wishlist Book or Saved Book
   Future<int> addWishBook(String title, String author, {int? collection}) async {
     return _db
         .into(_db.savedBooks)
@@ -103,113 +100,151 @@ class BookToDb {
         );
   }
 
-  //deleteBook
   Future deleteBook(int id) {
     return (_db.delete(_db.books)..where((b) => b.id.equals(id))).go();
   }
 
-  //deleteSavedBook
   Future deleteSavedBook(int id) {
     return (_db.delete(_db.savedBooks)..where((b) => b.id.equals(id))).go();
   }
 
-  // Watch all saved books
   Stream<List<SavedBook>> watchAllSavedBooks() {
     return _db.select(_db.savedBooks).watch();
   }
 
-  //Update Page
   Future updatePage(int id, int page) {
-    return (_db.update(
-      _db.books,
-    )..where((b) => b.id.equals(id))).write(BooksCompanion(page: Value(page)));
+    return (_db.update(_db.books)..where((b) => b.id.equals(id)))
+        .write(BooksCompanion(page: Value(page)));
   }
 
-  //Update Epub Position
   Future updatePositionAndProgress(int id, String position) {
-    return (_db.update(_db.books)..where((b) => b.id.equals(id))).write(
-      BooksCompanion(cfi: Value(position)),
+    return (_db.update(_db.books)..where((b) => b.id.equals(id)))
+        .write(BooksCompanion(cfi: Value(position)));
+  }
+
+  Future updateProgress(int id, double progress) {
+    return (_db.update(_db.books)..where((b) => b.id.equals(id)))
+        .write(BooksCompanion(progress: Value(progress)));
+  }
+
+  /* === SERIES === */
+  Stream<List<Sery>> watchAllSeries() {
+    return _db.select(_db.series).watch();
+  }
+
+  Future<List<Sery>> getAllSeries() {
+    return _db.select(_db.series).get();
+  }
+
+  Future<Sery?> getSeriesByName(String name) async {
+    final results = await (_db.select(_db.series)
+      ..where((t) => t.name.equals(name))).get();
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<Sery?> getSeriesById(int id) async {
+    final results = await (_db.select(_db.series)
+      ..where((t) => t.id.equals(id))).get();
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<int> addSeries(String name, {String? cover, String? description, int? collection}) {
+    return _db
+        .into(_db.series)
+        .insert(
+          SeriesCompanion(
+            name: Value(name),
+            cover: Value(cover),
+            description: Value(description),
+            collection: Value(collection),
+          ),
+        );
+  }
+
+  Future updateSeries(int id, {String? name, String? cover, String? description}) {
+    return (_db.update(_db.series)..where((t) => t.id.equals(id))).write(
+      SeriesCompanion(
+        name: name != null ? Value(name) : const Value.absent(),
+        cover: cover != null ? Value(cover) : const Value.absent(),
+        description: description != null ? Value(description) : const Value.absent(),
+      ),
     );
   }
 
-  //Update Epub Progress
-  Future updateProgress(int id, double progress) {
-    return (_db.update(_db.books)..where((b) => b.id.equals(id))).write(
-      BooksCompanion(progress: Value(progress)),
-    );
+  Future updateSeriesCover(int id, String? cover) {
+    return (_db.update(_db.series)..where((t) => t.id.equals(id)))
+        .write(SeriesCompanion(cover: Value(cover)));
+  }
+
+  Future updateSeriesDescription(int id, String? description) {
+    return (_db.update(_db.series)..where((t) => t.id.equals(id)))
+        .write(SeriesCompanion(description: Value(description)));
+  }
+
+  Future deleteSeries(int id) async {
+    await (_db.update(_db.books)..where((b) => b.series.equals(id)))
+        .write(BooksCompanion(series: const Value(null)));
+    await (_db.delete(_db.series)..where((t) => t.id.equals(id))).go();
   }
 
   /* === COLLECTIONS === */
-  // Update categories
   Future updateCategories(int id, int categories) {
-    return (_db.update(_db.books)..where((b) => b.id.equals(id))).write(
-      BooksCompanion(collection: Value(categories)),
-    );
+    return (_db.update(_db.books)..where((b) => b.id.equals(id)))
+        .write(BooksCompanion(collection: Value(categories)));
   }
 
-  // Set Collections for single book
   Future<int> setBookCollection(int bookId, int collectionId) async {
     return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(collection: Value(collectionId)));
   }
 
-  //Set Collection for Multiple Books
   Future<int> batchUpdateCollection(Set<int> bookIds, int collectionId) async {
     return await (_db.update(_db.books)..where((t) => t.id.isIn(bookIds)))
-    .write(BooksCompanion(collection: Value(collectionId)));
+        .write(BooksCompanion(collection: Value(collectionId)));
   }
 
-  // Remove Collection on a single book
   Future<int> removeCollection(int bookId) async {
     return await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(collection: Value(null)));
   }
 
-  // Set Collections for all saved books
   Future<int> setSavedBookCollection(int bookId, int collectionId) async {
     return await (_db.update(_db.savedBooks)..where((t) => t.id.equals(bookId)))
         .write(SavedBooksCompanion(collection: Value(collectionId)));
   }
 
-  // Get Collections Stream
   Stream<List<Collection>> getCategories() {
-    return (_db.select(
-      _db.collections,
-    )..where((t) => t.isSavedCollection.equals(false))).watch();
+    return (_db.select(_db.collections)
+      ..where((t) => t.isSavedCollection.equals(false))).watch();
   }
 
   Stream<List<Collection>> getSavedCategories() {
-    return (_db.select(
-      _db.collections,
-    )..where((t) => t.isSavedCollection.equals(true))).watch();
+    return (_db.select(_db.collections)
+      ..where((t) => t.isSavedCollection.equals(true))).watch();
   }
 
-  //Get Single Collection
   Future<Collection?> getCollection(String name) async {
-    return await (_db.select(
-      _db.collections,
-    )..where((t) => t.name.equals(name))).getSingleOrNull();
+    return await (_db.select(_db.collections)
+      ..where((t) => t.name.equals(name))).getSingleOrNull();
   }
 
-  //Add Single Collection
   Future<int> addCollection(String name, {bool isSavedCollection = false}) async {
-    if(isSavedCollection){
-      return await (_db
-          .into(_db.collections)
-          .insert(CollectionsCompanion(name: Value(name), isSavedCollection: Value(isSavedCollection))));
+    if (isSavedCollection) {
+      return await (_db.into(_db.collections).insert(
+        CollectionsCompanion(
+          name: Value(name),
+          isSavedCollection: Value(isSavedCollection),
+        ),
+      ));
     }
-    return await (_db
-        .into(_db.collections)
-        .insert(CollectionsCompanion(name: Value(name))));
+    return await (_db.into(_db.collections).insert(
+      CollectionsCompanion(name: Value(name)),
+    ));
   }
 
-  // Delete a collection and clear the reference on any books that used it.
   Future<void> deleteCollection(int collectionId) async {
-    await (_db.update(_db.books)
-          ..where((b) => b.collection.equals(collectionId)))
+    await (_db.update(_db.books)..where((b) => b.collection.equals(collectionId)))
         .write(BooksCompanion(collection: const Value(null)));
-    await (_db.delete(
-      _db.collections,
-    )..where((c) => c.id.equals(collectionId))).go();
+    await (_db.delete(_db.collections)..where((c) => c.id.equals(collectionId))).go();
   }
 }
