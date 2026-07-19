@@ -57,40 +57,40 @@ void main() async {
   );
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
-
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settingsAsync = ref.watch(settingsProvider);
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
 
-    //routes
-    final GoRouter router = GoRouter(
-      initialLocation: '/',
-      routes: [
-        ShellRoute(
-          builder: (context, state, child) {
-            return Layout(widget: child);
-          },
-          routes: [
-            GoRoute(path: '/', builder: (context, state) => HomePage()),
-            GoRoute(path: '/bookshelf', builder: (context, state) => Bookshelf()),
-            GoRoute(path: '/goals', builder: (context, state) => StudyPage()),
-            GoRoute(
-              path: '/download',
-              builder: (context, state) {
-                final query = state.uri.queryParameters['search'];
-                return DownloadSearch(query: query);
-              },
-            ),
-            GoRoute(path: '/settings', builder: (context, state) => settings_route.Settings()),
-            GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
-          ],
-        ),
-      ],
-    );
+class _MyAppState extends ConsumerState<MyApp> {
+  final GoRouter router = GoRouter(
+    initialLocation: '/',
+    routes: [
+      ShellRoute(
+        builder: (context, state, child) => Layout(widget: child),
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => HomePage()),
+          GoRoute(path: '/bookshelf', builder: (context, state) => Bookshelf()),
+          GoRoute(path: '/goals', builder: (context, state) => StudyPage()),
+          GoRoute(
+            path: '/download',
+            builder: (context, state) {
+              final query = state.uri.queryParameters['search'];
+              return DownloadSearch(query: query);
+            },
+          ),
+          GoRoute(path: '/settings', builder: (context, state) => settings_route.Settings()),
+          GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+        ],
+      ),
+    ],
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final settingsAsync = ref.watch(settingsProvider);
 
     return MaterialApp.router(
       title: "P's Books",

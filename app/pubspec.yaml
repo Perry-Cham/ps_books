@@ -107,6 +107,7 @@ dependencies:
   archive: any
   synchronized: any
   provider: any
+  rxdart: ^0.28.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

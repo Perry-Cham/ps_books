@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ps_books/models/book_data.dart';
-import '../services/download/downloader.dart';
+import 'package:ps_books/models/comic_book_model.dart';
+import '../services/download/downloader.dart' hide DownloadProvider;
 import '../state/download_state.dart';
+import 'downloadComp/comics/series_download_view.dart';
 
 class DownloadSearch extends ConsumerStatefulWidget {
   const DownloadSearch({super.key, this.query});
@@ -11,9 +12,7 @@ class DownloadSearch extends ConsumerStatefulWidget {
   final String? query;
 
   @override
-  ConsumerState<DownloadSearch> createState() {
-    return DownloadSearchState();
-  }
+  ConsumerState<DownloadSearch> createState() => DownloadSearchState();
 }
 
 class DownloadSearchState extends ConsumerState<DownloadSearch> {
@@ -37,16 +36,60 @@ class DownloadSearchState extends ConsumerState<DownloadSearch> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) {
-                  return const DownloadsDisplay();
-                },
+                builder: (context) => const DownloadsDisplay(),
               );
             },
             icon: const Icon(Icons.download_sharp),
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+            },
+          ),
         ],
       ),
+      endDrawer: const _SearchSettingsDrawer(),
       body: const Page(),
+    );
+  }
+}
+
+class _SearchSettingsDrawer extends ConsumerWidget {
+  const _SearchSettingsDrawer();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(DownloadStateProvider);
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.deepPurple,
+            ),
+            child: Text(
+              'Search Settings',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            title: const Text('Search Type'),
+            subtitle: Text(state.searchMode == SearchMode.series ? 'Series/OPDS' : 'Normal'),
+          ),
+          SwitchListTile(
+            title: const Text('Series/OPDS Mode'),
+            subtitle: const Text('Search for series, comics, and collections'),
+            value: state.searchMode == SearchMode.series,
+            onChanged: (val) {
+              ref.read(DownloadStateProvider.notifier).updateState(
+                searchMode: val ? SearchMode.series : SearchMode.normal,
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -92,12 +135,9 @@ class ProviderPills extends ConsumerWidget {
       children: [
         _buildPill(ref, 'Libgen', DownloadProvider.libgen, selectedProvider),
         const SizedBox(width: 10),
-        _buildPill(
-          ref,
-          'Standard Ebooks',
-          DownloadProvider.steb,
-          selectedProvider,
-        ),
+        _buildPill(ref, 'Standard Ebooks', DownloadProvider.steb, selectedProvider),
+        const SizedBox(width: 10),
+        _buildPill(ref, 'Manga', DownloadProvider.manga, selectedProvider),
       ],
     );
   }
@@ -119,8 +159,6 @@ class ProviderPills extends ConsumerWidget {
               .updateState(downloadProvider: provider);
         }
       },
-      /*     selectedColor: Colors.deepPurple,
-      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),*/
     );
   }
 }
@@ -185,7 +223,7 @@ class _DownloadSearchBarState extends ConsumerState<DownloadSearchBar> {
 }
 
 class BookGrid extends ConsumerWidget {
-  final List<DownloadBook> books;
+  final List<SeriesModel> books;
 
   const BookGrid({super.key, required this.books});
 
@@ -208,14 +246,12 @@ class BookGrid extends ConsumerWidget {
       itemBuilder: (context, index) {
         final book = books[index];
 
-        // 1. Generate the safe Open Library URL if an ISBN exists
         final String? coverUrl = (book.isbn != null && book.isbn!.isNotEmpty)
             ? 'https://covers.openlibrary.org/b/isbn/${book.isbn![0]}-L.jpg?default=false'
-            : book.image;
+            : book.coverUrl;
 
         return SizedBox.expand(
           child: Card(
-            // Ensure rounded corners clip both the image and the gradient overlay cleanly
             clipBehavior: Clip.antiAlias,
             elevation: 3,
             shape: RoundedRectangleBorder(
@@ -223,20 +259,16 @@ class BookGrid extends ConsumerWidget {
             ),
             child: Stack(
               children: [
-                // LAYER 1: THE VISUAL BACKGROUND (IMAGE OR PLACEHOLDER)
                 Positioned.fill(
                   child: coverUrl != null
                       ? Image.network(
                           coverUrl,
                           fit: BoxFit.cover,
-                          // Gracefully handles 404 errors or dead web connection pathways
                           errorBuilder: (context, error, stackTrace) =>
                               const _CardFallbackBackground(),
                         )
                       : const _CardFallbackBackground(),
                 ),
-
-                // LAYER 2: THE GRADIENT SHADOW SHIELD (Protects Text Contrast)
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -245,29 +277,21 @@ class BookGrid extends ConsumerWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.black.withValues(alpha: 0.1),
-                          // Soft tint at the top
                           Colors.black.withValues(alpha: 0.5),
-                          // Medium transition
                           Colors.black.withValues(alpha: 0.95),
-                          // Deep dark mask at the bottom for text
                         ],
                         stops: const [0.0, 0.4, 0.85],
                       ),
                     ),
                   ),
                 ),
-
-                // LAYER 3: THE CONTENT OVERLAY
                 Positioned.fill(
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Pushes metadata downwards into the high-contrast sweet spot of the gradient
                         const Spacer(),
-
-                        // Book Title Text
                         Text(
                           book.title,
                           textAlign: TextAlign.center,
@@ -280,8 +304,6 @@ class BookGrid extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-
-                        // Metadata Row Blocks
                         Wrap(
                           alignment: WrapAlignment.center,
                           spacing: 6,
@@ -291,13 +313,11 @@ class BookGrid extends ConsumerWidget {
                               book.extension.toUpperCase(),
                               Colors.deepPurple.shade700,
                             ),
-                            if (book.year.trim().isNotEmpty)
-                              _buildMiniBadge(book.year, Colors.grey.shade800),
+                            if (book.year != null && book.year!.trim().isNotEmpty)
+                              _buildMiniBadge(book.year!, Colors.grey.shade800),
                           ],
                         ),
                         const SizedBox(height: 6),
-
-                        // Additional Details Strings
                         Text(
                           'Language: ${book.language} • Size: ${book.size}',
                           textAlign: TextAlign.center,
@@ -312,8 +332,6 @@ class BookGrid extends ConsumerWidget {
                     ),
                   ),
                 ),
-
-                // LAYER 4: INTERACTIVE ACTIONS (Floating Download Action)
                 Positioned(
                   top: 8,
                   right: 8,
@@ -323,30 +341,19 @@ class BookGrid extends ConsumerWidget {
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () async {
-                      try {
-print(book.href);
-                        String fileName = await getFileName(book.href);
-                        ref
-                            .read(downloadProgressProvider.notifier)
-                            .setFileName(fileName);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Download has started"),
-                          ),
-                        );
-                        ref
-                            .read(downloadProgressProvider.notifier)
-                            .startDownload(book.href, fileName);
-                      } catch (e, h) {
-                        print(e);
-                        print(h);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Download failed: $e')),
-                        );
+                      final searchMode = ref.read(DownloadStateProvider).searchMode;
+                      if (searchMode == SearchMode.series) {
+                        _openSeriesDownload(context, ref, book);
+                      } else {
+                        _startDirectDownload(context, ref, book);
                       }
                     },
-                    icon: const Icon(Icons.file_download_outlined, size: 20),
+                    icon: Icon(
+                      ref.watch(DownloadStateProvider).searchMode == SearchMode.series
+                          ? Icons.collections_bookmark
+                          : Icons.file_download_outlined,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
@@ -355,6 +362,42 @@ print(book.href);
         );
       },
     );
+  }
+
+  void _openSeriesDownload(BuildContext context, WidgetRef ref, SeriesModel book) async {
+    final provider = ref.read(DownloadStateProvider).downloadProvider;
+    final providerStr = provider.name;
+    final volumes = await GetVolumes(providerStr, book.detailUrl, series: true);
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SeriesDownloadView(seriesModel: book, volumes: volumes),
+        ),
+      );
+    }
+  }
+
+  void _startDirectDownload(BuildContext context, WidgetRef ref, SeriesModel book) async {
+    try {
+      String fileName = await getFileName(book.detailUrl);
+      ref
+          .read(downloadProgressProvider.notifier)
+          .setFileName(fileName);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Download has started")),
+      );
+      ref
+          .read(downloadProgressProvider.notifier)
+          .startDownload(book.detailUrl, fileName);
+    } catch (e, h) {
+      print(e);
+      print(h);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Download failed: $e')),
+      );
+    }
   }
 
   int _getCrossAxisCount(BuildContext context) {
@@ -459,26 +502,24 @@ class LoadingResults extends StatelessWidget {
 }
 
 Future<void> _searchBooks(WidgetRef ref, String text) async {
-  final provider = ref.read(DownloadStateProvider).downloadProvider;
+  final state = ref.read(DownloadStateProvider);
+  final provider = state.downloadProvider;
+  final isSeries = state.searchMode == SearchMode.series;
   final providerMap = {
     DownloadProvider.libgen: 'libgen',
     DownloadProvider.steb: 'steb',
+    DownloadProvider.manga: 'manga',
   };
   ref.read(DownloadStateProvider.notifier).updateState(loading: true);
 
-  List<DownloadBook> books;
-  books = await SearchBooks(text, providerMap[provider]!);
+  List<SeriesModel> books;
+  books = await SearchBooks(text, providerMap[provider]!, series: isSeries);
 
-  print("The book objects are here");
-  print(books);
-
-  print("State update section is here");
   ref
       .read(DownloadStateProvider.notifier)
       .updateState(books: books, loading: false);
 }
 
-/// Clean background design layout utilized when no image cover is present
 class _CardFallbackBackground extends StatelessWidget {
   const _CardFallbackBackground();
 
@@ -503,7 +544,6 @@ class _CardFallbackBackground extends StatelessWidget {
   }
 }
 
-/// Renders modern tag indicators around format and extension data fields
 Widget _buildMiniBadge(String label, Color backgroundColor) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

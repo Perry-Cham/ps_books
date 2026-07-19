@@ -2,31 +2,36 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ps_books/models/comic_book_model.dart';
 import 'package:ps_books/services/download/downloader.dart';
-import 'package:ps_books/models/book_data.dart';
 
-enum DownloadProvider { libgen, steb }
+enum DownloadProvider { libgen, steb, manga }
+enum SearchMode { normal, series }
 
 class DownloadState {
-  final List<DownloadBook>? searchResults;
+  final List<SeriesModel>? searchResults;
   final bool? loading;
   final DownloadProvider downloadProvider;
+  final SearchMode searchMode;
 
   DownloadState({
     this.searchResults = const [],
     this.loading,
     this.downloadProvider = DownloadProvider.libgen,
+    this.searchMode = SearchMode.normal,
   });
 
   DownloadState updateState({
-    List<DownloadBook>? books,
+    List<SeriesModel>? books,
     bool? loading,
     DownloadProvider? downloadProvider,
+    SearchMode? searchMode,
   }) {
     return DownloadState(
       searchResults: books ?? searchResults,
       loading: loading ?? this.loading,
       downloadProvider: downloadProvider ?? this.downloadProvider,
+      searchMode: searchMode ?? this.searchMode,
     );
   }
 }
@@ -36,14 +41,16 @@ class DownloadNotifier extends Notifier<DownloadState> {
   DownloadState build() => DownloadState();
 
   void updateState({
-    List<DownloadBook>? books,
+    List<SeriesModel>? books,
     bool? loading,
     DownloadProvider? downloadProvider,
+    SearchMode? searchMode,
   }) {
     state = state.updateState(
       books: books,
       loading: loading,
       downloadProvider: downloadProvider,
+      searchMode: searchMode,
     );
   }
 }
@@ -51,7 +58,6 @@ class DownloadNotifier extends Notifier<DownloadState> {
 final DownloadStateProvider =
     NotifierProvider<DownloadNotifier, DownloadState>(DownloadNotifier.new);
 
-// Download progress state
 class DownloadProgressState {
   final double progress;
   final String fileName;
@@ -72,14 +78,14 @@ class DownloadProgressState {
     String? fileName,
     bool? isDownloading,
     String? completedMessage,
-    CancelToken? cancelToken
+    CancelToken? cancelToken,
   }) {
     return DownloadProgressState(
       progress: progress ?? this.progress,
       fileName: fileName ?? this.fileName,
       isDownloading: isDownloading ?? this.isDownloading,
       completedMessage: completedMessage ?? this.completedMessage,
-        cancelToken: cancelToken ?? this.cancelToken
+      cancelToken: cancelToken ?? this.cancelToken,
     );
   }
 }
@@ -103,22 +109,17 @@ class DownloadProgressNotifier extends Notifier<DownloadProgressState> {
     state = DownloadProgressState();
   }
 
-  // Handle stream lifecycle safely away from widget contexts
   void startDownload(String url, String fileName) {
-    // Cancel any older dangling download subscriptions if necessary
     _downloadSubscription?.cancel();
 
     setFileName(fileName);
- // set Cancel token
     state = state.copyWith(cancelToken: CancelToken(), isDownloading: true);
 
-    //Actual Download
     _downloadSubscription = downloadBookWithProgress(url, state.cancelToken!).listen(
-          (progress) {
+      (progress) {
         updateProgress(progress);
       },
       onDone: () {
-        // Set a message string flag inside our state instead of hard-firing UI SnackBars
         state = state.copyWith(
           progress: 1.0,
           completedMessage: '$fileName has downloaded',
@@ -138,13 +139,14 @@ class DownloadProgressNotifier extends Notifier<DownloadProgressState> {
   void dispose() {
     _downloadSubscription?.cancel();
   }
-  void cancel(){
+
+  void cancel() {
     state.cancelToken?.cancel();
     resetProgress();
   }
 }
 
-
 final downloadProgressProvider =
     NotifierProvider<DownloadProgressNotifier, DownloadProgressState>(
-        DownloadProgressNotifier.new);
+  DownloadProgressNotifier.new,
+);

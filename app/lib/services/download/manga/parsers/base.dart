@@ -89,7 +89,7 @@ abstract class BaseParser {
   Future<List<MangaSearchResult>> search(String query);
 
   /// Fetch the list of chapters for a given manga.
-  // Future<List<ChapterInfo>> getChapters(MangaSearchResult manga);
+  Future<List<ChapterInfo>> getChapters({required String detailUrl});
 
   /// Fetch the list of image URLs for a given chapter, in reading order.
   Future<List<String>> getChapterImages(ChapterInfo chapter);

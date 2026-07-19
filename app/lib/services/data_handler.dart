@@ -238,6 +238,7 @@ class DataHandler {
 
     final allBooks = await _bookToDb.getAllBooks();
     final allCollections = await _bookToDb.getAllCollections();
+    final allSeries = await _bookToDb.getAllSeries();
 
     final booksJson = allBooks.map((b) {
       return {
@@ -251,6 +252,8 @@ class DataHandler {
         'coverPath': b.coverPath != null ? 'books/covers/${p.basename(b.coverPath!)}' : null,
         'lastRead': b.lastRead,
         'collection': b.collection,
+        'series': b.series,
+        'isSeries': b.isSeries,
       };
     }).toList();
 
@@ -262,10 +265,21 @@ class DataHandler {
       };
     }).toList();
 
+    final seriesJson = allSeries.map((s) {
+      return {
+        'id': s.id,
+        'name': s.name,
+        'cover': s.cover,
+        'description': s.description,
+        'collection': s.collection,
+      };
+    }).toList();
+
     final booksFile = File(p.join(booksDir.path, 'books.json'));
     await booksFile.writeAsString(jsonEncode({
       'books': booksJson,
       'collections': collectionsJson,
+      'series': seriesJson,
     }));
 
     manifest['Books'] = 'books/books.json';
@@ -390,6 +404,26 @@ class DataHandler {
       }
     }
 
+    final Map<int, int> seriesIdMap = {};
+    if (data['series'] is List) {
+      for (final s in (data['series'] as List)) {
+        final sMap = s as Map<String, dynamic>;
+        final name = sMap['name'] as String;
+        final existing = await _bookToDb.getSeriesByName(name);
+        if (existing != null) {
+          seriesIdMap[sMap['id'] as int] = existing.id;
+        } else {
+          final newId = await _bookToDb.addSeries(
+            name,
+            cover: sMap['cover'] as String?,
+            description: sMap['description'] as String?,
+            collection: sMap['collection'] as int?,
+          );
+          seriesIdMap[sMap['id'] as int] = newId;
+        }
+      }
+    }
+
     if (data['books'] is List) {
       for (final b in (data['books'] as List)) {
         final bMap = b as Map<String, dynamic>;
@@ -418,6 +452,7 @@ class DataHandler {
           coversDir: appCoversDir,
         );
 
+        final oldSeriesId = bMap['series'] as int?;
         await _bookToDb.addBook(
           name: bookData.title,
           author: bookData.author,
@@ -425,6 +460,8 @@ class DataHandler {
           extension: extension,
           page: bMap['page'] as int?,
           coverPath: bookData.coverPath,
+          series: oldSeriesId != null ? seriesIdMap[oldSeriesId] : null,
+          isSeries: bMap['isSeries'] as bool? ?? false,
         );
       }
     }

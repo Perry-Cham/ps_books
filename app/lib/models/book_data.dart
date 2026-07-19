@@ -15,7 +15,7 @@ class BookData {
 
 class DownloadBook {
   final String title;
-  final String year;
+  final String? year;
   final String extension;
   final String href;
   final String size;

@@ -94,7 +94,7 @@ class MangodlAppState extends ChangeNotifier {
 
     try {
       final parser = ParserRegistry.get(_selectedParserKey);
-      final chapters = await parser.getChapters(manga);
+      final chapters = await parser.getChapters(detailUrl: manga.detailUrl);
       _chapters = chapters;
       _phase = AppState.chaptersReady;
       _statusMessage = 'Loaded ${chapters.length} chapter(s). Tap one to download.';

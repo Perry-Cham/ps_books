@@ -24,6 +24,19 @@ class Books extends Table {
   BoolColumn get lastRead => boolean().withDefault(Constant(false))();
   //Image cover path
   TextColumn get coverPath => text().nullable()();
+  // Whether this book belongs to a series
+  IntColumn get series => integer().references(Series, #id).nullable()();
+  BoolColumn get isSeries => boolean().withDefault(Constant(false))();
+}
+
+// A series differs from a collection in that a series groups books that would clutter the library if they appeared there individually e.g comic issues or manga chapters when the user has hundreds of them. It can also include books that belong to the same standard ebooks opds catalogue.This is typically created when books are downloaded or added for the first time. A collection appears as a single book on the library page and can even be added to a collection just like ordinary books.
+class Series extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get cover => text().nullable()();
+  TextColumn get description => text().nullable()();
+  IntColumn get collection =>
+      integer().references(Collections, #id).nullable()();
 }
 
 class Collections extends Table {
@@ -98,16 +111,17 @@ class Notes extends Table {
     TargetSubjects,
     TargetTopics,
     SavedBooks,
-    Notes, // Added Notes table
+    Notes,
+    Series,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 1;
 
-  @override
+ /* @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
@@ -125,7 +139,7 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(notes);
         }
         if (from < 3) {
-        //Adds Notes and UUID columns to notes table
+          //Adds Notes and UUID columns to notes table
 
           m.alterTable(
             TableMigration(
@@ -141,7 +155,7 @@ class AppDatabase extends _$AppDatabase {
         }
       },
     );
-  }
+  }*/
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

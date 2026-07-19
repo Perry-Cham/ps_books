@@ -50,7 +50,7 @@ class WeebCentralParser extends BaseParser {
     return parseSearchResults(html);
   }
 
-//  @override
+  @override
   Future<List<ChapterInfo>> getChapters({required String detailUrl}) async {
     // The series detail page only shows ~9 chapters. The "Show All
     // Chapters" button hits a separate htmx endpoint that returns

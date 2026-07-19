@@ -2,20 +2,49 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:ps_books/tools/ai_chat.dart';
 import 'package:ps_books/routes/homeComp/currently_reading.dart';
+import 'package:ps_books/routes/homeComp/series_view.dart';
 import 'package:ps_books/services/dbServices/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/state/reader_state.dart';
+import 'package:ps_books/models/library_item.dart';
 import '../readers/reader_shell.dart';
 import '../helpers/pickBooks.dart';
 import 'homeComp/control_bars.dart';
 import 'package:ps_books/dbs/database.dart';
 
 BookToDb bookService = BookToDb();
-class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget{
-  const HomeAppBar({super.key});
 
+final libraryItemsProvider = StreamProvider<List<LibraryItem>>((ref) {
+  final booksStream = bookService.watchAllBooks();
+  final seriesStream = bookService.watchAllSeries();
+
+  return CombineLatestStream.combine2(
+    booksStream,
+    seriesStream,
+    (List<Book> books, List<Sery> series) {
+      final bookItems = books
+          .where((b) => !b.isSeries)
+          .map((b) => LibraryItem.fromBook(b))
+          .toList();
+
+      final seriesItems = series.map((s) {
+        final seriesBooks = books.where((b) => b.series == s.id && !b.isSeries).toList();
+        final coverPath = seriesBooks.isNotEmpty
+            ? (seriesBooks.first.coverPath ?? s.cover)
+            : s.cover;
+        return LibraryItem.fromSeries(s, coverPath: coverPath);
+      }).toList();
+
+      return [...bookItems, ...seriesItems];
+    },
+  );
+});
+
+class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget {
+  const HomeAppBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,22 +58,22 @@ class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget{
       title = "$selectionCount selected";
     }
     return AppBar(
-      title: Text(
-        title
-      ),
+      title: Text(title),
       iconTheme: const IconThemeData(color: Colors.white),
       actions: [
         PopUpControls(provider: LibraryStateProvider),
-IconButton(
-icon: Icon(Icons.pause),
-onPressed: (){
-  Navigator.push(context, MaterialPageRoute(builder: (_) => AiChatPanel()));
-},
-)
+        IconButton(
+          icon: const Icon(Icons.pause),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => AiChatPanel()));
+          },
+        ),
       ],
     );
   }
-  @override get preferredSize => Size.fromHeight(kToolbarHeight);
+
+  @override
+  get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class HomePage extends ConsumerWidget {
@@ -52,24 +81,22 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  /**/
-
     return Scaffold(
       appBar: HomeAppBar(),
-      body: Page(),
-       floatingActionButton: IconButton.filled(
+      body: const Page(),
+      floatingActionButton: IconButton.filled(
         onPressed: () async {
           showModalBottomSheet(
             context: context,
             isDismissible: false,
             enableDrag: false,
-            backgroundColor: Color(0xFF1E1729),
+            backgroundColor: const Color(0xFF1E1729),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
             builder: (context) => Container(
-              padding: EdgeInsets.all(30),
-              child: Column(
+              padding: const EdgeInsets.all(30),
+              child: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircularProgressIndicator(color: Colors.deepPurple),
@@ -93,8 +120,8 @@ class HomePage extends ConsumerWidget {
             Navigator.pop(context);
           }
         },
-        icon: Icon(Icons.add),
-      ), 
+        icon: const Icon(Icons.add),
+      ),
     );
   }
 }
@@ -115,7 +142,7 @@ class Page extends ConsumerWidget {
         children: [
           CustomScrollView(
             slivers: [
-             SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 10.0, bottom: 15.0),
                   child: CurrentlyReading(),
@@ -149,26 +176,20 @@ class BooksContainer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(LibraryStateProvider.select((state) => state.filter));
-    return StreamBuilder<List<Book>>(
-      stream: bookService.watchAllBooks(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+    final libraryItemsAsync = ref.watch(libraryItemsProvider);
 
-        if (snapshot.hasError) {
-          return SliverToBoxAdapter(
-            child: Center(child: Text('Error: ${snapshot.error}')),
-          );
-        }
-
-        final data = snapshot.data ?? [];
-        final books = filter != null
-            ? data.where((t) => t.collection == filter).toList()
-            : [...data];
-        if (books.isEmpty) {
+    return libraryItemsAsync.when(
+      loading: () => const SliverToBoxAdapter(
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, _) => SliverToBoxAdapter(
+        child: Center(child: Text('Error: $err')),
+      ),
+      data: (items) {
+        final filtered = filter != null
+            ? items.where((t) => t.collection == filter).toList()
+            : items;
+        if (filtered.isEmpty) {
           return const SliverToBoxAdapter(
             child: Center(child: Text('No books yet')),
           );
@@ -181,9 +202,9 @@ class BooksContainer extends ConsumerWidget {
             crossAxisSpacing: 10,
             childAspectRatio: 200 / 300,
           ),
-          itemCount: books.length,
+          itemCount: filtered.length,
           itemBuilder: (context, index) {
-            return BookCard(book: books[index]);
+            return LibraryItemCard(item: filtered[index]);
           },
         );
       },
@@ -191,67 +212,45 @@ class BooksContainer extends ConsumerWidget {
   }
 }
 
-class BookCard extends ConsumerStatefulWidget {
-  const BookCard({super.key, required this.book});
-  final Book book;
+class LibraryItemCard extends ConsumerStatefulWidget {
+  const LibraryItemCard({super.key, required this.item});
+  final LibraryItem item;
 
   @override
-  ConsumerState<BookCard> createState() {
-    return BookCardState();
-  }
+  ConsumerState<LibraryItemCard> createState() => LibraryItemCardState();
 }
 
-class BookCardState extends ConsumerState<BookCard> {
+class LibraryItemCardState extends ConsumerState<LibraryItemCard> {
   bool display_checkbox = false;
-  bool checkbox_clicked = false;
 
   @override
   Widget build(BuildContext context) {
-    final selectedBookIds = ref.read(
-      LibraryStateProvider.select((state) => state.selectedBookIds),
-    );
     final controlState = ref.watch(
       LibraryStateProvider.select((state) => state.multi_select),
     );
     bool isSelected = ref.watch(
       LibraryStateProvider.select(
-        (state) => state.selectedBookIds.contains(widget.book.id),
+        (state) => state.selectedBookIds.contains(widget.item.id),
       ),
     );
 
     return InkWell(
-      onHover: (val) {
-        setState(() {
-          display_checkbox = val;
-        });
-      },
+      onHover: (val) => setState(() => display_checkbox = val),
       onLongPress: () {
         ref.read(LibraryStateProvider.notifier).setSelectTrue();
-        ref.read(LibraryStateProvider.notifier).addSelected(widget.book.id);
+        ref.read(LibraryStateProvider.notifier).addSelected(widget.item.id);
       },
       onTap: () {
         if (controlState) {
           if (!isSelected) {
-            ref.read(LibraryStateProvider.notifier).addSelected(widget.book.id);
+            ref.read(LibraryStateProvider.notifier).addSelected(widget.item.id);
           } else {
-            ref
-                .read(LibraryStateProvider.notifier)
-                .removeSelected(widget.book.id);
+            ref.read(LibraryStateProvider.notifier).removeSelected(widget.item.id);
           }
+        } else if (widget.item.isSeries) {
+          _openSeriesView();
         } else {
-          ref.read(readerStateProvider.notifier).setIsReadingTrue();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ReaderShell(
-                path: widget.book.path,
-                type: widget.book.extension,
-                id: widget.book.id,
-                page: widget.book.page,
-                position: widget.book.cfi,
-              ),
-            ),
-          );
+          _openReader();
         }
       },
       child: Stack(
@@ -263,27 +262,26 @@ class BookCardState extends ConsumerState<BookCard> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: isSelected
-                    ? BorderSide(
-                        color: Colors.deepPurple.shade600,
-                        width: 3,
-                      )
+                    ? BorderSide(color: Colors.deepPurple.shade600, width: 3)
                     : const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.04)),
               ),
               child: Stack(
                 children: [
-                  // LAYER 1: VISUAL BACKGROUND (COVER IMAGE OR FALLBACK)
                   Positioned.fill(
-                    child: widget.book.coverPath != null
-                        ? Image.file(
-                            File(widget.book.coverPath!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const _CardFallbackBackground(),
-                          )
+                    child: widget.item.coverPath != null
+                        ? (widget.item.coverPath!.startsWith('http')
+                            ? Image.network(
+                                widget.item.coverPath!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const _CardFallbackBackground(),
+                              )
+                            : Image.file(
+                                File(widget.item.coverPath!),
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const _CardFallbackBackground(),
+                              ))
                         : const _CardFallbackBackground(),
                   ),
-
-                  // LAYER 2: THE GRADIENT SHADOW SHIELD
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -300,8 +298,6 @@ class BookCardState extends ConsumerState<BookCard> {
                       ),
                     ),
                   ),
-
-                  // LAYER 3: CONTENT OVERLAY (TITLE & PROGRESS BADGE)
                   Positioned.fill(
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
@@ -309,10 +305,8 @@ class BookCardState extends ConsumerState<BookCard> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Spacer(),
-
-                          // Book Title Text
                           Text(
-                            widget.book.name,
+                            widget.item.name,
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -323,12 +317,16 @@ class BookCardState extends ConsumerState<BookCard> {
                             ),
                           ),
                           const SizedBox(height: 8),
-
-                          // Reading Progress Badge
-                          _buildMiniBadge(
-                            "${(widget.book.progress * 100).toStringAsFixed(1)}% Read",
-                            Colors.deepPurple.shade700,
-                          ),
+                          if (widget.item.isSeries)
+                            _buildMiniBadge(
+                              "Series",
+                              Colors.teal.shade700,
+                            )
+                          else
+                            _buildMiniBadge(
+                              "${(widget.item.progress * 100).toStringAsFixed(1)}% Read",
+                              Colors.deepPurple.shade700,
+                            ),
                         ],
                       ),
                     ),
@@ -337,22 +335,24 @@ class BookCardState extends ConsumerState<BookCard> {
               ),
             ),
           ),
-          if (display_checkbox || isSelected)
+          if (widget.item.isSeries)
             Positioned(
               top: 8,
               left: 8,
+              child: Icon(Icons.collections_bookmark, color: Colors.teal.shade300, size: 20),
+            ),
+          if (display_checkbox || isSelected)
+            Positioned(
+              top: 8,
+              right: 8,
               child: Checkbox(
                 value: isSelected,
                 onChanged: (val) {
                   if (val != null) {
                     if (val) {
-                      ref
-                          .read(LibraryStateProvider.notifier)
-                          .addSelected(widget.book.id);
+                      ref.read(LibraryStateProvider.notifier).addSelected(widget.item.id);
                     } else {
-                      ref
-                          .read(LibraryStateProvider.notifier)
-                          .removeSelected(widget.book.id);
+                      ref.read(LibraryStateProvider.notifier).removeSelected(widget.item.id);
                     }
                   }
                 },
@@ -361,6 +361,44 @@ class BookCardState extends ConsumerState<BookCard> {
         ],
       ),
     );
+  }
+
+  void _openSeriesView() async {
+    final sery = await bookService.getSeriesById(widget.item.id);
+    if (sery != null && context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SeriesViewHome(
+            series: sery,
+            coverPath: widget.item.coverPath,
+          ),
+        ),
+      );
+    }
+  }
+
+  void _openReader() async {
+    try {
+      final book = await bookService.getBookById(widget.item.id);
+      if (context.mounted) {
+        ref.read(readerStateProvider.notifier).setIsReadingTrue();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReaderShell(
+              path: book.path,
+              type: book.extension,
+              id: book.id,
+              page: book.page,
+              position: book.cfi,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error opening book: $e');
+    }
   }
 }
 

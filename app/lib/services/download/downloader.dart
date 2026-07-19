@@ -5,19 +5,41 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ps_books/services/dbServices/bookToDb.dart';
 import 'package:ps_books/helpers/book_processor.dart';
-import 'package:ps_books/models/book_data.dart';
-import 'package:ps_books/services/download/steb.dart';
-import 'package:ps_books/services/download/libgen.dart';
+import 'package:ps_books/models/comic_book_model.dart';
+import 'package:ps_books/models/downloader_models.dart';
+import 'package:ps_books/services/download/libgen/exported.dart' as libgen_mod;
+import 'package:ps_books/services/download/standardEbooks/exported.dart' as steb_mod;
+import 'package:ps_books/services/download/manga/exported.dart' as manga_mod;
 
 final _db = BookToDb();
 
-Future<List<DownloadBook>> SearchBooks(String query, String provider) async {
-  if (provider == 'libgen') {
-    return await LibgenScraper.search(query) ?? [];
-  } else if (provider == 'steb') {
-    return await StandardEbooksScraper.search(query);
+enum DownloadProvider { libgen, steb, manga }
+
+SeriesCapable _getProviderWithMode(String provider, {bool series = false}) {
+  switch (provider) {
+    case 'libgen':
+      return libgen_mod.Libgen(
+        mode: series ? libgen_mod.SearchMode.series : libgen_mod.SearchMode.files,
+      );
+    case 'steb':
+      return steb_mod.StandardEbooks(
+        mode: series ? steb_mod.StebSearchMode.opds : steb_mod.StebSearchMode.normal,
+      );
+    case 'manga':
+      return manga_mod.MangaDownloader();
+    default:
+      return libgen_mod.Libgen();
   }
-  return [];
+}
+
+Future<List<SeriesModel>> SearchBooks(String query, String provider, {bool series = false}) async {
+  final svc = _getProviderWithMode(provider, series: series);
+  return svc.search(query: query);
+}
+
+Future<List<VolumeInfo>> GetVolumes(String provider, String volumeUrl, {bool series = false}) async {
+  final svc = _getProviderWithMode(provider, series: series);
+  return svc.getVolumes(volumeUrl: volumeUrl);
 }
 
 Stream<double> downloadBookWithProgress(
@@ -59,7 +81,6 @@ Stream<double> downloadBookWithProgress(
             'mobi',
             'azw3',
           ].contains(extension)) {
-
             final fileBytes = await File(savePath).readAsBytes();
             final bookData = await processBook(
               fileBytes: fileBytes,
@@ -73,8 +94,7 @@ Stream<double> downloadBookWithProgress(
               author: bookData.author,
               extension: extension,
               path: savePath,
-              page:
-                  (extension == 'pdf' ||
+              page: (extension == 'pdf' ||
                       extension == 'cbz' ||
                       extension == 'cbt' ||
                       extension == 'cbw')
