@@ -95,13 +95,13 @@ class DownloadManager {
   String? getFormattedDownloadSpeed(String url) {
     final speed = getDownloadSpeed(url);
     if (speed == null) return null;
-    return _formatBytes(speed) + '/s';
+    return _formatBytes(speed.round()) + '/s';
   }
 
   String _formatBytes(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) => '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 

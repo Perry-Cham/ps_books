@@ -99,7 +99,6 @@ class SeriesDownloadView extends ConsumerWidget {
   Future<void> _downloadVolume(BuildContext context, WidgetRef ref, VolumeInfo volume) async {
     try {
       final fileName = await getFileName(volume.chapterUrl);
-      ref.read(downloadProgressProvider.notifier).setFileName(fileName);
       ref.read(downloadProgressProvider.notifier).startDownload(volume.chapterUrl, fileName);
 
       await _createSeriesEntry(volume);

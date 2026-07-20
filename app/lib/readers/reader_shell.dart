@@ -116,6 +116,7 @@ class _ReaderShellState extends ConsumerState<ReaderShell>
   @override
   void dispose() {
     _immersiveController.removeListener(_onImmersiveChanged);
+    _immersiveController.restoreSystemUi();
     _immersiveController.dispose();
     _appBarSlideController.dispose();
     super.dispose();

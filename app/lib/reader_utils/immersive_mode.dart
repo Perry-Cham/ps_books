@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 /// A simple [ValueNotifier] that broadcasts the immersive-mode state to the
 /// [ReaderShell] and every reader engine it hosts.
@@ -18,6 +21,9 @@ import 'package:flutter/foundation.dart';
 ///
 /// The [ReaderShell] is responsible for those entry/exit triggers; this
 /// class is purely the state-holder + notifier.
+///
+/// On Android only, the system status bar is hidden via [SystemChrome]
+/// when immersive mode is entered and restored when exited.
 class ImmersiveModeController extends ValueNotifier<bool> {
   ImmersiveModeController([super.initial = false]);
 
@@ -26,17 +32,42 @@ class ImmersiveModeController extends ValueNotifier<bool> {
 
   /// Engage immersive mode (slide chrome out of view).
   void enter() {
-    if (!value) value = true;
+    if (!value) {
+      value = true;
+      _applySystemChrome(true);
+    }
   }
 
   /// Exit immersive mode (slide chrome back into view).
   void exit() {
-    if (value) value = false;
+    if (value) {
+      value = false;
+      _applySystemChrome(false);
+    }
   }
 
   /// Flip the current immersive state.
   void toggle() {
     value = !value;
+    _applySystemChrome(value);
+  }
+
+  /// Hide or restore the Android system status bar.
+  void _applySystemChrome(bool immersive) {
+    if (Platform.isAndroid) {
+      if (immersive) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      } else {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      }
+    }
+  }
+
+  /// Restore system UI overlays (call from dispose).
+  void restoreSystemUi() {
+    if (Platform.isAndroid) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
   }
 
   @override
