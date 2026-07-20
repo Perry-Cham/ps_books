@@ -99,9 +99,9 @@ class LayoutState extends State<Layout> {
 
 
 class CustomBottomNav extends ConsumerWidget{
-  List<String> destinations;
+  final List<String> destinations;
 
-  CustomBottomNav({super.key, required this.destinations});
+  const CustomBottomNav({super.key, required this.destinations});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isReading =
@@ -114,39 +114,37 @@ class CustomBottomNav extends ConsumerWidget{
     if (isReading) {
       return const SizedBox.shrink();
     }
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
-      selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor,
-      unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor,
-      currentIndex: index,
-      onTap: (value) {
+    return NavigationBar(
+      selectedIndex: index,
+      onDestinationSelected: (value) {
         context.go(destinations[value]);
       },
-      items: const [
-        BottomNavigationBarItem(
+      backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
+      indicatorColor: theme.bottomNavigationBarTheme.selectedItemColor?.withValues(alpha: 0.2),
+      destinations: const [
+        NavigationDestination(
           icon: Icon(Icons.library_books_outlined),
-          activeIcon: Icon(Icons.library_books_rounded),
+          selectedIcon: Icon(Icons.library_books_rounded),
           label: 'Library',
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: Icon(Icons.bookmark_add_outlined),
-          activeIcon: Icon(Icons.bookmark_add),
+          selectedIcon: Icon(Icons.bookmark_add),
           label: 'Bookshelf',
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: Icon(Icons.flag_outlined),
-          activeIcon: Icon(Icons.flag),
+          selectedIcon: Icon(Icons.flag),
           label: 'Study',
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: Icon(Icons.search_outlined),
-          activeIcon: Icon(Icons.search),
+          selectedIcon: Icon(Icons.search),
           label: 'Find',
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: Icon(Icons.settings_outlined),
-          activeIcon: Icon(Icons.settings),
+          selectedIcon: Icon(Icons.settings),
           label: 'Settings',
         ),
       ],

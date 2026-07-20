@@ -442,6 +442,12 @@ void instance_method_call_cb(FlMethodChannel* channel,
     if (GTK_IS_WINDOW(toplevel)) {
       gtk_window_set_focus(GTK_WINDOW(toplevel), NULL);
     }
+    // Explicitly return focus to the Flutter view so keyboard input
+    // reaches Flutter widgets after the webview releases focus.
+    FlView* fl_view = fl_plugin_registrar_get_view(webview->plugin->registrar);
+    if (fl_view != nullptr) {
+      gtk_widget_grab_focus(GTK_WIDGET(fl_view));
+    }
     respond(method_call, success_response());
     return;
   }
@@ -452,6 +458,12 @@ void instance_method_call_cb(FlMethodChannel* channel,
         gtk_widget_get_toplevel(GTK_WIDGET(webview->web_view));
     if (GTK_IS_WINDOW(toplevel)) {
       gtk_window_set_focus(GTK_WINDOW(toplevel), NULL);
+    }
+    // Explicitly return focus to the Flutter view so keyboard input
+    // reaches Flutter widgets after the webview is destroyed.
+    FlView* fl_view = fl_plugin_registrar_get_view(webview->plugin->registrar);
+    if (fl_view != nullptr) {
+      gtk_widget_grab_focus(GTK_WIDGET(fl_view));
     }
 
     // Terminate the WebKit web process to free ~200MB per webview.

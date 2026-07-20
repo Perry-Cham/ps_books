@@ -99,7 +99,7 @@ dependencies:
     path: ../packages/flutter_gen_ai_chat_ui
   flutter_markdown_plus: ^1.0.11
   flutter_quill: ^11.5.1
-  flutter_download_manager: ^0.5.5
+  flutter_download_manager: ^0.6.0
   flutter_smooth_markdown: ^0.8.1
   drift: ^2.34.1
   drift_dev: 2.34.3
@@ -108,6 +108,7 @@ dependencies:
   synchronized: any
   provider: any
   rxdart: ^0.28.0
+  jiffy: ^6.4.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

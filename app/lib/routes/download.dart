@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_download_manager/flutter_download_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ps_books/models/comic_book_model.dart';
@@ -138,6 +139,8 @@ class ProviderPills extends ConsumerWidget {
         _buildPill(ref, 'Standard Ebooks', DownloadProvider.steb, selectedProvider),
         const SizedBox(width: 10),
         _buildPill(ref, 'Manga', DownloadProvider.manga, selectedProvider),
+        const SizedBox(width: 10),
+        _buildPill(ref, 'Gutenberg', DownloadProvider.gutenberg, selectedProvider),
       ],
     );
   }
@@ -229,11 +232,17 @@ class BookGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(downloadProgressProvider, (next, prev) {
-      if (next != null && next.completedMessage != "") {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.completedMessage)));
+    ref.listen(downloadProgressProvider, (prev, next) {
+      if (prev == null) return;
+      for (final entry in next.downloads.entries) {
+        final prevTask = prev.downloads[entry.key];
+        if (prevTask != null &&
+            prevTask.status != DownloadStatus.completed &&
+            entry.value.status == DownloadStatus.completed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${entry.value.fileName} has downloaded')),
+          );
+        }
       }
     });
     return GridView.builder(
@@ -381,9 +390,6 @@ class BookGrid extends ConsumerWidget {
   void _startDirectDownload(BuildContext context, WidgetRef ref, SeriesModel book) async {
     try {
       String fileName = await getFileName(book.detailUrl);
-      ref
-          .read(downloadProgressProvider.notifier)
-          .setFileName(fileName);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Download has started")),
@@ -410,78 +416,133 @@ class BookGrid extends ConsumerWidget {
   }
 }
 
-class DownloadsDisplay extends ConsumerWidget {
+class DownloadsDisplay extends ConsumerStatefulWidget {
   const DownloadsDisplay({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final downloadProgress = ref.watch(downloadProgressProvider);
-    if (downloadProgress.progress == 1) Navigator.pop(context);
+  ConsumerState<DownloadsDisplay> createState() => _DownloadsDisplayState();
+}
+
+class _DownloadsDisplayState extends ConsumerState<DownloadsDisplay> {
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(downloadProgressProvider, (prev, next) {
+      if (prev != null && prev.downloads.isNotEmpty && next.downloads.isEmpty) {
+        Future.microtask(() => Navigator.of(context).maybePop());
+      }
+    });
+
+    final downloads = ref.watch(downloadProgressProvider).downloadList;
+
     return AlertDialog(
-      content: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (downloadProgress.isDownloading)
-              SizedBox(
-                width: 350,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      downloadProgress.fileName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: downloadProgress.progress,
-                        minHeight: 4,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${(downloadProgress.progress * 100).toStringAsFixed(1)}%',
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        ref.read(downloadProgressProvider.notifier).cancel();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "The download has been cancelled successfully",
-                            ),
-                          ),
-                        );
-                      },
-                      label: Text("Cancel"),
-                      icon: Icon(Icons.cancel_outlined),
-                    ),
-                  ],
+      contentPadding: EdgeInsets.zero,
+      content: SizedBox(
+        width: 400,
+        child: downloads.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.all(48),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.download_outlined, size: 48),
+                      SizedBox(height: 16),
+                      Text('No Downloads Yet'),
+                    ],
+                  ),
                 ),
               )
-            else
-              SizedBox(
-                height: 300,
-                width: 300,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(Icons.equalizer_outlined),
-                    Text("No Downloads Yet"),
-                  ],
-                ),
+            : ListView.separated(
+                shrinkWrap: true,
+                itemCount: downloads.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final download = downloads[index];
+                  return _DownloadTile(download: download);
+                },
               ),
-          ],
-        ),
       ),
     );
+  }
+}
+
+class _DownloadTile extends ConsumerWidget {
+  final DownloadTaskInfo download;
+
+  const _DownloadTile({required this.download});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+      title: Text(
+        download.fileName,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: _buildSubtitle(),
+      trailing: _buildTrailing(context, ref),
+    );
+  }
+
+  Widget _buildSubtitle() {
+    switch (download.status) {
+      case DownloadStatus.queued:
+        return const Text('Queued');
+      case DownloadStatus.downloading:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: download.progress,
+                minHeight: 4,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text('${(download.progress * 100).toStringAsFixed(1)}%'),
+          ],
+        );
+      case DownloadStatus.completed:
+        return const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 16),
+            SizedBox(width: 4),
+            Text('Completed'),
+          ],
+        );
+      case DownloadStatus.failed:
+        return const Row(
+          children: [
+            Icon(Icons.error, color: Colors.red, size: 16),
+            SizedBox(width: 4),
+            Text('Failed'),
+          ],
+        );
+      case DownloadStatus.paused:
+        return const Text('Paused');
+      case DownloadStatus.canceled:
+        return const Text('Canceled');
+    }
+  }
+
+  Widget? _buildTrailing(BuildContext context, WidgetRef ref) {
+    if (download.status == DownloadStatus.downloading ||
+        download.status == DownloadStatus.queued) {
+      return IconButton(
+        icon: const Icon(Icons.cancel_outlined),
+        onPressed: () {
+          ref.read(downloadProgressProvider.notifier).cancelDownload(download.url);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${download.fileName} cancelled'),
+            ),
+          );
+        },
+      );
+    }
+    return null;
   }
 }
 
@@ -509,6 +570,7 @@ Future<void> _searchBooks(WidgetRef ref, String text) async {
     DownloadProvider.libgen: 'libgen',
     DownloadProvider.steb: 'steb',
     DownloadProvider.manga: 'manga',
+    DownloadProvider.gutenberg: 'gutenberg',
   };
   ref.read(DownloadStateProvider.notifier).updateState(loading: true);
 

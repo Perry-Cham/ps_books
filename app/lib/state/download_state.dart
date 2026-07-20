@@ -1,11 +1,12 @@
-import 'dart:async';
+import 'dart:io';
 
-import 'package:dio/dio.dart';
+import 'package:flutter_download_manager/flutter_download_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:ps_books/models/comic_book_model.dart';
 import 'package:ps_books/services/download/downloader.dart';
 
-enum DownloadProvider { libgen, steb, manga }
+enum DownloadProvider { libgen, steb, manga, gutenberg }
 enum SearchMode { normal, series }
 
 class DownloadState {
@@ -58,91 +59,103 @@ class DownloadNotifier extends Notifier<DownloadState> {
 final DownloadStateProvider =
     NotifierProvider<DownloadNotifier, DownloadState>(DownloadNotifier.new);
 
-class DownloadProgressState {
-  final double progress;
+class DownloadTaskInfo {
+  final String url;
   final String fileName;
-  final bool isDownloading;
-  final String completedMessage;
-  final CancelToken? cancelToken;
+  final double progress;
+  final DownloadStatus status;
 
-  DownloadProgressState({
+  const DownloadTaskInfo({
+    required this.url,
+    required this.fileName,
     this.progress = 0.0,
-    this.fileName = '',
-    this.completedMessage = '',
-    this.isDownloading = false,
-    this.cancelToken,
+    this.status = DownloadStatus.queued,
   });
 
-  DownloadProgressState copyWith({
+  DownloadTaskInfo copyWith({
     double? progress,
-    String? fileName,
-    bool? isDownloading,
-    String? completedMessage,
-    CancelToken? cancelToken,
+    DownloadStatus? status,
   }) {
-    return DownloadProgressState(
+    return DownloadTaskInfo(
+      url: url,
+      fileName: fileName,
       progress: progress ?? this.progress,
-      fileName: fileName ?? this.fileName,
-      isDownloading: isDownloading ?? this.isDownloading,
-      completedMessage: completedMessage ?? this.completedMessage,
-      cancelToken: cancelToken ?? this.cancelToken,
+      status: status ?? this.status,
     );
   }
 }
 
+class DownloadProgressState {
+  final Map<String, DownloadTaskInfo> downloads;
+
+  const DownloadProgressState({this.downloads = const {}});
+
+  List<DownloadTaskInfo> get downloadList => downloads.values.toList();
+}
+
 class DownloadProgressNotifier extends Notifier<DownloadProgressState> {
   @override
-  DownloadProgressState build() => DownloadProgressState();
+  DownloadProgressState build() => const DownloadProgressState();
 
-  StreamSubscription<double>? _downloadSubscription;
+  Future<void> startDownload(String url, String fileName) async {
+    if (state.downloads.containsKey(url)) return;
 
-  void updateProgress(double progress) {
-    print(progress);
-    state = state.copyWith(progress: progress);
-  }
+    final d = await getApplicationDocumentsDirectory();
+    final booksDir = Directory('${d.path}/Books');
+    await booksDir.create(recursive: true);
+    final savePath = '${booksDir.path}/$fileName';
 
-  void setFileName(String fileName) {
-    state = state.copyWith(fileName: fileName, isDownloading: true);
-  }
+    final task = await downloadManager.addDownload(url, savePath);
+    if (task == null) return;
 
-  void resetProgress() {
-    state = DownloadProgressState();
-  }
+    state = DownloadProgressState(downloads: {
+      ...state.downloads,
+      url: DownloadTaskInfo(url: url, fileName: fileName),
+    });
 
-  void startDownload(String url, String fileName) {
-    _downloadSubscription?.cancel();
-
-    setFileName(fileName);
-    state = state.copyWith(cancelToken: CancelToken(), isDownloading: true);
-
-    _downloadSubscription = downloadBookWithProgress(url, state.cancelToken!).listen(
-      (progress) {
-        updateProgress(progress);
-      },
-      onDone: () {
-        state = state.copyWith(
-          progress: 1.0,
-          completedMessage: '$fileName has downloaded',
-        );
-
-        Future.delayed(const Duration(seconds: 2), () {
-          resetProgress();
+    task.progress.addListener(() {
+      final info = state.downloads[url];
+      if (info != null) {
+        state = DownloadProgressState(downloads: {
+          ...state.downloads,
+          url: info.copyWith(progress: task.progress.value),
         });
-      },
-      onError: (error) {
-        print('Download error: $error');
-        resetProgress();
-      },
-    );
+      }
+    });
+
+    task.status.addListener(() async {
+      final info = state.downloads[url];
+      if (info == null) return;
+
+      state = DownloadProgressState(downloads: {
+        ...state.downloads,
+        url: info.copyWith(status: task.status.value),
+      });
+
+      if (task.status.value == DownloadStatus.completed) {
+        await processDownloadedBook(savePath);
+        Future.delayed(const Duration(seconds: 3), () {
+          _removeTask(url);
+        });
+      } else if (task.status.value == DownloadStatus.failed) {
+        Future.delayed(const Duration(seconds: 3), () {
+          _removeTask(url);
+        });
+      } else if (task.status.value == DownloadStatus.canceled) {
+        _removeTask(url);
+      }
+    });
   }
 
-  void dispose() {
-    _downloadSubscription?.cancel();
+  void _removeTask(String url) {
+    final map = Map<String, DownloadTaskInfo>.from(state.downloads);
+    map.remove(url);
+    state = DownloadProgressState(downloads: map);
   }
 
-  void cancel() {
-    state.cancelToken?.cancel();
-    resetProgress();
+  void cancelDownload(String url) {
+    downloadManager.cancelDownload(url);
+    _removeTask(url);
   }
 }
 

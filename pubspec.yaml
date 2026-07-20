@@ -22,6 +22,7 @@ workspace:
   - packages/webview_all_web
   - packages/webview_all_windows
   - packages/flutter_gen_ai_chat_ui
+  - packages/flutter_download_manager
 
 dependency_overrides:
   flutter_lints: ^6.0.0
