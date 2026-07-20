@@ -84,6 +84,7 @@ class DriveBookService {
         path: savePath,
         extension: extension,
         coverPath: bookData.coverPath,
+        dateAdded: DateTime.now(),
       );
     } catch (e, h) {
       debugPrint("Download encountered an error: $e");

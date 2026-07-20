@@ -18,4 +18,3 @@ export 'src/widgets/book_page_view.dart';
 
   
 export 'src/l10n/app_localizations.dart';
-export 'package:epubx_kuebiko/epubx_kuebiko.dart' show EpubBook, EpubChapter;

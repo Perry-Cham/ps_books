@@ -428,6 +428,7 @@ class _SeriesViewHomeState extends ConsumerState<SeriesViewHome> {
           extension: book.extension,
           coverPath: book.coverPath,
           series: widget.series.id,
+          dateAdded: DateTime.now(),
         );
       }
     }

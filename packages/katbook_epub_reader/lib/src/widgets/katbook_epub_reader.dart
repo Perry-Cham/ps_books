@@ -940,19 +940,22 @@ class KatbookEpubReaderState extends State<KatbookEpubReader> {
   }
 
   Widget _buildScrollModeContent(BuildContext context, ReaderThemeData theme, List<ParagraphElement> paragraphs) {
-    return ScrollablePositionedList.builder(
-      itemScrollController: _itemScrollController,
-      itemPositionsListener: _itemPositionsListener,
-      initialScrollIndex: widget.initialPosition?.paragraphIndex ?? 0,
-      itemCount: paragraphs.length,
-      physics: widget.scrollPhysics ?? const ClampingScrollPhysics(),
-      // Larger cache for smoother scrolling - pre-render more items
-      minCacheExtent: 1500,
-      addAutomaticKeepAlives: true,
-      addRepaintBoundaries: true,
-      itemBuilder: (context, index) {
-        return _buildScrollItem(context, index, paragraphs, theme);
-      },
+
+    return  SelectionArea(
+      child: ScrollablePositionedList.builder(
+        itemScrollController: _itemScrollController,
+        itemPositionsListener: _itemPositionsListener,
+        initialScrollIndex: widget.initialPosition?.paragraphIndex ?? 0,
+        itemCount: paragraphs.length,
+        physics: widget.scrollPhysics ?? const ClampingScrollPhysics(),
+        // Larger cache for smoother scrolling - pre-render more items
+        minCacheExtent: 1500,
+        addAutomaticKeepAlives: true,
+        addRepaintBoundaries: true,
+        itemBuilder: (context, index) {
+          return _buildScrollItem(context, index, paragraphs, theme);
+        },
+      ),
     );
   }
 

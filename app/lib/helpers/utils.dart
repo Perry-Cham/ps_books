@@ -109,25 +109,6 @@ class UniversalBookDecoder {
   }
 }
 
-Future<void> deleteBooks(Set<int> deletedBookIds) async {
-  if (deletedBookIds.isEmpty) return;
-
-  for (final id in deletedBookIds) {
-    final book = await _db.getBookById(id);
-    await _db.deleteBook(id);
-    if (book.coverPath != null) {
-      final image = File(book.coverPath!);
-      if (await image.exists()) {
-        await image.delete();
-      }
-    }
-    final bookFile = File(book.path);
-    if (await bookFile.exists()) {
-      await bookFile.delete();
-    }
-  }
-}
-
 class AuthDio {
   static final Dio _dio = Dio();
   static bool _initialized = false;

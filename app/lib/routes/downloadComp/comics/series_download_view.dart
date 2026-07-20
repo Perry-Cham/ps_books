@@ -132,6 +132,7 @@ class SeriesDownloadView extends ConsumerWidget {
       seriesId = await _db.addSeries(
         seriesModel.title,
         cover: seriesModel.coverUrl,
+        dateAdded: DateTime.now(),
       );
     }
 
@@ -141,6 +142,7 @@ class SeriesDownloadView extends ConsumerWidget {
       path: '${booksDir.path}/$volume.id',
       series: seriesId,
       isSeries: true,
+      dateAdded: DateTime.now(),
     );
   }
 }

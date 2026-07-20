@@ -9,6 +9,7 @@ class LibraryItem {
   final double progress;
   final int? collection;
   final String? author;
+  final DateTime? dateAdded;
 
   const LibraryItem({
     required this.id,
@@ -19,6 +20,7 @@ class LibraryItem {
     this.progress = 0.0,
     this.collection,
     this.author,
+    this.dateAdded,
   });
 
   factory LibraryItem.fromBook(Book book) {
@@ -31,6 +33,7 @@ class LibraryItem {
       progress: book.progress,
       collection: book.collection,
       author: book.author,
+      dateAdded: book.dateAdded,
     );
   }
 
@@ -42,6 +45,7 @@ class LibraryItem {
       isSeries: true,
       seriesId: series.id,
       collection: series.collection,
+      dateAdded: series.dateAdded,
     );
   }
 }

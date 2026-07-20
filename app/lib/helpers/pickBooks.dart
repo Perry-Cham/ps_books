@@ -78,6 +78,7 @@ class Pick_Books {
                     coverPath: bookData.coverPath != null
                         ? Value(bookData.coverPath)
                         : const Value(null),
+                    dateAdded: Value(DateTime.now()),
                   ),
                 );
           } else if (extension == 'docx' || extension == 'pptx') {
@@ -94,6 +95,7 @@ class Pick_Books {
                     name: bookData.title,
                     path: destinationPath,
                     extension: extension,
+                    dateAdded: Value(DateTime.now()),
                   ),
                 );
           } else if (extension == 'mobi' || extension == 'azw3') {
@@ -116,6 +118,7 @@ class Pick_Books {
                     coverPath: bookData.coverPath != null
                         ? Value(bookData.coverPath)
                         : const Value(null),
+                    dateAdded: Value(DateTime.now()),
                   ),
                 );
 

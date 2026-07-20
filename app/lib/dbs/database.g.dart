@@ -319,6 +319,18 @@ class $SeriesTable extends Series with TableInfo<$SeriesTable, Sery> {
       'REFERENCES collections (id)',
     ),
   );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -326,6 +338,7 @@ class $SeriesTable extends Series with TableInfo<$SeriesTable, Sery> {
     cover,
     description,
     collection,
+    dateAdded,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -371,6 +384,12 @@ class $SeriesTable extends Series with TableInfo<$SeriesTable, Sery> {
         collection.isAcceptableOrUnknown(data['collection']!, _collectionMeta),
       );
     }
+    if (data.containsKey('date_added')) {
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
+    }
     return context;
   }
 
@@ -400,6 +419,10 @@ class $SeriesTable extends Series with TableInfo<$SeriesTable, Sery> {
         DriftSqlType.int,
         data['${effectivePrefix}collection'],
       ),
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
     );
   }
 
@@ -415,12 +438,14 @@ class Sery extends DataClass implements Insertable<Sery> {
   final String? cover;
   final String? description;
   final int? collection;
+  final DateTime dateAdded;
   const Sery({
     required this.id,
     required this.name,
     this.cover,
     this.description,
     this.collection,
+    required this.dateAdded,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -436,6 +461,7 @@ class Sery extends DataClass implements Insertable<Sery> {
     if (!nullToAbsent || collection != null) {
       map['collection'] = Variable<int>(collection);
     }
+    map['date_added'] = Variable<DateTime>(dateAdded);
     return map;
   }
 
@@ -452,6 +478,7 @@ class Sery extends DataClass implements Insertable<Sery> {
       collection: collection == null && nullToAbsent
           ? const Value.absent()
           : Value(collection),
+      dateAdded: Value(dateAdded),
     );
   }
 
@@ -466,6 +493,7 @@ class Sery extends DataClass implements Insertable<Sery> {
       cover: serializer.fromJson<String?>(json['cover']),
       description: serializer.fromJson<String?>(json['description']),
       collection: serializer.fromJson<int?>(json['collection']),
+      dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
     );
   }
   @override
@@ -477,6 +505,7 @@ class Sery extends DataClass implements Insertable<Sery> {
       'cover': serializer.toJson<String?>(cover),
       'description': serializer.toJson<String?>(description),
       'collection': serializer.toJson<int?>(collection),
+      'dateAdded': serializer.toJson<DateTime>(dateAdded),
     };
   }
 
@@ -486,12 +515,14 @@ class Sery extends DataClass implements Insertable<Sery> {
     Value<String?> cover = const Value.absent(),
     Value<String?> description = const Value.absent(),
     Value<int?> collection = const Value.absent(),
+    DateTime? dateAdded,
   }) => Sery(
     id: id ?? this.id,
     name: name ?? this.name,
     cover: cover.present ? cover.value : this.cover,
     description: description.present ? description.value : this.description,
     collection: collection.present ? collection.value : this.collection,
+    dateAdded: dateAdded ?? this.dateAdded,
   );
   Sery copyWithCompanion(SeriesCompanion data) {
     return Sery(
@@ -504,6 +535,7 @@ class Sery extends DataClass implements Insertable<Sery> {
       collection: data.collection.present
           ? data.collection.value
           : this.collection,
+      dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
     );
   }
 
@@ -514,13 +546,15 @@ class Sery extends DataClass implements Insertable<Sery> {
           ..write('name: $name, ')
           ..write('cover: $cover, ')
           ..write('description: $description, ')
-          ..write('collection: $collection')
+          ..write('collection: $collection, ')
+          ..write('dateAdded: $dateAdded')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, cover, description, collection);
+  int get hashCode =>
+      Object.hash(id, name, cover, description, collection, dateAdded);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -529,7 +563,8 @@ class Sery extends DataClass implements Insertable<Sery> {
           other.name == this.name &&
           other.cover == this.cover &&
           other.description == this.description &&
-          other.collection == this.collection);
+          other.collection == this.collection &&
+          other.dateAdded == this.dateAdded);
 }
 
 class SeriesCompanion extends UpdateCompanion<Sery> {
@@ -538,12 +573,14 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
   final Value<String?> cover;
   final Value<String?> description;
   final Value<int?> collection;
+  final Value<DateTime> dateAdded;
   const SeriesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.cover = const Value.absent(),
     this.description = const Value.absent(),
     this.collection = const Value.absent(),
+    this.dateAdded = const Value.absent(),
   });
   SeriesCompanion.insert({
     this.id = const Value.absent(),
@@ -551,6 +588,7 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
     this.cover = const Value.absent(),
     this.description = const Value.absent(),
     this.collection = const Value.absent(),
+    this.dateAdded = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Sery> custom({
     Expression<int>? id,
@@ -558,6 +596,7 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
     Expression<String>? cover,
     Expression<String>? description,
     Expression<int>? collection,
+    Expression<DateTime>? dateAdded,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -565,6 +604,7 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
       if (cover != null) 'cover': cover,
       if (description != null) 'description': description,
       if (collection != null) 'collection': collection,
+      if (dateAdded != null) 'date_added': dateAdded,
     });
   }
 
@@ -574,6 +614,7 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
     Value<String?>? cover,
     Value<String?>? description,
     Value<int?>? collection,
+    Value<DateTime>? dateAdded,
   }) {
     return SeriesCompanion(
       id: id ?? this.id,
@@ -581,6 +622,7 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
       cover: cover ?? this.cover,
       description: description ?? this.description,
       collection: collection ?? this.collection,
+      dateAdded: dateAdded ?? this.dateAdded,
     );
   }
 
@@ -602,6 +644,9 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
     if (collection.present) {
       map['collection'] = Variable<int>(collection.value);
     }
+    if (dateAdded.present) {
+      map['date_added'] = Variable<DateTime>(dateAdded.value);
+    }
     return map;
   }
 
@@ -612,7 +657,8 @@ class SeriesCompanion extends UpdateCompanion<Sery> {
           ..write('name: $name, ')
           ..write('cover: $cover, ')
           ..write('description: $description, ')
-          ..write('collection: $collection')
+          ..write('collection: $collection, ')
+          ..write('dateAdded: $dateAdded')
           ..write(')'))
         .toString();
   }
@@ -771,6 +817,18 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     ),
     defaultValue: Constant(false),
   );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -786,6 +844,7 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     coverPath,
     series,
     isSeries,
+    dateAdded,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -880,6 +939,12 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         isSeries.isAcceptableOrUnknown(data['is_series']!, _isSeriesMeta),
       );
     }
+    if (data.containsKey('date_added')) {
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
+    }
     return context;
   }
 
@@ -941,6 +1006,10 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_series'],
       )!,
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
     );
   }
 
@@ -964,6 +1033,7 @@ class Book extends DataClass implements Insertable<Book> {
   final String? coverPath;
   final int? series;
   final bool isSeries;
+  final DateTime dateAdded;
   const Book({
     required this.id,
     required this.name,
@@ -978,6 +1048,7 @@ class Book extends DataClass implements Insertable<Book> {
     this.coverPath,
     this.series,
     required this.isSeries,
+    required this.dateAdded,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1007,6 +1078,7 @@ class Book extends DataClass implements Insertable<Book> {
       map['series'] = Variable<int>(series);
     }
     map['is_series'] = Variable<bool>(isSeries);
+    map['date_added'] = Variable<DateTime>(dateAdded);
     return map;
   }
 
@@ -1033,6 +1105,7 @@ class Book extends DataClass implements Insertable<Book> {
           ? const Value.absent()
           : Value(series),
       isSeries: Value(isSeries),
+      dateAdded: Value(dateAdded),
     );
   }
 
@@ -1055,6 +1128,7 @@ class Book extends DataClass implements Insertable<Book> {
       coverPath: serializer.fromJson<String?>(json['coverPath']),
       series: serializer.fromJson<int?>(json['series']),
       isSeries: serializer.fromJson<bool>(json['isSeries']),
+      dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
     );
   }
   @override
@@ -1074,6 +1148,7 @@ class Book extends DataClass implements Insertable<Book> {
       'coverPath': serializer.toJson<String?>(coverPath),
       'series': serializer.toJson<int?>(series),
       'isSeries': serializer.toJson<bool>(isSeries),
+      'dateAdded': serializer.toJson<DateTime>(dateAdded),
     };
   }
 
@@ -1091,6 +1166,7 @@ class Book extends DataClass implements Insertable<Book> {
     Value<String?> coverPath = const Value.absent(),
     Value<int?> series = const Value.absent(),
     bool? isSeries,
+    DateTime? dateAdded,
   }) => Book(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -1105,6 +1181,7 @@ class Book extends DataClass implements Insertable<Book> {
     coverPath: coverPath.present ? coverPath.value : this.coverPath,
     series: series.present ? series.value : this.series,
     isSeries: isSeries ?? this.isSeries,
+    dateAdded: dateAdded ?? this.dateAdded,
   );
   Book copyWithCompanion(BooksCompanion data) {
     return Book(
@@ -1123,6 +1200,7 @@ class Book extends DataClass implements Insertable<Book> {
       coverPath: data.coverPath.present ? data.coverPath.value : this.coverPath,
       series: data.series.present ? data.series.value : this.series,
       isSeries: data.isSeries.present ? data.isSeries.value : this.isSeries,
+      dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
     );
   }
 
@@ -1141,7 +1219,8 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('lastRead: $lastRead, ')
           ..write('coverPath: $coverPath, ')
           ..write('series: $series, ')
-          ..write('isSeries: $isSeries')
+          ..write('isSeries: $isSeries, ')
+          ..write('dateAdded: $dateAdded')
           ..write(')'))
         .toString();
   }
@@ -1161,6 +1240,7 @@ class Book extends DataClass implements Insertable<Book> {
     coverPath,
     series,
     isSeries,
+    dateAdded,
   );
   @override
   bool operator ==(Object other) =>
@@ -1178,7 +1258,8 @@ class Book extends DataClass implements Insertable<Book> {
           other.lastRead == this.lastRead &&
           other.coverPath == this.coverPath &&
           other.series == this.series &&
-          other.isSeries == this.isSeries);
+          other.isSeries == this.isSeries &&
+          other.dateAdded == this.dateAdded);
 }
 
 class BooksCompanion extends UpdateCompanion<Book> {
@@ -1195,6 +1276,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<String?> coverPath;
   final Value<int?> series;
   final Value<bool> isSeries;
+  final Value<DateTime> dateAdded;
   const BooksCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -1209,6 +1291,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.coverPath = const Value.absent(),
     this.series = const Value.absent(),
     this.isSeries = const Value.absent(),
+    this.dateAdded = const Value.absent(),
   });
   BooksCompanion.insert({
     this.id = const Value.absent(),
@@ -1224,6 +1307,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.coverPath = const Value.absent(),
     this.series = const Value.absent(),
     this.isSeries = const Value.absent(),
+    this.dateAdded = const Value.absent(),
   }) : name = Value(name),
        path = Value(path),
        extension = Value(extension);
@@ -1241,6 +1325,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<String>? coverPath,
     Expression<int>? series,
     Expression<bool>? isSeries,
+    Expression<DateTime>? dateAdded,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1256,6 +1341,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (coverPath != null) 'cover_path': coverPath,
       if (series != null) 'series': series,
       if (isSeries != null) 'is_series': isSeries,
+      if (dateAdded != null) 'date_added': dateAdded,
     });
   }
 
@@ -1273,6 +1359,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Value<String?>? coverPath,
     Value<int?>? series,
     Value<bool>? isSeries,
+    Value<DateTime>? dateAdded,
   }) {
     return BooksCompanion(
       id: id ?? this.id,
@@ -1288,6 +1375,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
       coverPath: coverPath ?? this.coverPath,
       series: series ?? this.series,
       isSeries: isSeries ?? this.isSeries,
+      dateAdded: dateAdded ?? this.dateAdded,
     );
   }
 
@@ -1333,6 +1421,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (isSeries.present) {
       map['is_series'] = Variable<bool>(isSeries.value);
     }
+    if (dateAdded.present) {
+      map['date_added'] = Variable<DateTime>(dateAdded.value);
+    }
     return map;
   }
 
@@ -1351,7 +1442,8 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('lastRead: $lastRead, ')
           ..write('coverPath: $coverPath, ')
           ..write('series: $series, ')
-          ..write('isSeries: $isSeries')
+          ..write('isSeries: $isSeries, ')
+          ..write('dateAdded: $dateAdded')
           ..write(')'))
         .toString();
   }
@@ -2318,8 +2410,36 @@ class $TargetSubjectsTable extends TargetSubjects
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _deadlineMeta = const VerificationMeta(
+    'deadline',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, uuid, name, syncedAt];
+  late final GeneratedColumn<DateTime> deadline = GeneratedColumn<DateTime>(
+    'deadline',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deadlineOriginalDaysMeta =
+      const VerificationMeta('deadlineOriginalDays');
+  @override
+  late final GeneratedColumn<int> deadlineOriginalDays = GeneratedColumn<int>(
+    'deadline_original_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    uuid,
+    name,
+    syncedAt,
+    deadline,
+    deadlineOriginalDays,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2357,6 +2477,21 @@ class $TargetSubjectsTable extends TargetSubjects
         syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
       );
     }
+    if (data.containsKey('deadline')) {
+      context.handle(
+        _deadlineMeta,
+        deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta),
+      );
+    }
+    if (data.containsKey('deadline_original_days')) {
+      context.handle(
+        _deadlineOriginalDaysMeta,
+        deadlineOriginalDays.isAcceptableOrUnknown(
+          data['deadline_original_days']!,
+          _deadlineOriginalDaysMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2382,6 +2517,14 @@ class $TargetSubjectsTable extends TargetSubjects
         DriftSqlType.dateTime,
         data['${effectivePrefix}synced_at'],
       ),
+      deadline: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deadline'],
+      ),
+      deadlineOriginalDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deadline_original_days'],
+      ),
     );
   }
 
@@ -2396,11 +2539,15 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
   final String uuid;
   final String name;
   final DateTime? syncedAt;
+  final DateTime? deadline;
+  final int? deadlineOriginalDays;
   const TargetSubject({
     required this.id,
     required this.uuid,
     required this.name,
     this.syncedAt,
+    this.deadline,
+    this.deadlineOriginalDays,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2410,6 +2557,12 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || syncedAt != null) {
       map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    if (!nullToAbsent || deadline != null) {
+      map['deadline'] = Variable<DateTime>(deadline);
+    }
+    if (!nullToAbsent || deadlineOriginalDays != null) {
+      map['deadline_original_days'] = Variable<int>(deadlineOriginalDays);
     }
     return map;
   }
@@ -2422,6 +2575,12 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
       syncedAt: syncedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(syncedAt),
+      deadline: deadline == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadline),
+      deadlineOriginalDays: deadlineOriginalDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadlineOriginalDays),
     );
   }
 
@@ -2435,6 +2594,10 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
       uuid: serializer.fromJson<String>(json['uuid']),
       name: serializer.fromJson<String>(json['name']),
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      deadline: serializer.fromJson<DateTime?>(json['deadline']),
+      deadlineOriginalDays: serializer.fromJson<int?>(
+        json['deadlineOriginalDays'],
+      ),
     );
   }
   @override
@@ -2445,6 +2608,8 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
       'uuid': serializer.toJson<String>(uuid),
       'name': serializer.toJson<String>(name),
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'deadline': serializer.toJson<DateTime?>(deadline),
+      'deadlineOriginalDays': serializer.toJson<int?>(deadlineOriginalDays),
     };
   }
 
@@ -2453,11 +2618,17 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
     String? uuid,
     String? name,
     Value<DateTime?> syncedAt = const Value.absent(),
+    Value<DateTime?> deadline = const Value.absent(),
+    Value<int?> deadlineOriginalDays = const Value.absent(),
   }) => TargetSubject(
     id: id ?? this.id,
     uuid: uuid ?? this.uuid,
     name: name ?? this.name,
     syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+    deadline: deadline.present ? deadline.value : this.deadline,
+    deadlineOriginalDays: deadlineOriginalDays.present
+        ? deadlineOriginalDays.value
+        : this.deadlineOriginalDays,
   );
   TargetSubject copyWithCompanion(TargetSubjectsCompanion data) {
     return TargetSubject(
@@ -2465,6 +2636,10 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
       name: data.name.present ? data.name.value : this.name,
       syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+      deadline: data.deadline.present ? data.deadline.value : this.deadline,
+      deadlineOriginalDays: data.deadlineOriginalDays.present
+          ? data.deadlineOriginalDays.value
+          : this.deadlineOriginalDays,
     );
   }
 
@@ -2474,13 +2649,16 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
           ..write('id: $id, ')
           ..write('uuid: $uuid, ')
           ..write('name: $name, ')
-          ..write('syncedAt: $syncedAt')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('deadline: $deadline, ')
+          ..write('deadlineOriginalDays: $deadlineOriginalDays')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, uuid, name, syncedAt);
+  int get hashCode =>
+      Object.hash(id, uuid, name, syncedAt, deadline, deadlineOriginalDays);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2488,7 +2666,9 @@ class TargetSubject extends DataClass implements Insertable<TargetSubject> {
           other.id == this.id &&
           other.uuid == this.uuid &&
           other.name == this.name &&
-          other.syncedAt == this.syncedAt);
+          other.syncedAt == this.syncedAt &&
+          other.deadline == this.deadline &&
+          other.deadlineOriginalDays == this.deadlineOriginalDays);
 }
 
 class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
@@ -2496,17 +2676,23 @@ class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
   final Value<String> uuid;
   final Value<String> name;
   final Value<DateTime?> syncedAt;
+  final Value<DateTime?> deadline;
+  final Value<int?> deadlineOriginalDays;
   const TargetSubjectsCompanion({
     this.id = const Value.absent(),
     this.uuid = const Value.absent(),
     this.name = const Value.absent(),
     this.syncedAt = const Value.absent(),
+    this.deadline = const Value.absent(),
+    this.deadlineOriginalDays = const Value.absent(),
   });
   TargetSubjectsCompanion.insert({
     this.id = const Value.absent(),
     required String uuid,
     required String name,
     this.syncedAt = const Value.absent(),
+    this.deadline = const Value.absent(),
+    this.deadlineOriginalDays = const Value.absent(),
   }) : uuid = Value(uuid),
        name = Value(name);
   static Insertable<TargetSubject> custom({
@@ -2514,12 +2700,17 @@ class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
     Expression<String>? uuid,
     Expression<String>? name,
     Expression<DateTime>? syncedAt,
+    Expression<DateTime>? deadline,
+    Expression<int>? deadlineOriginalDays,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (uuid != null) 'uuid': uuid,
       if (name != null) 'name': name,
       if (syncedAt != null) 'synced_at': syncedAt,
+      if (deadline != null) 'deadline': deadline,
+      if (deadlineOriginalDays != null)
+        'deadline_original_days': deadlineOriginalDays,
     });
   }
 
@@ -2528,12 +2719,16 @@ class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
     Value<String>? uuid,
     Value<String>? name,
     Value<DateTime?>? syncedAt,
+    Value<DateTime?>? deadline,
+    Value<int?>? deadlineOriginalDays,
   }) {
     return TargetSubjectsCompanion(
       id: id ?? this.id,
       uuid: uuid ?? this.uuid,
       name: name ?? this.name,
       syncedAt: syncedAt ?? this.syncedAt,
+      deadline: deadline ?? this.deadline,
+      deadlineOriginalDays: deadlineOriginalDays ?? this.deadlineOriginalDays,
     );
   }
 
@@ -2552,6 +2747,12 @@ class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
     if (syncedAt.present) {
       map['synced_at'] = Variable<DateTime>(syncedAt.value);
     }
+    if (deadline.present) {
+      map['deadline'] = Variable<DateTime>(deadline.value);
+    }
+    if (deadlineOriginalDays.present) {
+      map['deadline_original_days'] = Variable<int>(deadlineOriginalDays.value);
+    }
     return map;
   }
 
@@ -2561,7 +2762,9 @@ class TargetSubjectsCompanion extends UpdateCompanion<TargetSubject> {
           ..write('id: $id, ')
           ..write('uuid: $uuid, ')
           ..write('name: $name, ')
-          ..write('syncedAt: $syncedAt')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('deadline: $deadline, ')
+          ..write('deadlineOriginalDays: $deadlineOriginalDays')
           ..write(')'))
         .toString();
   }
@@ -4326,6 +4529,7 @@ typedef $$SeriesTableCreateCompanionBuilder =
       Value<String?> cover,
       Value<String?> description,
       Value<int?> collection,
+      Value<DateTime> dateAdded,
     });
 typedef $$SeriesTableUpdateCompanionBuilder =
     SeriesCompanion Function({
@@ -4334,6 +4538,7 @@ typedef $$SeriesTableUpdateCompanionBuilder =
       Value<String?> cover,
       Value<String?> description,
       Value<int?> collection,
+      Value<DateTime> dateAdded,
     });
 
 final class $$SeriesTableReferences
@@ -4403,6 +4608,11 @@ class $$SeriesTableFilterComposer
 
   ColumnFilters<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4484,6 +4694,11 @@ class $$SeriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CollectionsTableOrderingComposer get collection {
     final $$CollectionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4530,6 +4745,9 @@ class $$SeriesTableAnnotationComposer
     column: $table.description,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get dateAdded =>
+      $composableBuilder(column: $table.dateAdded, builder: (column) => column);
 
   $$CollectionsTableAnnotationComposer get collection {
     final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
@@ -4613,12 +4831,14 @@ class $$SeriesTableTableManager
                 Value<String?> cover = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
               }) => SeriesCompanion(
                 id: id,
                 name: name,
                 cover: cover,
                 description: description,
                 collection: collection,
+                dateAdded: dateAdded,
               ),
           createCompanionCallback:
               ({
@@ -4627,12 +4847,14 @@ class $$SeriesTableTableManager
                 Value<String?> cover = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<int?> collection = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
               }) => SeriesCompanion.insert(
                 id: id,
                 name: name,
                 cover: cover,
                 description: description,
                 collection: collection,
+                dateAdded: dateAdded,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4727,6 +4949,7 @@ typedef $$BooksTableCreateCompanionBuilder =
       Value<String?> coverPath,
       Value<int?> series,
       Value<bool> isSeries,
+      Value<DateTime> dateAdded,
     });
 typedef $$BooksTableUpdateCompanionBuilder =
     BooksCompanion Function({
@@ -4743,6 +4966,7 @@ typedef $$BooksTableUpdateCompanionBuilder =
       Value<String?> coverPath,
       Value<int?> series,
       Value<bool> isSeries,
+      Value<DateTime> dateAdded,
     });
 
 final class $$BooksTableReferences
@@ -4863,6 +5087,11 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<bool> get isSeries => $composableBuilder(
     column: $table.isSeries,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5002,6 +5231,11 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CollectionsTableOrderingComposer get collection {
     final $$CollectionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -5090,6 +5324,9 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<bool> get isSeries =>
       $composableBuilder(column: $table.isSeries, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateAdded =>
+      $composableBuilder(column: $table.dateAdded, builder: (column) => column);
 
   $$CollectionsTableAnnotationComposer get collection {
     final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
@@ -5204,6 +5441,7 @@ class $$BooksTableTableManager
                 Value<String?> coverPath = const Value.absent(),
                 Value<int?> series = const Value.absent(),
                 Value<bool> isSeries = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
               }) => BooksCompanion(
                 id: id,
                 name: name,
@@ -5218,6 +5456,7 @@ class $$BooksTableTableManager
                 coverPath: coverPath,
                 series: series,
                 isSeries: isSeries,
+                dateAdded: dateAdded,
               ),
           createCompanionCallback:
               ({
@@ -5234,6 +5473,7 @@ class $$BooksTableTableManager
                 Value<String?> coverPath = const Value.absent(),
                 Value<int?> series = const Value.absent(),
                 Value<bool> isSeries = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
               }) => BooksCompanion.insert(
                 id: id,
                 name: name,
@@ -5248,6 +5488,7 @@ class $$BooksTableTableManager
                 coverPath: coverPath,
                 series: series,
                 isSeries: isSeries,
+                dateAdded: dateAdded,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6335,6 +6576,8 @@ typedef $$TargetSubjectsTableCreateCompanionBuilder =
       required String uuid,
       required String name,
       Value<DateTime?> syncedAt,
+      Value<DateTime?> deadline,
+      Value<int?> deadlineOriginalDays,
     });
 typedef $$TargetSubjectsTableUpdateCompanionBuilder =
     TargetSubjectsCompanion Function({
@@ -6342,6 +6585,8 @@ typedef $$TargetSubjectsTableUpdateCompanionBuilder =
       Value<String> uuid,
       Value<String> name,
       Value<DateTime?> syncedAt,
+      Value<DateTime?> deadline,
+      Value<int?> deadlineOriginalDays,
     });
 
 final class $$TargetSubjectsTableReferences
@@ -6400,6 +6645,16 @@ class $$TargetSubjectsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get deadline => $composableBuilder(
+    column: $table.deadline,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deadlineOriginalDays => $composableBuilder(
+    column: $table.deadlineOriginalDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> targetTopicsRefs(
     Expression<bool> Function($$TargetTopicsTableFilterComposer f) f,
   ) {
@@ -6454,6 +6709,16 @@ class $$TargetSubjectsTableOrderingComposer
     column: $table.syncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get deadline => $composableBuilder(
+    column: $table.deadline,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deadlineOriginalDays => $composableBuilder(
+    column: $table.deadlineOriginalDays,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TargetSubjectsTableAnnotationComposer
@@ -6476,6 +6741,14 @@ class $$TargetSubjectsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get syncedAt =>
       $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deadline =>
+      $composableBuilder(column: $table.deadline, builder: (column) => column);
+
+  GeneratedColumn<int> get deadlineOriginalDays => $composableBuilder(
+    column: $table.deadlineOriginalDays,
+    builder: (column) => column,
+  );
 
   Expression<T> targetTopicsRefs<T extends Object>(
     Expression<T> Function($$TargetTopicsTableAnnotationComposer a) f,
@@ -6537,11 +6810,15 @@ class $$TargetSubjectsTableTableManager
                 Value<String> uuid = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> deadline = const Value.absent(),
+                Value<int?> deadlineOriginalDays = const Value.absent(),
               }) => TargetSubjectsCompanion(
                 id: id,
                 uuid: uuid,
                 name: name,
                 syncedAt: syncedAt,
+                deadline: deadline,
+                deadlineOriginalDays: deadlineOriginalDays,
               ),
           createCompanionCallback:
               ({
@@ -6549,11 +6826,15 @@ class $$TargetSubjectsTableTableManager
                 required String uuid,
                 required String name,
                 Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> deadline = const Value.absent(),
+                Value<int?> deadlineOriginalDays = const Value.absent(),
               }) => TargetSubjectsCompanion.insert(
                 id: id,
                 uuid: uuid,
                 name: name,
                 syncedAt: syncedAt,
+                deadline: deadline,
+                deadlineOriginalDays: deadlineOriginalDays,
               ),
           withReferenceMapper: (p0) => p0
               .map(

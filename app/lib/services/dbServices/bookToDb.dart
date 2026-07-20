@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:ps_books/dbs/database.dart';
 import 'package:ps_books/dbs/initdb.dart';
@@ -71,6 +72,7 @@ class BookToDb {
     String? coverPath,
     int? series,
     bool isSeries = false,
+    DateTime? dateAdded,
   }) {
     return _db
         .into(_db.books)
@@ -84,6 +86,7 @@ class BookToDb {
             coverPath: Value(coverPath),
             series: Value(series),
             isSeries: Value(isSeries),
+            dateAdded: dateAdded != null ? Value(dateAdded) : Value.absent(),
           ),
         );
   }
@@ -148,7 +151,7 @@ class BookToDb {
     return results.isNotEmpty ? results.first : null;
   }
 
-  Future<int> addSeries(String name, {String? cover, String? description, int? collection}) {
+  Future<int> addSeries(String name, {String? cover, String? description, int? collection, DateTime? dateAdded}) {
     return _db
         .into(_db.series)
         .insert(
@@ -157,6 +160,7 @@ class BookToDb {
             cover: Value(cover),
             description: Value(description),
             collection: Value(collection),
+            dateAdded: dateAdded != null ? Value(dateAdded) : Value.absent(),
           ),
         );
   }
@@ -185,6 +189,31 @@ class BookToDb {
     await (_db.update(_db.books)..where((b) => b.series.equals(id)))
         .write(BooksCompanion(series: const Value(null)));
     await (_db.delete(_db.series)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<void> deleteSeriesBatch(Set<({int id, bool isSeries})> items) async {
+    final ids = items.where((i) => i.isSeries).map((i) => i.id).toList();
+    if (ids.isEmpty) return;
+    for (final id in ids) {
+      await (_db.update(_db.books)..where((b) => b.series.equals(id)))
+          .write(BooksCompanion(series: const Value(null)));
+    }
+    await (_db.delete(_db.series)..where((t) => t.id.isIn(ids))).go();
+  }
+
+  Future<void> deleteBooksBatch(Set<({int id, bool isSeries})> items) async {
+    final ids = items.where((i) => !i.isSeries).map((i) => i.id).toList();
+    if (ids.isEmpty) return;
+    final books = await (_db.select(_db.books)..where((b) => b.id.isIn(ids))).get();
+    for (final book in books) {
+      if (book.coverPath != null) {
+        final image = File(book.coverPath!);
+        if (await image.exists()) await image.delete();
+      }
+      final bookFile = File(book.path);
+      if (await bookFile.exists()) await bookFile.delete();
+    }
+    await (_db.delete(_db.books)..where((b) => b.id.isIn(ids))).go();
   }
 
   /* === COLLECTIONS === */
