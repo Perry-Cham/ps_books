@@ -2,12 +2,16 @@ class TargetSubjectSync {
   final String uuid;
   final String name;
   final DateTime? syncedAt;
+  final DateTime? deadline;
+  final int? deadlineOriginalDays;
   final List<TargetTopicSync> topics;
 
   TargetSubjectSync({
     required this.uuid,
     required this.name,
     this.syncedAt,
+    this.deadline,
+    this.deadlineOriginalDays,
     required this.topics,
   });
 
@@ -18,6 +22,10 @@ class TargetSubjectSync {
       syncedAt: json['syncedAt'] != null
           ? DateTime.parse(json['syncedAt'] as String)
           : null,
+      deadline: json['deadline'] != null
+          ? DateTime.parse(json['deadline'] as String)
+          : null,
+      deadlineOriginalDays: json['deadlineOriginalDays'] as int?,
       topics: (json['topics'] as List)
           .map((t) => TargetTopicSync.fromJson(t))
           .toList(),
@@ -29,6 +37,8 @@ class TargetSubjectSync {
       'uuid': uuid,
       'name': name,
       'syncedAt': syncedAt?.toIso8601String(),
+      'deadline': deadline?.toIso8601String(),
+      'deadlineOriginalDays': deadlineOriginalDays,
       'topics': topics.map((t) => t.toJson()).toList(),
     };
   }

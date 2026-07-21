@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:ps_books/dbs/database.dart';
+import 'package:ps_books/dbs/initdb.dart';
 import 'package:ps_books/services/dbServices/timetableToDB.dart';
 import 'package:ps_books/state/pomodoro_timer.dart';
 import 'package:timezone/timezone.dart';
@@ -198,6 +199,35 @@ class Notifications {
 
   Future<void> cancelOngoing() async {
     await flutterNotifs.cancel(id: _ongoingId);
+  }
+
+  static const _deadlineChannelId = 'deadline_channel';
+  static const _deadlineAlertId = 8888;
+
+  Future<void> showDeadlineReached(String subjectName, int completedTopics, int totalTopics) async {
+    final androidChannel = AndroidNotificationChannel(
+      _deadlineChannelId,
+      'Target Deadlines',
+      description: 'Notifications when study target deadlines are reached',
+      importance: Importance.high,
+    );
+    final androidPlugin = flutterNotifs.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(androidChannel);
+
+    await flutterNotifs.show(
+      id: _deadlineAlertId,
+      title: 'Deadline reached: $subjectName',
+      body: 'You completed $completedTopics of $totalTopics topics.',
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _deadlineChannelId,
+          'Target Deadlines',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
   }
 
   String _formatDuration(Duration d) {

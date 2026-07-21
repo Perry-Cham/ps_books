@@ -40,7 +40,9 @@ class KatbookEpubController extends ChangeNotifier {
   EpubCssParser? get cssParser => _cssParser;
 
   // Custom
-  void Function(int)? chapterJumpFromWidget;
+dynamic _reader;
+
+// Get the primary key of KatBookEpubReaderStateto control the widget from the controller
 
   // ===== Loading =====
 

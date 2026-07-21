@@ -208,6 +208,7 @@ class LibgenScraper {
         extension: 'epub',
         path: convertedEpubPath,
         coverPath: bookData.coverPath,
+        dateAdded: DateTime.now(),
       );
 
       await File(savePath).delete();
@@ -217,6 +218,7 @@ class LibgenScraper {
         name: filename.split('.')[0],
         extension: 'mobi',
         path: savePath,
+        dateAdded: DateTime.now(),
       );
     }
   }

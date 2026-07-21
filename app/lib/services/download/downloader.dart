@@ -89,12 +89,14 @@ Future<void> processDownloadedBook(String savePath) async {
           ? 1
           : null,
       coverPath: bookData.coverPath,
+      dateAdded: DateTime.now(),
     );
   } else {
     await _db.addBook(
       name: filename.split('.')[0],
       extension: extension,
       path: savePath,
+      dateAdded: DateTime.now(),
     );
   }
 }

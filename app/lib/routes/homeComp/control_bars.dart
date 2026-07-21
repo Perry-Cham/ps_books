@@ -94,10 +94,10 @@ class ControlBar extends ConsumerWidget {
             onPressed: () async {
               try {
                 if (wishlist) {
-                  await deleteSavedBooks(booksToDelete: selectedBookIds);
+                  await deleteSavedBooks(booksToDelete: Set<int>.from(selectedBookIds));
                     ref.read(WishlistStateProvider.notifier).clearSelected();
                 } else {
-                  await deleteBooks(selectedBookIds);
+                  await _deleteLibraryItems(Set<({int id, bool isSeries})>.from(selectedBookIds));
                   ref.read(LibraryStateProvider.notifier).clearSelected();
                 }
                 showDialog(
@@ -162,9 +162,15 @@ class PopUpControls extends ConsumerWidget {
     final selectedBookIds = ref.watch(
       provider.select((state) => (state as dynamic).selectedBookIds),
     );
-    // TODO: implement build
     return PopupMenuButton(
       itemBuilder: (context) => [
+        PopupMenuItem(
+          onTap: () => _showSortDialog(context, ref),
+          child: Row(
+            spacing: 5,
+            children: const [Icon(Icons.sort), Text('Sort')],
+          ),
+        ),
         PopupMenuItem(
           onTap: () {
             showDialog(
@@ -174,7 +180,7 @@ class PopUpControls extends ConsumerWidget {
           },
           child: Row(
             spacing: 5,
-            children: [Icon(Icons.delete), Text('Delete Collection')],
+            children: const [Icon(Icons.delete), Text('Delete Collection')],
           ),
         ),
         PopupMenuItem(
@@ -186,36 +192,36 @@ class PopUpControls extends ConsumerWidget {
           },
           child: Row(
             spacing: 5,
-            children: [Icon(Icons.add), Text('Add To Collection')],
+            children: const [Icon(Icons.add), Text('Add To Collection')],
           ),
         ),
         PopupMenuItem(
           onTap: () async  {
            for(var bookId in selectedBookIds){
-             await BookToDb().removeCollection(bookId);
+              await BookToDb().removeCollection(bookId.id);
            }
           },
           child: Row(
             spacing: 5,
-            children: [Icon(Icons.remove), Text('Remove from Collection')],
+            children: const [Icon(Icons.remove), Text('Remove from Collection')],
           ),
         ),
         PopupMenuItem(
           onTap: () async {
             try {
               if (wishlist) {
-                await deleteSavedBooks(booksToDelete: selectedBookIds);
+                await deleteSavedBooks(booksToDelete: Set<int>.from(selectedBookIds));
                 ref.read(WishlistStateProvider.notifier).clearSelected();
               } else {
-                await deleteBooks(selectedBookIds);
+                await _deleteLibraryItems(Set<({int id, bool isSeries})>.from(selectedBookIds));
                 ref.read(LibraryStateProvider.notifier).clearSelected();
               }
               showDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: Text("Success"),
-                    content: Text("The operation completed successfully!"),
+                    title: const Text("Success"),
+                    content: const Text("The operation completed successfully!"),
                   );
                 },
               );
@@ -225,8 +231,8 @@ class PopUpControls extends ConsumerWidget {
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: Text("Error"),
-                    content: Text("The operation failed!"),
+                    title: const Text("Error"),
+                    content: const Text("The operation failed!"),
                   );
                 },
               );
@@ -234,10 +240,54 @@ class PopUpControls extends ConsumerWidget {
           },
           child: Row(
             spacing: 5,
-            children: [Icon(Icons.delete), Text('Delete')],
+            children: const [Icon(Icons.delete), Text('Delete')],
           ),
         ),
       ],
     );
   }
+
+  void _showSortDialog(BuildContext context, WidgetRef ref) {
+    final currentSort = ref.read(LibraryStateProvider.notifier).state.sort;
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Sort by'),
+        children: [
+          for (final option in SortOrder.values)
+            RadioListTile<SortOrder>(
+              title: Text(_sortLabel(option)),
+              value: option,
+              groupValue: currentSort,
+              onChanged: (val) {
+                if (val != null) {
+                  ref.read(LibraryStateProvider.notifier).setSort(val);
+                  Navigator.pop(ctx);
+                }
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _sortLabel(SortOrder order) {
+    switch (order) {
+      case SortOrder.dateAddedAsc:
+        return 'Date added (oldest first)';
+      case SortOrder.dateAddedDesc:
+        return 'Date added (newest first)';
+      case SortOrder.nameAsc:
+        return 'Name (A–Z)';
+      case SortOrder.nameDesc:
+        return 'Name (Z–A)';
+    }
+  }
+}
+
+Future<void> _deleteLibraryItems(Set<({int id, bool isSeries})> selected) async {
+  if (selected.isEmpty) return;
+  final _db = BookToDb();
+  await _db.deleteBooksBatch(selected);
+  await _db.deleteSeriesBatch(selected);
 }

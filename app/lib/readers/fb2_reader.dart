@@ -588,45 +588,47 @@ class FB2ReaderState extends State<FB2Reader> implements DestinationCapable {
       data: readerTheme,
       child: renderable.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : isDesktop
-          ? Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.7,
-                child: ScrollablePositionedList.builder(
-                  itemScrollController: _itemScrollController,
-                  itemPositionsListener: _itemPositionsListener,
-                  initialScrollIndex: widget.initialPosition ?? 0,
-                  itemCount: renderable.length,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: padding,
-                    vertical: 25.0,
-                  ),
-                  physics: const ClampingScrollPhysics(),
-                  minCacheExtent: 1500,
-                  addAutomaticKeepAlives: true,
-                  addRepaintBoundaries: true,
-                  itemBuilder: (context, index) {
-                    return renderable[index];
-                  },
-                ),
-              ),
-            )
-          : ScrollablePositionedList.builder(
-              itemScrollController: _itemScrollController,
-              itemPositionsListener: _itemPositionsListener,
-              initialScrollIndex: widget.initialPosition ?? 0,
-              itemCount: renderable.length,
-              padding: EdgeInsets.symmetric(
-                horizontal: padding,
-                vertical: 25.0,
-              ),
-              physics: const ClampingScrollPhysics(),
-              minCacheExtent: 1500,
-              addAutomaticKeepAlives: true,
-              addRepaintBoundaries: true,
-              itemBuilder: (context, index) {
-                return renderable[index];
-              },
+          : SelectionArea(
+              child: isDesktop
+                  ? Center(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: ScrollablePositionedList.builder(
+                          itemScrollController: _itemScrollController,
+                          itemPositionsListener: _itemPositionsListener,
+                          initialScrollIndex: widget.initialPosition ?? 0,
+                          itemCount: renderable.length,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: padding,
+                            vertical: 25.0,
+                          ),
+                          physics: const ClampingScrollPhysics(),
+                          minCacheExtent: 1500,
+                          addAutomaticKeepAlives: true,
+                          addRepaintBoundaries: true,
+                          itemBuilder: (context, index) {
+                            return renderable[index];
+                          },
+                        ),
+                      ),
+                    )
+                  : ScrollablePositionedList.builder(
+                      itemScrollController: _itemScrollController,
+                      itemPositionsListener: _itemPositionsListener,
+                      initialScrollIndex: widget.initialPosition ?? 0,
+                      itemCount: renderable.length,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: padding,
+                        vertical: 25.0,
+                      ),
+                      physics: const ClampingScrollPhysics(),
+                      minCacheExtent: 1500,
+                      addAutomaticKeepAlives: true,
+                      addRepaintBoundaries: true,
+                      itemBuilder: (context, index) {
+                        return renderable[index];
+                      },
+                    ),
             ),
     );
   }

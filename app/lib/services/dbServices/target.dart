@@ -28,12 +28,14 @@ Future<TargetSubject?> getSubjectByUuid(String uuid) {
 }
 
 // Insert a subject with a given uuid
-Future<int> insertSubject({required String uuid, required String name, DateTime? syncedAt}) async {
+Future<int> insertSubject({required String uuid, required String name, DateTime? syncedAt, DateTime? deadline, int? deadlineOriginalDays}) async {
   return db.into(db.targetSubjects).insert(
     TargetSubjectsCompanion(
       uuid: Value(uuid),
       name: Value(name),
       syncedAt: Value(syncedAt),
+      deadline: Value(deadline),
+      deadlineOriginalDays: Value(deadlineOriginalDays),
     ),
   );
 }
@@ -44,6 +46,24 @@ Future<void> updateSubject(int id, String name, DateTime? syncedAt) async {
     .write(TargetSubjectsCompanion(
       name: Value(name),
       syncedAt: Value(syncedAt),
+    ));
+}
+
+// Update a subject's deadline
+Future<void> updateDeadline(int id, DateTime? deadline, int? deadlineOriginalDays) async {
+  await (db.update(db.targetSubjects)..where((s) => s.id.equals(id)))
+    .write(TargetSubjectsCompanion(
+      deadline: Value(deadline),
+      deadlineOriginalDays: Value(deadlineOriginalDays),
+    ));
+}
+
+// Clear deadline for a subject (used when deadline passes)
+Future<void> clearDeadline(int id) async {
+  await (db.update(db.targetSubjects)..where((s) => s.id.equals(id)))
+    .write(TargetSubjectsCompanion(
+      deadline: Value(null),
+      deadlineOriginalDays: Value(null),
     ));
 }
 
@@ -92,11 +112,15 @@ Future<void> updateTopic(int id, String name, bool isCompleted, DateTime lastMod
 }
 
 // insert a subject, returns its generated id
-Future<int> addSubject(String name) async {
+Future<int> addSubject(String name, {DateTime? deadline}) async {
+  final now = DateTime.now();
+  final originalDays = deadline?.difference(now).inDays;
   final id = await db.into(db.targetSubjects).insert(
     TargetSubjectsCompanion.insert(
       uuid: _uuid.v4(),
       name: name,
+      deadline: deadline != null ? Value(deadline) : Value.absent(),
+      deadlineOriginalDays: originalDays != null ? Value(originalDays) : Value.absent(),
     ),
   );
   syncTargetsIfSignedIn();

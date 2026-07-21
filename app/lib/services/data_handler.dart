@@ -418,6 +418,7 @@ class DataHandler {
             cover: sMap['cover'] as String?,
             description: sMap['description'] as String?,
             collection: sMap['collection'] as int?,
+            dateAdded: DateTime.now(),
           );
           seriesIdMap[sMap['id'] as int] = newId;
         }
@@ -462,6 +463,7 @@ class DataHandler {
           coverPath: bookData.coverPath,
           series: oldSeriesId != null ? seriesIdMap[oldSeriesId] : null,
           isSeries: bMap['isSeries'] as bool? ?? false,
+          dateAdded: DateTime.now(),
         );
       }
     }

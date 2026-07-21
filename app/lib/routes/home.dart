@@ -2,46 +2,15 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:ps_books/tools/ai_chat.dart';
 import 'package:ps_books/routes/homeComp/currently_reading.dart';
 import 'package:ps_books/routes/homeComp/series_view.dart';
-import 'package:ps_books/services/dbServices/bookToDb.dart';
 import 'package:ps_books/state/library_state.dart';
 import 'package:ps_books/state/reader_state.dart';
 import 'package:ps_books/models/library_item.dart';
 import '../readers/reader_shell.dart';
 import '../helpers/pickBooks.dart';
 import 'homeComp/control_bars.dart';
-import 'package:ps_books/dbs/database.dart';
-
-BookToDb bookService = BookToDb();
-
-final libraryItemsProvider = StreamProvider<List<LibraryItem>>((ref) {
-  final booksStream = bookService.watchAllBooks();
-  final seriesStream = bookService.watchAllSeries();
-
-  return CombineLatestStream.combine2(
-    booksStream,
-    seriesStream,
-    (List<Book> books, List<Sery> series) {
-      final bookItems = books
-          .where((b) => !b.isSeries)
-          .map((b) => LibraryItem.fromBook(b))
-          .toList();
-
-      final seriesItems = series.map((s) {
-        final seriesBooks = books.where((b) => b.series == s.id && !b.isSeries).toList();
-        final coverPath = seriesBooks.isNotEmpty
-            ? (seriesBooks.first.coverPath ?? s.cover)
-            : s.cover;
-        return LibraryItem.fromSeries(s, coverPath: coverPath);
-      }).toList();
-
-      return [...bookItems, ...seriesItems];
-    },
-  );
-});
 
 class HomeAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const HomeAppBar({super.key});
@@ -175,7 +144,6 @@ class BooksContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter = ref.watch(LibraryStateProvider.select((state) => state.filter));
     final libraryItemsAsync = ref.watch(libraryItemsProvider);
 
     return libraryItemsAsync.when(
@@ -186,10 +154,7 @@ class BooksContainer extends ConsumerWidget {
         child: Center(child: Text('Error: $err')),
       ),
       data: (items) {
-        final filtered = filter != null
-            ? items.where((t) => t.collection == filter).toList()
-            : items;
-        if (filtered.isEmpty) {
+        if (items.isEmpty) {
           return const SliverToBoxAdapter(
             child: Center(child: Text('No books yet')),
           );
@@ -202,9 +167,9 @@ class BooksContainer extends ConsumerWidget {
             crossAxisSpacing: 10,
             childAspectRatio: 200 / 300,
           ),
-          itemCount: filtered.length,
+          itemCount: items.length,
           itemBuilder: (context, index) {
-            return LibraryItemCard(item: filtered[index]);
+            return LibraryItemCard(item: items[index]);
           },
         );
       },
@@ -221,7 +186,7 @@ class LibraryItemCard extends ConsumerStatefulWidget {
 }
 
 class LibraryItemCardState extends ConsumerState<LibraryItemCard> {
-  bool display_checkbox = false;
+  bool displayCheckbox = false;
 
   @override
   Widget build(BuildContext context) {
@@ -230,22 +195,22 @@ class LibraryItemCardState extends ConsumerState<LibraryItemCard> {
     );
     bool isSelected = ref.watch(
       LibraryStateProvider.select(
-        (state) => state.selectedBookIds.contains(widget.item.id),
+        (state) => state.selectedBookIds.contains((id: widget.item.id, isSeries: widget.item.isSeries)),
       ),
     );
 
     return InkWell(
-      onHover: (val) => setState(() => display_checkbox = val),
+      onHover: (val) => setState(() => displayCheckbox = val),
       onLongPress: () {
         ref.read(LibraryStateProvider.notifier).setSelectTrue();
-        ref.read(LibraryStateProvider.notifier).addSelected(widget.item.id);
+        ref.read(LibraryStateProvider.notifier).addSelected((id: widget.item.id, isSeries: widget.item.isSeries));
       },
       onTap: () {
         if (controlState) {
           if (!isSelected) {
-            ref.read(LibraryStateProvider.notifier).addSelected(widget.item.id);
+            ref.read(LibraryStateProvider.notifier).addSelected((id: widget.item.id, isSeries: widget.item.isSeries));
           } else {
-            ref.read(LibraryStateProvider.notifier).removeSelected(widget.item.id);
+            ref.read(LibraryStateProvider.notifier).removeSelected((id: widget.item.id, isSeries: widget.item.isSeries));
           }
         } else if (widget.item.isSeries) {
           _openSeriesView();
@@ -341,7 +306,7 @@ class LibraryItemCardState extends ConsumerState<LibraryItemCard> {
               left: 8,
               child: Icon(Icons.collections_bookmark, color: Colors.teal.shade300, size: 20),
             ),
-          if (display_checkbox || isSelected)
+          if (displayCheckbox || isSelected)
             Positioned(
               top: 8,
               right: 8,
@@ -350,9 +315,9 @@ class LibraryItemCardState extends ConsumerState<LibraryItemCard> {
                 onChanged: (val) {
                   if (val != null) {
                     if (val) {
-                      ref.read(LibraryStateProvider.notifier).addSelected(widget.item.id);
+                      ref.read(LibraryStateProvider.notifier).addSelected((id: widget.item.id, isSeries: widget.item.isSeries));
                     } else {
-                      ref.read(LibraryStateProvider.notifier).removeSelected(widget.item.id);
+                      ref.read(LibraryStateProvider.notifier).removeSelected((id: widget.item.id, isSeries: widget.item.isSeries));
                     }
                   }
                 },

@@ -312,13 +312,17 @@ class MobireaderPageState extends State<MobireaderPage>
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => _controller.releaseFocus(),
+    return Focus(
+      autofocus: true,
+      onFocusChange: (hasFocus) {
+        if (hasFocus) {
+          _controller.requestFocus();
+        } else {
+          _controller.releaseFocus();
+        }
+      },
       child: _serverReady
-          ? GestureDetector(
-              onTap: () => _controller.requestFocus(),
-              child: WebViewWidget(controller: _controller),
-            )
+          ? WebViewWidget(controller: _controller)
           : const Center(child: CircularProgressIndicator()),
     );
   }

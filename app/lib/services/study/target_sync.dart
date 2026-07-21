@@ -62,6 +62,8 @@ class TargetSyncingService {
             TargetSubjectsCompanion(
               name: Value(remote.name),
               syncedAt: Value(remote.syncedAt),
+              deadline: Value(remote.deadline),
+              deadlineOriginalDays: Value(remote.deadlineOriginalDays),
             ),
           );
           subjectId = localSubject.id;
@@ -71,6 +73,8 @@ class TargetSyncingService {
               uuid: Value(remote.uuid),
               name: Value(remote.name),
               syncedAt: Value(remote.syncedAt),
+              deadline: Value(remote.deadline),
+              deadlineOriginalDays: Value(remote.deadlineOriginalDays),
             ),
           );
         }
@@ -123,6 +127,8 @@ class TargetSyncingService {
             uuid: subject.uuid,
             name: subject.name,
             syncedAt: subject.syncedAt,
+            deadline: subject.deadline,
+            deadlineOriginalDays: subject.deadlineOriginalDays,
             topics: topics.map((t) => TargetTopicSync(
               uuid: t.uuid,
               name: t.name,
