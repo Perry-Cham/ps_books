@@ -10,9 +10,9 @@ import 'package:pdfrx/pdfrx.dart';
 
 import '../helpers/utils.dart';
 import '../readers/comic_reader.dart';
+import '../readers/docxReader.dart';
 import '../readers/epubReader.dart';
 import '../readers/fb2_reader.dart';
-import '../readers/microsoft_reader.dart';
 import '../readers/mobiReader.dart';
 import '../readers/pdfReader.dart';
 import '../readers/pptReader.dart';
@@ -20,16 +20,6 @@ import '../reader_utils/reader_destination.dart';
 import '../reader_utils/reader_utils.dart' as progress;
 import '../reader_utils/theme.dart';
 
-/// Pure reader widget — renders a single book inside its parent
-/// [ReaderShell]. Has NO AppBar, NO Scaffold, NO split-screen logic.
-///
-/// The shell owns the AppBar (with destinations / settings / AI chat /
-/// second-reader / immersive-mode controls) and instantiates this widget
-/// for both the primary book and — when the user picks a second book —
-/// the secondary book (with [isSecondary] = true).
-///
-/// Implements [DestinationCapable] by delegating to the underlying engine's
-/// state (EPUB/FB2/PDF/MOBI), looked up via the per-engine [GlobalKey]s.
 class Reader extends ConsumerStatefulWidget {
   const Reader({
     super.key,
@@ -48,26 +38,10 @@ class Reader extends ConsumerStatefulWidget {
   final String type;
   final int id;
   final int? page;
-
-  /// Saved position — JSON-encoded `ReadingPosition` for EPUB, JSON-encoded
-  /// `int` for FB2, CFI string for MOBI. Typed (was `dynamic` before).
   final String? position;
-
-  /// When `true`, this widget is the second reader hosted inside the shell's
-  /// split column. Renders a hover-revealed close button (calling
-  /// [onCloseSecondary]) and does NOT render any chrome of its own.
   final bool isSecondary;
-
-  /// Optional immersive-mode notifier — passed down to the PDF engine so its
-  /// page-count overlay can slide out of view in sync with the shell's AppBar.
   final ValueListenable<bool>? immersiveController;
-
-  /// Called when the user taps the hover-revealed close button on a secondary
-  /// reader. The shell wires this to `clearSecondBook()`.
   final VoidCallback? onCloseSecondary;
-
-  /// Called when the user changes the reader theme. The shell uses this to
-  /// update the colour of the AppBar, drawer, and popup menus.
   final void Function(ReaderTheme theme)? onThemeChanged;
 
   @override
@@ -78,11 +52,8 @@ class ReaderWidgetState extends ConsumerState<Reader>
     implements DestinationCapable {
   final PdfViewerController controller = PdfViewerController();
 
-  /// Per-engine keys used to look up the engine's [DestinationCapable] state.
   final GlobalKey<EpubReaderScreenState> _epubReaderKey = GlobalKey();
   final GlobalKey<FB2ReaderState> _fb2ReaderKey = GlobalKey();
-  // PDF state class is private to its file, so we use the generic
-  // `State<StatefulWidget>` key type and rely on `is DestinationCapable`.
   final GlobalKey<State<StatefulWidget>> _pdfKey = GlobalKey();
   final GlobalKey<MobireaderPageState> _mobiReaderKey = GlobalKey();
 
@@ -105,10 +76,6 @@ class ReaderWidgetState extends ConsumerState<Reader>
   void dispose() {
     super.dispose();
   }
-
-  // ---------------------------------------------------------------------------
-  // Progress persistence — thin wrappers around reader_utils functions.
-  // ---------------------------------------------------------------------------
 
   Future<void> savePDFProgress() async {
     await progress.savePdfProgress(
@@ -143,18 +110,11 @@ class ReaderWidgetState extends ConsumerState<Reader>
     );
   }
 
-  /// Best-effort save for any engine that hasn't been saving via callbacks
-  /// during reading. Currently only PDF needs this (pdfrx has no
-  /// page-change callback wired in this codebase).
   Future<void> saveProgress() async {
     if (widget.type == 'pdf') {
       await savePDFProgress();
     }
   }
-
-  // ---------------------------------------------------------------------------
-  // Position restore helpers
-  // ---------------------------------------------------------------------------
 
   ReadingPosition? getPosition() {
     if (widget.position == null) return null;
@@ -171,10 +131,6 @@ class ReaderWidgetState extends ConsumerState<Reader>
   }
 
   int? getFB2Position() => progress.decodeFb2Position(widget.position);
-
-  // ---------------------------------------------------------------------------
-  // DestinationCapable — delegates to the current engine's state.
-  // ---------------------------------------------------------------------------
 
   @override
   Future<List<ReaderDestination>> getDestinations() async {
@@ -210,10 +166,6 @@ class ReaderWidgetState extends ConsumerState<Reader>
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Engine dispatch
-  // ---------------------------------------------------------------------------
-
   Widget checkWidget() {
     if (widget.type == 'pdf') {
       return PDF(
@@ -247,7 +199,7 @@ class ReaderWidgetState extends ConsumerState<Reader>
         future: File(widget.path).readAsBytes(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return MicrosoftReader(fileBytes: snapshot.data!);
+            return DocxReader(bytes: snapshot.data!);
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text("Loading...");
           } else {
@@ -320,11 +272,6 @@ class ReaderWidgetState extends ConsumerState<Reader>
       return Center(child: Text('Unsupported file: ${widget.type}'));
     }
   }
-
-  // ---------------------------------------------------------------------------
-  // Settings sheet — exposed so the shell's AppBar settings button can call
-  // into the reader without owning the engine keys itself.
-  // ---------------------------------------------------------------------------
 
   void showSettings() => _showSettings();
 
@@ -531,16 +478,11 @@ class ReaderWidgetState extends ConsumerState<Reader>
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Build
-  // ---------------------------------------------------------------------------
-
   @override
   Widget build(BuildContext context) {
     final content = checkWidget();
     if (!widget.isSecondary) return content;
 
-    // Secondary reader: wrap with hover-revealed close button.
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
@@ -573,10 +515,7 @@ class ReaderWidgetState extends ConsumerState<Reader>
   }
 
   Future<void> _closeSecondary() async {
-    // Persist PDF progress for the secondary reader on close. Other engines
-    // have been saving via callbacks throughout the session.
     await saveProgress();
-
     widget.onCloseSecondary?.call();
   }
 }

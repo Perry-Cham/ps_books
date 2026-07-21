@@ -1,0 +1,23 @@
+{
+  "name": "ps-books-js-build",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:pptx": "rollup -c rollup.pptx.config.js",
+    "build:docx": "rollup -c rollup.docx.config.js",
+    "build:foliate": "rollup -c rollup.foliate.config.js",
+    "build:all": "pnpm build:pptx && pnpm build:docx && pnpm build:foliate"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-node-resolve": "^15.3.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.40.0"
+  },
+  "dependencies": {
+    "@aiden0z/pptx-renderer": "^1.2.4",
+    "@rollup/rollup-linux-x64-gnu": "^4.62.2",
+    "docx-preview": "^0.4.0",
+    "fs-extra": "^11.2.0"
+  }
+}

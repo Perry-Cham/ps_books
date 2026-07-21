@@ -17,10 +17,6 @@ import 'package:ps_books/services/dbServices/bookToDb.dart';
 
 final _database = BookToDb();
 
-// ---------------------------------------------------------------------------
-// Asset server
-// ---------------------------------------------------------------------------
-
 sr.Router _createRouter(Uint8List fileBytes, String? position) {
   sr.Router router = sr.Router();
 
@@ -42,7 +38,7 @@ sr.Router _createRouter(Uint8List fileBytes, String? position) {
     final path = request.url.path;
     final assetPath = path.isEmpty ? 'mobi.html' : path;
     try {
-      final data = await rootBundle.load('assets/$assetPath');
+      final data = await rootBundle.load('assets/foliate/$assetPath');
       final bytes = data.buffer.asUint8List();
       return Response.ok(
         bytes,
@@ -75,10 +71,6 @@ Future<HttpServer> _startAssetServer(Uint8List bytes, String? position) async {
   return server;
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 class MobireaderPage extends StatefulWidget {
   const MobireaderPage({
     super.key,
@@ -102,12 +94,7 @@ class MobireaderPageState extends State<MobireaderPage>
   int _progress = 0;
   bool _serverReady = false;
 
-  /// Latest CFI received from the JS `relocate` event. Used as a best-effort
-  /// fallback for [goToDestination] state and as the source of truth for
-  /// dispose-time persistence.
   String? _lastCfi;
-
-  /// Latest progress fraction (0..1) received from the JS `relocate` event.
   double _lastProgress = 0.0;
 
   @override
@@ -119,24 +106,20 @@ class MobireaderPageState extends State<MobireaderPage>
 
   Future<void> _startServerAndLoad() async {
     if (kIsWeb) {
-      _controller.loadRequest(Uri.parse('assets/js/foliate-js-main/mobi.html'));
+      _controller.loadRequest(Uri.parse('assets/foliate/mobi.html'));
       if (mounted) setState(() => _serverReady = true);
       return;
     }
 
     _server = await _startAssetServer(widget.bytes, widget.position);
     final url =
-        'http://localhost:${_server!.port}/js/foliate-js-main/mobi.html';
+        'http://localhost:${_server!.port}/mobi.html';
 
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setOnConsoleMessage((message) {
         debugPrint('[MOBI JS ${message.level}] ${message.message}');
       })
-      // Register the JS→Flutter channel. Flutter injects a global
-      // `window.flutterChannel` object whose `.postMessage(string)` is
-      // forwarded to [onMessageReceived]. The JS side uses this for
-      // `relocate` events so we can persist reading position.
       ..addJavaScriptChannel(
         'flutterChannel',
         onMessageReceived: (JavaScriptMessage message) {
@@ -165,10 +148,6 @@ class MobireaderPageState extends State<MobireaderPage>
     if (mounted) setState(() => _serverReady = true);
   }
 
-  // -------------------------------------------------------------------------
-  // JS → Flutter channel handler
-  // -------------------------------------------------------------------------
-
   void _handleFlutterChannelMessage(String raw) {
     Map<String, dynamic>? data;
     try {
@@ -184,7 +163,6 @@ class MobireaderPageState extends State<MobireaderPage>
         final fraction = (data['fraction'] as num?)?.toDouble() ?? 0.0;
         _lastCfi = cfi;
         _lastProgress = fraction;
-        // Persist position + progress on every relocate event.
         unawaited(
           saveMobiProgress(
             bookId: widget.id,
@@ -200,10 +178,6 @@ class MobireaderPageState extends State<MobireaderPage>
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Theme support
-  // -------------------------------------------------------------------------
-
   void setTheme(ReaderTheme theme) {
     if (!_serverReady) return;
     final themeName = theme == ReaderTheme.dark
@@ -214,10 +188,6 @@ class MobireaderPageState extends State<MobireaderPage>
     _controller.runJavaScript('window.mobiReader.setTheme("$themeName")');
   }
 
-  // -------------------------------------------------------------------------
-  // DestinationCapable — lingua franca for the reader shell
-  // -------------------------------------------------------------------------
-
   @override
   Future<List<ReaderDestination>> getDestinations() async {
     if (!_serverReady || kIsWeb) return const [];
@@ -225,24 +195,14 @@ class MobireaderPageState extends State<MobireaderPage>
       final result = await _controller.runJavaScriptReturningResult(
         'window.mobiReader.getDestinationsJSON()',
       );
-      // `runJavaScriptReturningResult` semantics vary across webview versions:
-      //   - v4+ returns the JS value already deserialised to a Dart type
-      //     (List/Map/String/num/bool/null).
-      //   - older versions (and some webview_all paths) return the value as a
-      //     JSON-encoded String (so a returned string `"foo"` comes back as
-      //     `"\"foo\""`).
-      // The JS function returns a JSON string, so we normalise to a String
-      // first and then jsonDecode that String into a List.
       String jsonStr;
       if (result is String) {
         if (result.trim().startsWith('"')) {
-          // JSON-encoded string — decode once to get the inner JSON string.
           jsonStr = jsonDecode(result) as String;
         } else {
           jsonStr = result;
         }
       } else if (result is List) {
-        // Already deserialised — re-encode so we can use the same parser.
         jsonStr = jsonEncode(result);
       } else {
         debugPrint(
@@ -277,7 +237,6 @@ class MobireaderPageState extends State<MobireaderPage>
   Future<void> goToDestination(ReaderDestination destination) async {
     if (!_serverReady || kIsWeb) return;
     try {
-      // jsonEncode the locator to safely escape it as a JS string literal.
       await _controller.runJavaScript(
         'window.mobiReader.goToDestinationByLocator(${jsonEncode(destination.locator)})',
       );
@@ -286,15 +245,8 @@ class MobireaderPageState extends State<MobireaderPage>
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Lifecycle
-  // -------------------------------------------------------------------------
-
   @override
   void dispose() {
-    // Best-effort persist of the latest known position. The webview is being
-    // torn down synchronously so we cannot await further JS calls; the
-    // `_lastCfi` cached from the last `relocate` event is the source of truth.
     if (_lastCfi != null && _lastCfi!.isNotEmpty) {
       unawaited(
         saveMobiProgress(
@@ -312,15 +264,9 @@ class MobireaderPageState extends State<MobireaderPage>
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      autofocus: true,
-      onFocusChange: (hasFocus) {
-        if (hasFocus) {
-          _controller.requestFocus();
-        } else {
-          _controller.releaseFocus();
-        }
-      },
+    return MouseRegion(
+      onEnter: (_) => _controller.requestFocus(),
+      onExit: (_) => _controller.releaseFocus(),
       child: _serverReady
           ? WebViewWidget(controller: _controller)
           : const Center(child: CircularProgressIndicator()),
