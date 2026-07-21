@@ -42,5 +42,4 @@ app.*.map.json
 # Env 
 env.json 
 
-#foliate js build files
-assets/js/foliate-js-main/node_modules/
+#foliate js build files (handled by root .gitignore via **/node_modules/)

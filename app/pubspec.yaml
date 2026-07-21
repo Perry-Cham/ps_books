@@ -54,9 +54,7 @@ dependencies:
   flutter_riverpod: ^3.3.1
   html: ^0.15.6
   dio: ^5.9.2
-  #microsoft_viewer: ^0.0.8
-  microsoft_viewer:
-      path: ../packages/microsoft_viewer
+  # docx now handled by the native JS-based DocxReader
   url_launcher: ^6.3.2
   google_sign_in: ^7.2.0
   extension_google_sign_in_as_googleapis_auth: ^3.0.0
@@ -131,10 +129,11 @@ flutter:
   assets:
      - assets/
      - assets/sounds/
-     - assets/web/
-     - assets/js/foliate-js-main/
-     - assets/js/foliate-js-main/ui/
-     - assets/js/foliate-js-main/vendor/
+     - assets/pptx/
+     - assets/docx/
+     - assets/foliate/
+     - assets/foliate/ui/
+     - assets/foliate/vendor/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

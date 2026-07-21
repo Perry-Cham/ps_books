@@ -8,19 +8,16 @@ import 'package:shelf_router/shelf_router.dart' as sr;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:webview_all/webview_all.dart';
 
-// ---------------------------------------------------------------------------
-// Asset server
-// ---------------------------------------------------------------------------
 sr.Router createRouter(Uint8List fileBytes) {
   sr.Router router = sr.Router();
-  router.get('/web/<path|.*>', (Request request) async {
+  router.get('/pptx/<path|.*>', (Request request) async {
     final segments = request.url.path.split('/');
-    segments.remove('web');
+    segments.remove('pptx');
     final relativePath = segments.join('/');
     final assetPath = relativePath.isEmpty ? 'index.html' : relativePath;
 
     try {
-      final data = await rootBundle.load('assets/web/$assetPath');
+      final data = await rootBundle.load('assets/pptx/$assetPath');
       final bytes = data.buffer.asUint8List();
       return Response.ok(
         bytes,
@@ -59,10 +56,6 @@ Future<HttpServer> startAssetServer(Uint8List bytes) async {
   return server;
 }
 
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
-
 class PptReaderPage extends StatelessWidget {
   const PptReaderPage({super.key, required this.fileBytes});
   final Uint8List fileBytes;
@@ -72,10 +65,6 @@ class PptReaderPage extends StatelessWidget {
     return PptReader(bytes: fileBytes);
   }
 }
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 class PptReader extends StatefulWidget {
   const PptReader({super.key, required this.bytes});
@@ -100,7 +89,7 @@ class _PptReaderState extends State<PptReader> {
 
   Future<void> _startServerAndLoad() async {
     _server = await startAssetServer(widget.bytes);
-    final url = 'http://localhost:${_server!.port}/web/index.html';
+    final url = 'http://localhost:${_server!.port}/pptx/index.html';
 
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -145,16 +134,14 @@ class _PptReaderState extends State<PptReader> {
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => _controller.releaseFocus(),
+    return MouseRegion(
+      onEnter: (_) => _controller.requestFocus(),
+      onExit: (_) => _controller.releaseFocus(),
       child: _serverReady
           ? Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: 1300),
-                child: GestureDetector(
-                  onTap: () => _controller.requestFocus(),
-                  child: WebViewWidget(controller: _controller),
-                ),
+                child: WebViewWidget(controller: _controller),
               ),
             )
           : const Center(child: CircularProgressIndicator()),

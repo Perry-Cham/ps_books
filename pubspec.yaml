@@ -14,7 +14,6 @@ workspace:
   - packages/katbook_epub_reader
   - packages/comic_reader
   - packages/kindle_unpack
-  - packages/microsoft_viewer
   - packages/unrar
   - packages/webview_all
   - packages/webview_all_linux

@@ -27,7 +27,7 @@ ps_books/
     ├── flutter_gen_ai_chat_ui/   # AI chat UI component
     ├── katbook_epub_reader/      # Alternative EPUB reader
     ├── kindle_unpack/            # MOBI/AZW3 unpacker & EPUB converter
-    ├── microsoft_viewer/         # DOC/DOCX/PPT viewer
+    ├── JS packages/             # JS libraries (pptx, docx, foliate-js)
     ├── unrar/                    # RAR archive extraction
     ├── webview_all/              # Cross-platform WebView
     ├── webview_all_linux/        # Linux WebView implementation
@@ -46,7 +46,7 @@ The app directory contains the main reader application while the packages direct
 - **MOBI / AZW3** — via `kindle_unpack` with automatic EPUB conversion
 - **FB2** — FictionBook format with XML parsing and cover extraction
 - **CBR / CBZ / CBT / CBW** — Comic book archives
-- **Microsoft formats** — DOC, DOCX, PPT via `microsoft_viewer`
+- **Microsoft formats** — DOC, DOCX via JS-based `DocxReader` (WebView + docx-preview), PPTX via JS-based `PptReader` (WebView + aiden0z-pptx-renderer)
 
 ### Library Management
 - Grid-based book library with cover images and reading progress

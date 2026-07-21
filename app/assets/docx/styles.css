@@ -1,0 +1,67 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #525659;
+  overflow: auto;
+  font-family: system-ui, sans-serif;
+}
+
+#docx-container {
+  background: white;
+  margin: 20px auto;
+  padding: 40px 60px;
+  min-height: 100vh;
+  max-width: 900px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transform-origin: top left;
+}
+
+#docx-container table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+#docx-container td, #docx-container th {
+  border: 1px solid #999;
+  padding: 8px;
+}
+
+#controls {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #1E1729;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  color: white;
+}
+
+#controls button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+#controls button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+#zoom-level {
+  min-width: 40px;
+  text-align: center;
+  font-size: 0.85rem;
+}
